@@ -1,17 +1,23 @@
-import { Building2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import { ClientesClient } from "./clientes-client"
 
-export default function ClientesPage() {
+export default async function ClientesPage() {
+  const supabase = await createClient()
+
+  const { data: companies } = await supabase
+    .from("companies")
+    .select("id, razao_social, cnpj, porte, cnae, email_contato, contato, ativo")
+    .order("razao_social")
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
-        <p className="text-sm text-slate-500 mt-1">Gestão de empresas cadastradas</p>
+        <p className="text-sm text-slate-500 mt-1">
+          {companies?.length ?? 0} empresa{(companies?.length ?? 0) !== 1 ? "s" : ""} cadastrada{(companies?.length ?? 0) !== 1 ? "s" : ""}
+        </p>
       </div>
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-        <Building2 className="h-10 w-10 text-slate-300 mb-3" />
-        <p className="text-sm font-medium text-slate-500">Esta seção está em desenvolvimento</p>
-        <p className="text-xs text-slate-400 mt-1">Em breve disponível</p>
-      </div>
+      <ClientesClient companies={companies ?? []} />
     </div>
   )
 }
