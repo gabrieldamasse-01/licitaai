@@ -1,17 +1,41 @@
-import { FileText } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import { DocumentosClient } from "./documentos-client"
 
-export default function DocumentosPage() {
+export default async function DocumentosPage() {
+  const supabase = await createClient()
+
+  const [{ data: documents }, { data: companies }, { data: documentTypes }] =
+    await Promise.all([
+      supabase
+        .from("documents")
+        .select(
+          "id, tipo, nome_arquivo, data_emissao, data_validade, status, company_id, companies(razao_social)"
+        )
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("companies")
+        .select("id, razao_social")
+        .eq("ativo", true)
+        .order("razao_social"),
+      supabase
+        .from("document_types")
+        .select("id, nome, categoria")
+        .order("nome"),
+    ])
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Documentos</h1>
-        <p className="text-sm text-slate-500 mt-1">Gestão de documentos de habilitação</p>
+        <p className="text-sm text-slate-500 mt-1">
+          {documents?.length ?? 0} documento{(documents?.length ?? 0) !== 1 ? "s" : ""} cadastrado{(documents?.length ?? 0) !== 1 ? "s" : ""}
+        </p>
       </div>
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-        <FileText className="h-10 w-10 text-slate-300 mb-3" />
-        <p className="text-sm font-medium text-slate-500">Esta seção está em desenvolvimento</p>
-        <p className="text-xs text-slate-400 mt-1">Em breve disponível</p>
-      </div>
+      <DocumentosClient
+        documents={documents ?? []}
+        companies={companies ?? []}
+        documentTypes={documentTypes ?? []}
+      />
     </div>
   )
 }
