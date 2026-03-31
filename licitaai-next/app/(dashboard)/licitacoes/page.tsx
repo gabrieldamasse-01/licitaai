@@ -1,17 +1,20 @@
-import { Search } from "lucide-react"
+import { fetchLicitacoes } from "./actions"
+import { LicitacoesClient } from "./licitacoes-client"
 
-export default function LicitacoesPage() {
+export default async function LicitacoesPage() {
+  const hoje = new Date()
+  const dataFim = hoje.toISOString().split("T")[0]
+  const dataInicio = new Date(hoje.getTime() - 4 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0]
+
+  const dadosIniciais = await fetchLicitacoes({ dataInicio, dataFim, pagina: 0 })
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Licitações</h1>
-        <p className="text-sm text-slate-500 mt-1">Editais monitorados do PNCP</p>
-      </div>
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-        <Search className="h-10 w-10 text-slate-300 mb-3" />
-        <p className="text-sm font-medium text-slate-500">Esta seção está em desenvolvimento</p>
-        <p className="text-xs text-slate-400 mt-1">Em breve disponível</p>
-      </div>
-    </div>
+    <LicitacoesClient
+      dadosIniciais={dadosIniciais}
+      dataInicioDefault={dataInicio}
+      dataFimDefault={dataFim}
+    />
   )
 }
