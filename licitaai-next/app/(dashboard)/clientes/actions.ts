@@ -25,7 +25,7 @@ export type EmpresaFormData = z.infer<typeof empresaSchema>
 export async function criarEmpresa(data: EmpresaFormData) {
   const parsed = empresaSchema.safeParse(data)
   if (!parsed.success) {
-    return { error: parsed.error.errors[0].message }
+    return { error: parsed.error.issues[0].message }
   }
 
   const supabase = await createClient()
@@ -52,7 +52,7 @@ export async function criarEmpresa(data: EmpresaFormData) {
 export async function editarEmpresa(id: string, data: EmpresaFormData) {
   const parsed = empresaSchema.safeParse(data)
   if (!parsed.success) {
-    return { error: parsed.error.errors[0].message }
+    return { error: parsed.error.issues[0].message }
   }
 
   const supabase = await createClient()
