@@ -42,9 +42,10 @@ type EffectiPage = {
 }
 
 export type EffectiParams = {
-  begin: string  // ISO 8601: "2026-03-28T00:00:00" — janela máxima: 5 dias
-  end: string    // ISO 8601: "2026-04-01T23:59:59"
+  begin: string        // ISO 8601: "2026-03-28T00:00:00" — janela máxima: 5 dias
+  end: string          // ISO 8601: "2026-04-01T23:59:59"
   pagina?: number
+  palavrasChave?: string[]  // keywords para filtrar na origem
 }
 
 // Shape normalizado — compatível com o tipo Licitacao do actions.ts
@@ -150,7 +151,13 @@ export async function fetchEffectiLicitacoes(
         "Content-Type": "application/json",
         Authorization: token,  // sem "Bearer" — API requer token direto
       },
-      body: JSON.stringify({ begin: params.begin, end: params.end }),
+      body: JSON.stringify({
+        begin: params.begin,
+        end: params.end,
+        ...(params.palavrasChave && params.palavrasChave.length > 0
+          ? { palavrasChave: params.palavrasChave }
+          : {}),
+      }),
       signal: controller.signal,
       cache: "no-store",
     })

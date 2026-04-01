@@ -82,6 +82,35 @@ function normalizar(str: string): string {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 }
 
+const STOPWORDS = new Set([
+  "ltda", "eireli", "me", "epp", "sa", "sas", "de", "da", "do", "dos",
+  "das", "em", "para", "com", "por", "comercio", "servicos", "servico",
+  "empresa", "industria", "comercial", "nacional",
+])
+
+// ─── Extração de keywords do perfil da empresa ────────────────────────────────
+
+function extrairKeywords(empresa: Empresa): string[] {
+  const keywords = new Set<string>()
+
+  // 1. Keywords dos CNAEs via CNAE_MAP
+  for (const cnae of empresa.cnae ?? []) {
+    const division = cnae.replace(/\D/g, "").substring(0, 2)
+    for (const kw of CNAE_MAP[division] ?? []) {
+      keywords.add(kw)
+    }
+  }
+
+  // 2. Tokens significativos da razão social
+  for (const token of normalizar(empresa.razao_social)
+    .split(/[\s\-\/\.&,]+/)
+    .filter((w) => w.length > 4 && !STOPWORDS.has(w))) {
+    keywords.add(token)
+  }
+
+  return Array.from(keywords)
+}
+
 // ─── Scoring engine ───────────────────────────────────────────────────────────
 
 function calcularScore(
@@ -90,40 +119,58 @@ function calcularScore(
 ): { score: number; motivo: string } {
   const texto = normalizar(`${lic.objetoSemTags} ${lic.objeto}`)
 
-  // 1. CNAE → keywords no objeto (90–100)
-  const cnaeMatches: string[] = []
+  // 1. keyword exata do CNAE aparece no texto (95)
   for (const cnae of empresa.cnae ?? []) {
     const division = cnae.replace(/\D/g, "").substring(0, 2)
-    for (const kw of CNAE_MAP[division] ?? []) {
-      if (texto.includes(normalizar(kw))) cnaeMatches.push(kw)
-    }
-  }
-  if (cnaeMatches.length > 0) {
-    return {
-      score: Math.min(100, 90 + cnaeMatches.length * 2),
-      motivo: `CNAE compatível: ${cnaeMatches.slice(0, 2).join(", ")}`,
+    const kws = CNAE_MAP[division] ?? []
+    const exatas = kws.filter((kw) => texto.includes(normalizar(kw)))
+    if (exatas.length > 0) {
+      return {
+        score: Math.min(100, 95 + exatas.length - 1),
+        motivo: `CNAE exato: "${exatas.slice(0, 2).join('", "')}"`,
+      }
     }
   }
 
-  // 2. Keywords da razão social no objeto (70–89)
-  const stopwords = new Set([
-    "ltda", "eireli", "me", "epp", "sa", "sas", "de", "da", "do", "dos",
-    "das", "em", "para", "com", "por", "comercio", "servicos", "servico",
-    "empresa", "industria", "comercial", "nacional",
-  ])
+  // 2. keyword parcial do CNAE (85) — qualquer token da keyword aparece
+  for (const cnae of empresa.cnae ?? []) {
+    const division = cnae.replace(/\D/g, "").substring(0, 2)
+    const kws = CNAE_MAP[division] ?? []
+    const parciais = kws.flatMap((kw) =>
+      kw.split(" ").filter((part) => part.length > 3 && texto.includes(normalizar(part)))
+    )
+    if (parciais.length > 0) {
+      return {
+        score: Math.min(94, 85 + parciais.length - 1),
+        motivo: `CNAE parcial: "${[...new Set(parciais)].slice(0, 2).join('", "')}"`,
+      }
+    }
+  }
+
+  // 3. CNAE numérico aparece no texto (75)
+  for (const cnae of empresa.cnae ?? []) {
+    const numerico = cnae.replace(/\D/g, "").substring(0, 4)
+    if (numerico.length >= 4 && texto.includes(numerico)) {
+      return {
+        score: 75,
+        motivo: `Código CNAE ${numerico} encontrado no objeto`,
+      }
+    }
+  }
+
+  // 4. Tokens da razão social no objeto (70)
   const razaoTokens = normalizar(empresa.razao_social)
     .split(/[\s\-\/\.&,]+/)
-    .filter((w) => w.length > 4 && !stopwords.has(w))
-
+    .filter((w) => w.length > 4 && !STOPWORDS.has(w))
   const kwMatches = razaoTokens.filter((w) => texto.includes(w))
   if (kwMatches.length > 0) {
     return {
-      score: Math.min(89, 70 + kwMatches.length * 5),
-      motivo: `Termos da empresa encontrados: "${kwMatches.slice(0, 2).join('", "')}"`,
+      score: Math.min(74, 70 + kwMatches.length - 1),
+      motivo: `Termos da empresa: "${kwMatches.slice(0, 2).join('", "')}"`,
     }
   }
 
-  // 3. Modalidade × porte (50–69)
+  // 5. Modalidade compatível com porte (65)
   const mod = normalizar(lic.modalidade ?? "")
   const modSimples = ["dispensa", "inexigibilidade", "pregao eletronico", "credenciamento"]
   const modGrandes = ["concorrencia", "rdc", "dialogo competitivo", "leilao"]
@@ -132,7 +179,7 @@ function calcularScore(
 
   if (["MEI", "ME", "EPP"].includes(empresa.porte) && isSimples) {
     return {
-      score: 60,
+      score: 65,
       motivo: `Modalidade ${lic.modalidade} favorável para empresas de pequeno porte`,
     }
   }
@@ -143,17 +190,17 @@ function calcularScore(
     }
   }
   if (isSimples || isGrande) {
-    return { score: 55, motivo: `Modalidade identificada: ${lic.modalidade}` }
+    return { score: 60, motivo: `Modalidade identificada: ${lic.modalidade}` }
   }
 
   return { score: 30, motivo: "Sem correspondência específica com o perfil" }
 }
 
 function scoreLabel(score: number): string {
-  if (score >= 90) return "Excelente"
-  if (score >= 80) return "Ótimo"
-  if (score >= 70) return "Bom"
-  if (score >= 60) return "Regular"
+  if (score >= 95) return "Excelente"
+  if (score >= 85) return "Ótimo"
+  if (score >= 75) return "Bom"
+  if (score >= 65) return "Regular"
   return "Baixo"
 }
 
@@ -185,7 +232,9 @@ export async function buscarOportunidades(empresaId: string): Promise<{
   const inicio = new Date(hoje.getTime() - 4 * 24 * 60 * 60 * 1000)
   const begin = `${inicio.toISOString().split("T")[0]}T00:00:00`
 
-  const result = await fetchEffectiLicitacoes({ begin, end, pagina: 0 })
+  const palavrasChave = extrairKeywords(empresa)
+
+  const result = await fetchEffectiLicitacoes({ begin, end, pagina: 0, palavrasChave })
   if (result.error) return { oportunidades: [], analisadas: 0, error: result.error }
 
   const analisadas = result.licitacoes.length
@@ -195,7 +244,7 @@ export async function buscarOportunidades(empresaId: string): Promise<{
       const { score, motivo } = calcularScore(empresa, lic)
       return { ...lic, score, scoreLabel: scoreLabel(score), motivo }
     })
-    .filter((o) => o.score >= 50)
+    .filter((o) => o.score >= 60)
     .sort((a, b) => b.score - a.score)
 
   return { oportunidades, analisadas }
