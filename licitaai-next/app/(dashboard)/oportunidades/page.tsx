@@ -1,17 +1,26 @@
-import { Target } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import { OportunidadesClient } from "./oportunidades-client"
+import type { Empresa } from "./actions"
 
-export default function OportunidadesPage() {
+export default async function OportunidadesPage() {
+  const supabase = await createClient()
+
+  const { data: empresas } = await supabase
+    .from("companies")
+    .select("id, razao_social, cnpj, porte, cnae")
+    .eq("ativo", true)
+    .order("razao_social")
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Oportunidades</h1>
-        <p className="text-sm text-slate-500 mt-1">Matches empresa × licitação</p>
+        <p className="text-sm text-slate-500 mt-1">
+          Matches empresa × licitação com scoring por CNAE e perfil
+        </p>
       </div>
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-        <Target className="h-10 w-10 text-slate-300 mb-3" />
-        <p className="text-sm font-medium text-slate-500">Esta seção está em desenvolvimento</p>
-        <p className="text-xs text-slate-400 mt-1">Em breve disponível</p>
-      </div>
+
+      <OportunidadesClient empresas={(empresas ?? []) as Empresa[]} />
     </div>
   )
 }
