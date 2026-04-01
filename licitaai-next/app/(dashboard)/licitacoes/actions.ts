@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-import { fetchEffectiLicitacoes } from "@/lib/effecti"
+
+const PROXY_URL = "https://effecti-dashboard.onrender.com/api/licitacoes/page"
 
 export type Licitacao = {
   idLicitacao: number
@@ -118,28 +119,69 @@ export async function fetchLicitacoes({
   dataInicio,
   dataFim,
   pagina = 0,
+  uf,
+  pesquisa,
 }: {
   dataInicio: string
   dataFim: string
   pagina?: number
+  uf?: string
+  pesquisa?: string
 }): Promise<FetchResult> {
-  // Tenta a API real da Effecti primeiro
-  const result = await fetchEffectiLicitacoes({ dataInicio, dataFim, pagina })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30000)
 
-  // Se retornou dados, usa direto
-  if (!result.error && result.licitacoes.length > 0) {
-    return result
+  try {
+    const body: Record<string, unknown> = {
+      begin: dataInicio,
+      end: dataFim,
+      page: pagina,
+    }
+    if (uf) body.uf = uf
+    if (pesquisa?.trim()) body.pesquisa = pesquisa.trim()
+
+    const res = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+      cache: "no-store",
+    })
+
+    clearTimeout(timeout)
+
+    if (!res.ok) {
+      const fallback = await fetchFromSupabase(pagina)
+      return fallback.error
+        ? { licitacoes: [], pagination: EMPTY_PAGINATION, error: `Proxy retornou ${res.status}` }
+        : fallback
+    }
+
+    const data = await res.json()
+    const licitacoes: Licitacao[] = (data.licitacoes ?? []).filter(
+      (l: Licitacao) => !l.naLixeira
+    )
+
+    if (licitacoes.length === 0) {
+      // Proxy respondeu OK mas sem dados — usa Supabase como complemento
+      const fallback = await fetchFromSupabase(pagina)
+      if (!fallback.error && fallback.licitacoes.length > 0) return fallback
+    }
+
+    return {
+      licitacoes,
+      pagination: data.pagination ?? EMPTY_PAGINATION,
+    }
+  } catch (err: unknown) {
+    clearTimeout(timeout)
+    const isAbort = err instanceof Error && err.name === "AbortError"
+    const error = isAbort
+      ? "Tempo esgotado. O servidor pode estar iniciando — aguarde e tente novamente."
+      : "Erro de conexão com a API de licitações."
+
+    const fallback = await fetchFromSupabase(pagina)
+    return fallback.error ? { licitacoes: [], pagination: EMPTY_PAGINATION, error } : fallback
   }
-
-  // Fallback para Supabase se o token não estiver configurado ou a API falhar
-  const supabaseResult = await fetchFromSupabase(pagina)
-
-  // Se o Supabase também falhou, retorna o erro original da Effecti
-  if (supabaseResult.error && result.error) {
-    return { licitacoes: [], pagination: EMPTY_PAGINATION, error: result.error }
-  }
-
-  return supabaseResult
 }
 
 function parseBrDate(dateStr: string): string | null {

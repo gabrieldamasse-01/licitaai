@@ -390,7 +390,10 @@ export function LicitacoesClient({
 
   function buscar(pagina = 0) {
     startTransition(async () => {
-      const result = await fetchLicitacoes({ dataInicio, dataFim, pagina })
+      // UF: passa a primeira selecionada (proxy aceita uma por vez)
+      const uf = ufsSel.size === 1 ? [...ufsSel][0] : undefined
+      const pesquisa = texto.trim() || undefined
+      const result = await fetchLicitacoes({ dataInicio, dataFim, pagina, uf, pesquisa })
       setDados(result)
       setPaginaAtual(pagina)
       if (result.error) toast.error(result.error)
