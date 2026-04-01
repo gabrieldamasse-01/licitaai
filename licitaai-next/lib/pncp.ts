@@ -1,6 +1,45 @@
-import type { Licitacao, Pagination, FetchResult } from "@/app/(dashboard)/licitacoes/actions"
-
 const BASE = "https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao"
+
+export type Licitacao = {
+  idLicitacao: number
+  orgao: string
+  unidadeGestora: string
+  objeto: string
+  objetoSemTags: string
+  modalidade: string
+  uf: string
+  portal: string
+  processo: string
+  valorTotalEstimado: number
+  dataPublicacao: string
+  dataInicialProposta: string
+  dataFinalProposta: string
+  dataCaptura: string
+  url: string
+  cnpj: string
+  uasg: number
+  palavraEncontrada: string[]
+  rankingCapag: string
+  srp: number
+  srpDescricao: string
+  naLixeira: boolean
+  favorito: boolean
+  perfilNome: string
+  anexos: { nome: string; url: string }[]
+}
+
+export type Pagination = {
+  total_registros: number
+  total_paginas: number
+  pagina_atual: number
+  itens_nesta_pagina: number
+}
+
+export type FetchResult = {
+  licitacoes: Licitacao[]
+  pagination: Pagination
+  error?: string
+}
 
 // codigoModalidadeContratacao é obrigatório na API do PNCP
 const MODALIDADES_PADRAO = [

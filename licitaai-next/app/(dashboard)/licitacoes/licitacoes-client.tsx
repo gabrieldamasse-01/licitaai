@@ -411,7 +411,7 @@ export function LicitacoesClient({
   function toggleUF(uf: string) {
     setUfsSel((prev) => {
       const next = new Set(prev)
-      next.has(uf) ? next.delete(uf) : next.add(uf)
+      if (next.has(uf)) { next.delete(uf) } else { next.add(uf) }
       return next
     })
   }
@@ -419,7 +419,7 @@ export function LicitacoesClient({
   function toggleMod(m: string) {
     setModsSel((prev) => {
       const next = new Set(prev)
-      next.has(m) ? next.delete(m) : next.add(m)
+      if (next.has(m)) { next.delete(m) } else { next.add(m) }
       return next
     })
   }
