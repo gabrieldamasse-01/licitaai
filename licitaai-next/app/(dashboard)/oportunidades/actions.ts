@@ -362,7 +362,6 @@ export async function salvarOportunidade(
       licitacao_id: String(licitacao.idLicitacao),
       relevancia_score: score,
       status: "nova",
-      user_id: user.id,
     },
     { onConflict: "company_id,licitacao_id" }
   )
