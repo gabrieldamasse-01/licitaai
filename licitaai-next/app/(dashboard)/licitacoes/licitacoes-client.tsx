@@ -122,8 +122,8 @@ function LicitacaoCard({
             {lic.portal.replace("Portal Nacional de Contratações Públicas - ", "")}
           </Badge>
         )}
-        <Badge variant="outline" className="text-[11px] px-2 py-0.5 bg-indigo-50 text-indigo-700 border-indigo-200">
-          Via Effecti
+        <Badge variant="outline" className="text-[11px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
+          {lic.portal || "PNCP"}
         </Badge>
       </div>
 
@@ -390,10 +390,9 @@ export function LicitacoesClient({
 
   function buscar(pagina = 0) {
     startTransition(async () => {
-      // UF: passa a primeira selecionada (proxy aceita uma por vez)
       const uf = ufsSel.size === 1 ? [...ufsSel][0] : undefined
-      const pesquisa = texto.trim() || undefined
-      const result = await fetchLicitacoes({ dataInicio, dataFim, pagina, uf, pesquisa })
+      const modalidades = modsSel.size > 0 ? [...modsSel] : undefined
+      const result = await fetchLicitacoes({ dataInicio, dataFim, pagina, uf, modalidades })
       setDados(result)
       setPaginaAtual(pagina)
       if (result.error) toast.error(result.error)

@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-
-const PROXY_URL = "https://effecti-dashboard.onrender.com/api/licitacoes/page"
+import { fetchLicitacoesPNCP, PNCP_MODALIDADE_MAP } from "@/lib/pncp"
 
 export type Licitacao = {
   idLicitacao: number
@@ -120,77 +119,34 @@ export async function fetchLicitacoes({
   dataFim,
   pagina = 0,
   uf,
-  pesquisa,
+  modalidades,
 }: {
   dataInicio: string
   dataFim: string
   pagina?: number
   uf?: string
-  pesquisa?: string
+  modalidades?: string[] // nomes de exibição → traduzidos para códigos PNCP
 }): Promise<FetchResult> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 30000)
+  // Traduz nomes de modalidade para códigos PNCP
+  const modalidadeCodigos = modalidades
+    ?.map((m) => PNCP_MODALIDADE_MAP[m])
+    .filter(Boolean) as number[] | undefined
 
-  try {
-    const body: Record<string, unknown> = {
-      begin: dataInicio,
-      end: dataFim,
-      page: pagina,
-    }
-    if (uf) body.uf = uf
-    if (pesquisa?.trim()) body.pesquisa = pesquisa.trim()
+  const result = await fetchLicitacoesPNCP({
+    dataInicio,
+    dataFim,
+    pagina,
+    uf,
+    modalidadeCodigos,
+  })
 
-    const res = await fetch(PROXY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-      cache: "no-store",
-    })
+  if (!result.error) return result
 
-    clearTimeout(timeout)
-
-    if (!res.ok) {
-      const fallback = await fetchFromSupabase(pagina)
-      return fallback.error
-        ? { licitacoes: [], pagination: EMPTY_PAGINATION, error: `Proxy retornou ${res.status}` }
-        : fallback
-    }
-
-    const data = await res.json()
-    const licitacoes: Licitacao[] = (data.licitacoes ?? []).filter(
-      (l: Licitacao) => !l.naLixeira
-    )
-
-    if (licitacoes.length === 0) {
-      // Proxy respondeu OK mas sem dados — usa Supabase como complemento
-      const fallback = await fetchFromSupabase(pagina)
-      if (!fallback.error && fallback.licitacoes.length > 0) return fallback
-    }
-
-    return {
-      licitacoes,
-      pagination: data.pagination ?? EMPTY_PAGINATION,
-    }
-  } catch (err: unknown) {
-    clearTimeout(timeout)
-    const isAbort = err instanceof Error && err.name === "AbortError"
-    const error = isAbort
-      ? "Tempo esgotado. O servidor pode estar iniciando — aguarde e tente novamente."
-      : "Erro de conexão com a API de licitações."
-
-    const fallback = await fetchFromSupabase(pagina)
-    return fallback.error ? { licitacoes: [], pagination: EMPTY_PAGINATION, error } : fallback
-  }
-}
-
-function parseBrDate(dateStr: string): string | null {
-  if (!dateStr) return null
-  const [datePart, timePart] = dateStr.split(" ")
-  const parts = datePart.split("/")
-  if (parts.length !== 3) return null
-  const [day, month, year] = parts
-  return `${year}-${month}-${day}T${timePart ?? "00:00:00"}`
+  // Fallback para Supabase se o PNCP falhar
+  const fallback = await fetchFromSupabase(pagina)
+  return fallback.error
+    ? { licitacoes: [], pagination: EMPTY_PAGINATION, error: result.error }
+    : fallback
 }
 
 export async function salvarLicitacao(lic: Licitacao) {
@@ -202,15 +158,15 @@ export async function salvarLicitacao(lic: Licitacao) {
 
   const { error } = await supabase.from("licitacoes").upsert(
     {
-      source_id: String(lic.idLicitacao),
+      source_id: lic.processo || String(lic.idLicitacao),
       orgao: lic.orgao,
       objeto: lic.objetoSemTags,
       valor_estimado: lic.valorTotalEstimado || null,
       modalidade: lic.modalidade,
       uf: lic.uf,
       municipio: lic.unidadeGestora || null,
-      data_abertura: parseBrDate(lic.dataInicialProposta),
-      data_encerramento: parseBrDate(lic.dataFinalProposta),
+      data_abertura: lic.dataInicialProposta || null,
+      data_encerramento: lic.dataFinalProposta || null,
       source_url: lic.url,
       status: "ativa",
     },
