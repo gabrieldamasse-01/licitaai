@@ -1,54 +1,53 @@
 const BASE_URL = "https://mdw.minha.effecti.com.br/api-integracao/v1"
 
-// Raw shape retornado pela API Effecti — campos alternativos por versão
-type EffectiAviso = {
-  id?: number | string
-  numeroAviso?: string
-  numeroCompra?: string
-  orgao?: string
-  uf?: string
-  estado?: string
-  municipio?: string
-  cidade?: string
-  modalidade?: string
-  objeto?: string
-  descricao?: string
-  valorEstimado?: number
-  valor?: number
-  dataAbertura?: string
-  abertura?: string
-  dataPublicacao?: string
-  publicacao?: string
-  urlOriginal?: string
-  url?: string
-  portalOrigem?: string
-  status?: string
-  situacao?: string
+// Shape real retornado pela API Effecti (confirmado via teste direto)
+type EffectiLicitacao = {
+  idLicitacao: number
+  orgao: string
+  unidadeGestora?: string
+  objeto: string
+  objetoSemTags?: string
+  modalidade: string
+  uf: string
+  portal: string
+  processo: string
+  valorTotalEstimado: number
+  dataPublicacao: string
+  dataInicialProposta?: string
+  dataFinalProposta?: string
+  dataCaptura: string
+  url: string
+  cnpj?: string
+  uasg?: number
+  palavraEncontrada?: string[]
+  rankingCapag?: string
+  srp?: number
+  srpDescricao?: string
   naLixeira?: boolean
+  favorito?: boolean
+  perfilNome?: string
+  perfil?: number
+  anexos?: { nome: string; url: string }[]
+}
+
+type EffectiMetadata = {
+  pagina_atual: number
+  total_paginas: number
+  total_registros: number
 }
 
 type EffectiPage = {
-  content?: EffectiAviso[]
-  avisos?: EffectiAviso[]
-  licitacoes?: EffectiAviso[]
-  totalElements?: number
-  totalPages?: number
-  number?: number // página atual 0-based
-  size?: number
+  _metadata: EffectiMetadata
+  licitacoes: EffectiLicitacao[]
 }
 
 export type EffectiParams = {
-  dataInicio: string // "YYYY-MM-DD"
-  dataFim: string // "YYYY-MM-DD"
+  begin: string  // ISO 8601: "2026-03-28T00:00:00" — janela máxima: 5 dias
+  end: string    // ISO 8601: "2026-04-01T23:59:59"
   pagina?: number
-  estados?: string[]
-  palavrasChave?: string[]
-  modalidades?: string[]
-  valorMinimo?: number
-  valorMaximo?: number
 }
 
-// Forma normalizada — compatível com o tipo Licitacao do actions.ts
+// Shape normalizado — compatível com o tipo Licitacao do actions.ts
 export type NormalizedLicitacao = {
   idLicitacao: number
   orgao: string
@@ -97,37 +96,33 @@ const EMPTY_PAGINATION: NormalizedPagination = {
   itens_nesta_pagina: 0,
 }
 
-function normalize(aviso: EffectiAviso): NormalizedLicitacao {
-  const rawId = aviso.id ?? aviso.numeroAviso ?? aviso.numeroCompra ?? 0
-  const idLicitacao =
-    typeof rawId === "number" ? rawId : parseInt(String(rawId), 10) || 0
-
+function normalize(lic: EffectiLicitacao): NormalizedLicitacao {
   return {
-    idLicitacao,
-    orgao: aviso.orgao ?? "",
-    unidadeGestora: aviso.municipio ?? aviso.cidade ?? "",
-    objeto: aviso.objeto ?? aviso.descricao ?? "",
-    objetoSemTags: aviso.objeto ?? aviso.descricao ?? "",
-    modalidade: aviso.modalidade ?? "",
-    uf: aviso.uf ?? aviso.estado ?? "",
-    portal: aviso.portalOrigem ?? "Effecti",
-    processo: aviso.numeroCompra ?? aviso.numeroAviso ?? "",
-    valorTotalEstimado: aviso.valorEstimado ?? aviso.valor ?? 0,
-    dataPublicacao: aviso.dataPublicacao ?? aviso.publicacao ?? "",
-    dataInicialProposta: aviso.dataAbertura ?? aviso.abertura ?? "",
-    dataFinalProposta: aviso.dataAbertura ?? aviso.abertura ?? "",
-    dataCaptura: new Date().toISOString(),
-    url: aviso.urlOriginal ?? aviso.url ?? "",
-    cnpj: "",
-    uasg: 0,
-    palavraEncontrada: [],
-    rankingCapag: "",
-    srp: 0,
-    srpDescricao: aviso.status ?? aviso.situacao ?? "",
-    naLixeira: aviso.naLixeira ?? false,
-    favorito: false,
-    perfilNome: "",
-    anexos: [],
+    idLicitacao: lic.idLicitacao,
+    orgao: lic.orgao ?? "",
+    unidadeGestora: lic.unidadeGestora ?? "",
+    objeto: lic.objeto ?? "",
+    objetoSemTags: lic.objetoSemTags ?? lic.objeto ?? "",
+    modalidade: lic.modalidade ?? "",
+    uf: lic.uf ?? "",
+    portal: lic.portal ?? "Effecti",
+    processo: lic.processo ?? "",
+    valorTotalEstimado: lic.valorTotalEstimado ?? 0,
+    dataPublicacao: lic.dataPublicacao ?? "",
+    dataInicialProposta: lic.dataInicialProposta ?? "",
+    dataFinalProposta: lic.dataFinalProposta ?? "",
+    dataCaptura: lic.dataCaptura ?? new Date().toISOString(),
+    url: lic.url ?? "",
+    cnpj: lic.cnpj ?? "",
+    uasg: lic.uasg ?? 0,
+    palavraEncontrada: lic.palavraEncontrada ?? [],
+    rankingCapag: lic.rankingCapag ?? "",
+    srp: lic.srp ?? 0,
+    srpDescricao: lic.srpDescricao ?? "",
+    naLixeira: lic.naLixeira ?? false,
+    favorito: lic.favorito ?? false,
+    perfilNome: lic.perfilNome ?? "",
+    anexos: lic.anexos ?? [],
   }
 }
 
@@ -148,23 +143,14 @@ export async function fetchEffectiLicitacoes(
 
   try {
     const url = `${BASE_URL}/aviso/licitacao?page=${params.pagina ?? 0}`
-    const body: Record<string, unknown> = {
-      dataInicio: params.dataInicio,
-      dataFim: params.dataFim,
-    }
-    if (params.estados?.length) body.estados = params.estados
-    if (params.palavrasChave?.length) body.palavrasChave = params.palavrasChave
-    if (params.modalidades?.length) body.modalidades = params.modalidades
-    if (params.valorMinimo !== undefined) body.valorMinimo = params.valorMinimo
-    if (params.valorMaximo !== undefined) body.valorMaximo = params.valorMaximo
 
     const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: token,  // sem "Bearer" — API requer token direto
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ begin: params.begin, end: params.end }),
       signal: controller.signal,
       cache: "no-store",
     })
@@ -172,22 +158,24 @@ export async function fetchEffectiLicitacoes(
     clearTimeout(timeout)
 
     if (!res.ok) {
+      const text = await res.text().catch(() => "")
       return {
         licitacoes: [],
         pagination: EMPTY_PAGINATION,
-        error: `Effecti API retornou ${res.status}`,
+        error: `Effecti API retornou ${res.status}: ${text}`,
       }
     }
 
     const data: EffectiPage = await res.json()
-    const avisos = data.content ?? data.avisos ?? data.licitacoes ?? []
-    const licitacoes = avisos.filter((a) => !a.naLixeira).map(normalize)
+    const licitacoes = (data.licitacoes ?? [])
+      .filter((l) => !l.naLixeira)
+      .map(normalize)
 
     const pagination: NormalizedPagination = {
-      total_registros: data.totalElements ?? licitacoes.length,
-      total_paginas: data.totalPages ?? 1,
-      pagina_atual: data.number ?? 0,
-      itens_nesta_pagina: data.size ?? licitacoes.length,
+      total_registros: data._metadata?.total_registros ?? licitacoes.length,
+      total_paginas: data._metadata?.total_paginas ?? 1,
+      pagina_atual: data._metadata?.pagina_atual ?? 0,
+      itens_nesta_pagina: licitacoes.length,
     }
 
     return { licitacoes, pagination }

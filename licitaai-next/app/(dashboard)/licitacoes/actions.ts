@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-import { fetchLicitacoesPNCP, PNCP_MODALIDADE_MAP } from "@/lib/pncp"
+import { fetchEffectiLicitacoes } from "@/lib/effecti"
 
 export type Licitacao = {
   idLicitacao: number
@@ -114,35 +114,32 @@ async function fetchFromSupabase(pagina: number): Promise<FetchResult> {
   }
 }
 
+// Converte "YYYY-MM-DD" para ISO 8601 com horário (exigido pela Effecti)
+function toISO(date: string, endOfDay = false): string {
+  if (date.includes("T")) return date
+  return `${date}T${endOfDay ? "23:59:59" : "00:00:00"}`
+}
+
 export async function fetchLicitacoes({
   dataInicio,
   dataFim,
   pagina = 0,
-  uf,
-  modalidades,
 }: {
   dataInicio: string
   dataFim: string
   pagina?: number
   uf?: string
-  modalidades?: string[] // nomes de exibição → traduzidos para códigos PNCP
+  modalidades?: string[]
 }): Promise<FetchResult> {
-  // Traduz nomes de modalidade para códigos PNCP
-  const modalidadeCodigos = modalidades
-    ?.map((m) => PNCP_MODALIDADE_MAP[m])
-    .filter(Boolean) as number[] | undefined
-
-  const result = await fetchLicitacoesPNCP({
-    dataInicio,
-    dataFim,
+  const result = await fetchEffectiLicitacoes({
+    begin: toISO(dataInicio),
+    end: toISO(dataFim, true),
     pagina,
-    uf,
-    modalidadeCodigos,
   })
 
   if (!result.error) return result
 
-  // Fallback para Supabase se o PNCP falhar
+  // Fallback para Supabase se a Effecti falhar
   const fallback = await fetchFromSupabase(pagina)
   return fallback.error
     ? { licitacoes: [], pagination: EMPTY_PAGINATION, error: result.error }
