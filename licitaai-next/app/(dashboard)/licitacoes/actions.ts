@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { fetchEffectiLicitacoes } from "@/lib/effecti"
 
 export type Licitacao = {
   idLicitacao: number
@@ -51,6 +52,68 @@ const EMPTY_PAGINATION: Pagination = {
   itens_nesta_pagina: 0,
 }
 
+// Fallback: lê licitações salvas no Supabase
+async function fetchFromSupabase(pagina: number): Promise<FetchResult> {
+  try {
+    const supabase = await createClient()
+    const pageSize = 20
+    const from = pagina * pageSize
+    const to = from + pageSize - 1
+
+    const { data, error, count } = await supabase
+      .from("licitacoes")
+      .select("*", { count: "exact" })
+      .eq("status", "ativa")
+      .order("created_at", { ascending: false })
+      .range(from, to)
+
+    if (error || !data) {
+      return { licitacoes: [], pagination: EMPTY_PAGINATION, error: "Erro ao buscar no Supabase." }
+    }
+
+    const total = count ?? 0
+    const licitacoes: Licitacao[] = data.map((row) => ({
+      idLicitacao: parseInt(row.source_id ?? "0", 10) || 0,
+      orgao: row.orgao ?? "",
+      unidadeGestora: row.municipio ?? "",
+      objeto: row.objeto ?? "",
+      objetoSemTags: row.objeto ?? "",
+      modalidade: row.modalidade ?? "",
+      uf: row.uf ?? "",
+      portal: "Supabase",
+      processo: row.source_id ?? "",
+      valorTotalEstimado: row.valor_estimado ?? 0,
+      dataPublicacao: row.created_at ?? "",
+      dataInicialProposta: row.data_abertura ?? "",
+      dataFinalProposta: row.data_encerramento ?? "",
+      dataCaptura: row.created_at ?? "",
+      url: row.source_url ?? "",
+      cnpj: "",
+      uasg: 0,
+      palavraEncontrada: [],
+      rankingCapag: "",
+      srp: 0,
+      srpDescricao: row.status ?? "",
+      naLixeira: false,
+      favorito: false,
+      perfilNome: "",
+      anexos: [],
+    }))
+
+    return {
+      licitacoes,
+      pagination: {
+        total_registros: total,
+        total_paginas: Math.ceil(total / pageSize),
+        pagina_atual: pagina,
+        itens_nesta_pagina: licitacoes.length,
+      },
+    }
+  } catch {
+    return { licitacoes: [], pagination: EMPTY_PAGINATION, error: "Erro ao buscar no Supabase." }
+  }
+}
+
 export async function fetchLicitacoes({
   dataInicio,
   dataFim,
@@ -60,51 +123,23 @@ export async function fetchLicitacoes({
   dataFim: string
   pagina?: number
 }): Promise<FetchResult> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 25000)
+  // Tenta a API real da Effecti primeiro
+  const result = await fetchEffectiLicitacoes({ dataInicio, dataFim, pagina })
 
-  try {
-    const res = await fetch(
-      "https://effecti-dashboard.onrender.com/api/licitacoes/page",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          begin: dataInicio + "T00:00:00.000Z",
-          end: dataFim + "T23:59:59.999Z",
-          page: pagina,
-        }),
-        signal: controller.signal,
-        cache: "no-store",
-      }
-    )
-
-    clearTimeout(timeout)
-
-    if (!res.ok) {
-      return {
-        licitacoes: [],
-        pagination: EMPTY_PAGINATION,
-        error: `Erro ao buscar licitações (${res.status})`,
-      }
-    }
-
-    const data = await res.json()
-    return {
-      licitacoes: (data.licitacoes ?? []).filter((l: Licitacao) => !l.naLixeira),
-      pagination: data.pagination ?? EMPTY_PAGINATION,
-    }
-  } catch (err: unknown) {
-    clearTimeout(timeout)
-    const isAbort = err instanceof Error && err.name === "AbortError"
-    return {
-      licitacoes: [],
-      pagination: EMPTY_PAGINATION,
-      error: isAbort
-        ? "Tempo esgotado. O servidor pode estar iniciando — aguarde e tente novamente."
-        : "Erro de conexão com a API de licitações.",
-    }
+  // Se retornou dados, usa direto
+  if (!result.error && result.licitacoes.length > 0) {
+    return result
   }
+
+  // Fallback para Supabase se o token não estiver configurado ou a API falhar
+  const supabaseResult = await fetchFromSupabase(pagina)
+
+  // Se o Supabase também falhou, retorna o erro original da Effecti
+  if (supabaseResult.error && result.error) {
+    return { licitacoes: [], pagination: EMPTY_PAGINATION, error: result.error }
+  }
+
+  return supabaseResult
 }
 
 function parseBrDate(dateStr: string): string | null {
@@ -131,7 +166,7 @@ export async function salvarLicitacao(lic: Licitacao) {
       valor_estimado: lic.valorTotalEstimado || null,
       modalidade: lic.modalidade,
       uf: lic.uf,
-      municipio: null,
+      municipio: lic.unidadeGestora || null,
       data_abertura: parseBrDate(lic.dataInicialProposta),
       data_encerramento: parseBrDate(lic.dataFinalProposta),
       source_url: lic.url,
