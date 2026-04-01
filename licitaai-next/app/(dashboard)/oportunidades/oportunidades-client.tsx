@@ -28,6 +28,7 @@ import {
   type Empresa,
   type Oportunidade,
 } from "./actions"
+import { ChecklistHabilitacao } from "./checklist"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -191,6 +192,7 @@ function OportunidadeCard({
 
 function DetalheSheet({
   op,
+  empresaId,
   open,
   onOpenChange,
   salvo,
@@ -198,6 +200,7 @@ function DetalheSheet({
   onSalvar,
 }: {
   op: Oportunidade | null
+  empresaId: string
   open: boolean
   onOpenChange: (v: boolean) => void
   salvo: boolean
@@ -342,6 +345,10 @@ function DetalheSheet({
               </div>
             </>
           )}
+
+          <Separator />
+
+          <ChecklistHabilitacao empresaId={empresaId} />
 
           <Separator />
 
@@ -569,6 +576,7 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
       {/* ── Detail sheet ── */}
       <DetalheSheet
         op={selecionada}
+        empresaId={empresaId}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         salvo={selecionada ? salvados.has(selecionada.idLicitacao) : false}
