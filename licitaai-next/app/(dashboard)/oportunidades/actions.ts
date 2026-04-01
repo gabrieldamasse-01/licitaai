@@ -345,6 +345,17 @@ export async function buscarOportunidades(empresaId: string): Promise<{
   return { oportunidades, analisadas }
 }
 
+// Converte "DD/MM/YYYY HH:MM:SS" ou "DD/MM/YYYY" para ISO 8601
+function parseDateEffecti(dateStr: string | undefined): string | null {
+  if (!dateStr) return null
+  const parts = dateStr.split(" ")
+  const dateParts = parts[0].split("/")
+  if (dateParts.length !== 3) return null
+  const [day, month, year] = dateParts
+  const time = parts[1] ?? "00:00:00"
+  return `${year}-${month}-${day}T${time}`
+}
+
 export async function salvarOportunidade(
   empresaId: string,
   licitacao: NormalizedLicitacao,
@@ -356,17 +367,42 @@ export async function salvarOportunidade(
   } = await supabase.auth.getUser()
   if (!user) return { error: "Não autenticado" }
 
-  const { error } = await supabase.from("matches").upsert(
+  // 1. Upsert na tabela licitacoes pelo source_id (ID numérico da Effecti)
+  const { data: licRow, error: licError } = await supabase
+    .from("licitacoes")
+    .upsert(
+      {
+        source_id: String(licitacao.idLicitacao),
+        orgao: licitacao.orgao,
+        objeto: licitacao.objetoSemTags || licitacao.objeto,
+        valor_estimado: licitacao.valorTotalEstimado || null,
+        modalidade: licitacao.modalidade,
+        uf: licitacao.uf?.substring(0, 2) || null,
+        data_encerramento: parseDateEffecti(licitacao.dataFinalProposta),
+        source_url: licitacao.url || null,
+        status: "ativa",
+      },
+      { onConflict: "source_id" }
+    )
+    .select("id")
+    .single()
+
+  if (licError || !licRow) {
+    return { error: "Erro ao registrar licitação: " + (licError?.message ?? "sem retorno") }
+  }
+
+  // 2. Upsert do match com o UUID real da licitação
+  const { error: matchError } = await supabase.from("matches").upsert(
     {
       company_id: empresaId,
-      licitacao_id: String(licitacao.idLicitacao),
+      licitacao_id: licRow.id,
       relevancia_score: score,
-      status: "nova",
+      status: "pendente",
     },
     { onConflict: "company_id,licitacao_id" }
   )
 
-  if (error) return { error: "Erro ao salvar: " + error.message }
+  if (matchError) return { error: "Erro ao salvar match: " + matchError.message }
   revalidatePath("/oportunidades")
   return { success: true }
 }
