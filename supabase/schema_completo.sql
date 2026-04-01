@@ -294,7 +294,7 @@ CREATE POLICY "document_types_select_all" ON document_types
 CREATE POLICY "document_types_service_role" ON document_types
   FOR ALL USING (auth.role() = 'service_role');
 
--- licitacoes (leitura pública, escrita apenas service_role)
+-- licitacoes (leitura pública, escrita autenticada para licitações externas)
 ALTER TABLE licitacoes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "licitacoes_select_all" ON licitacoes
@@ -302,6 +302,16 @@ CREATE POLICY "licitacoes_select_all" ON licitacoes
 
 CREATE POLICY "licitacoes_service_role" ON licitacoes
   FOR ALL USING (auth.role() = 'service_role');
+
+-- Permite que usuários autenticados façam upsert de licitações externas (Effecti/PNCP)
+CREATE POLICY "usuarios podem ler licitacoes" ON licitacoes
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "usuarios podem inserir licitacoes externas" ON licitacoes
+  FOR INSERT TO authenticated WITH CHECK (true);
+
+CREATE POLICY "usuarios podem atualizar licitacoes externas" ON licitacoes
+  FOR UPDATE TO authenticated USING (true);
 
 -- matches
 ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
@@ -318,6 +328,16 @@ CREATE POLICY "matches_update_own" ON matches
 
 CREATE POLICY "matches_service_role" ON matches
   FOR ALL USING (auth.role() = 'service_role');
+
+-- Permite que usuários autenticados insiram e gerenciem seus próprios matches
+CREATE POLICY "usuarios podem ler matches" ON matches
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "usuarios podem inserir matches" ON matches
+  FOR INSERT TO authenticated WITH CHECK (true);
+
+CREATE POLICY "usuarios podem atualizar matches" ON matches
+  FOR UPDATE TO authenticated USING (true);
 
 -- edital_analyses (leitura para donos do match, escrita service_role)
 ALTER TABLE edital_analyses ENABLE ROW LEVEL SECURITY;
