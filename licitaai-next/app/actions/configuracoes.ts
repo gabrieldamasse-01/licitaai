@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const EmailSchema = z.object({
-  email_contato: z.string().email('Informe um e-mail válido'),
+  email_contato: z.string().email({ message: 'Informe um e-mail válido' }),
 })
 
 export async function salvarEmailContato(
