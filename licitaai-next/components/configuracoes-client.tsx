@@ -25,11 +25,8 @@ export function ConfiguracoesEmail({ emailAtual }: ConfiguracoesEmailProps) {
   async function testarAlerta() {
     setTestando(true)
     try {
-      const res = await fetch('/api/cron/alertas', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET ?? ''}`,
-        },
+      const res = await fetch('/api/cron/alertas/test', {
+        method: 'POST',
       })
       const json = (await res.json()) as { ok?: boolean; error?: string; enviados?: number }
       if (json.ok) {
