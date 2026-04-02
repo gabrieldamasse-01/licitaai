@@ -10,8 +10,9 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "LicitaIA — Inteligência Artificial para Licitações Públicas",
+  description:
+    "Monitore, analise e vença licitações governamentais com IA. Mais de 15 mil editais por mês, ranking personalizado por CNAE e alertas em tempo real.",
 };
 
 const geistSans = Geist({
