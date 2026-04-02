@@ -1,33 +1,52 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Shield } from "lucide-react"
 
 export function LandingCTA() {
   return (
-    <section className="py-24 bg-gradient-to-br from-[#1A5276] to-[#2E86C1]">
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-          Pronto para vencer mais licitações?
+    <section className="py-24 relative overflow-hidden bg-[#0A1628]">
+      {/* Background radial gradient glow */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-full max-h-96 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
+      </div>
+      
+      {/* Mesh/Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay z-0" />
+
+      <div className="max-w-4xl mx-auto px-6 text-center relative z-10 glass-card p-12 lg:p-20 rounded-[3rem] border border-white/10 shadow-2xl">
+        <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 tracking-tight">
+          Pronto para <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">vencer mais?</span>
         </h2>
-        <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-          Cadastre-se grátis em menos de 2 minutos. Sem cartão de crédito
-          necessário. Comece a encontrar oportunidades hoje mesmo.
+        <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Sem burocracia, sem cartão de crédito exigido no cadastro. Comece a 
+          encontrar e analisar oportunidades agora mesmo.
         </p>
-        <Link
-          href="/auth/sign-up"
-          className="inline-flex items-center gap-3 bg-white text-[#1A5276] font-bold px-10 py-5 rounded-xl text-xl hover:bg-blue-50 transition-all shadow-2xl hover:shadow-xl hover:-translate-y-1"
-        >
-          Criar conta gratuita
-          <ArrowRight className="w-6 h-6" />
-        </Link>
-        <p className="text-white/60 text-sm mt-6">
-          Já tem uma conta?{" "}
+        
+        <div className="flex flex-col items-center gap-6">
           <Link
-            href="/auth/login"
-            className="text-white underline hover:no-underline"
+            href="/auth/sign-up"
+            className="w-full sm:w-auto inline-flex justify-center items-center gap-3 bg-blue-600 text-white font-bold px-10 h-16 rounded-2xl text-lg hover:bg-blue-500 active:scale-95 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)]"
           >
-            Fazer login
+            Criar minha conta grátis
+            <ArrowRight className="w-6 h-6" />
           </Link>
-        </p>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-6 mt-2">
+            <span className="flex items-center gap-2 text-sm text-slate-400">
+              <Shield className="w-4 h-4 text-blue-400" />
+              Conexão 100% Segura
+            </span>
+            <span className="hidden sm:inline text-slate-700">•</span>
+            <span className="text-sm text-slate-400">
+              Já tem conta?{" "}
+              <Link
+                href="/auth/login"
+                className="text-white hover:text-blue-400 font-medium transition-colors border-b border-transparent hover:border-blue-400"
+              >
+                Fazer login
+              </Link>
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   )

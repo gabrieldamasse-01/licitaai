@@ -305,17 +305,17 @@ function Paginacao({
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8"
+        className="h-10 w-10 sm:h-8 sm:w-8 shrink-0"
         disabled={pagina === 0}
         onClick={() => onMudar(pagina - 1)}
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-4 w-4 sm:h-3 sm:w-3" />
       </Button>
 
       {start > 0 && (
         <>
-          <Button variant="outline" size="sm" className="h-8 w-8 text-xs" onClick={() => onMudar(0)}>1</Button>
-          {start > 1 && <span className="text-slate-400 text-sm px-1">…</span>}
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex h-8 w-8 text-xs" onClick={() => onMudar(0)}>1</Button>
+          {start > 1 && <span className="hidden sm:inline-block text-slate-400 text-sm px-1">…</span>}
         </>
       )}
 
@@ -325,7 +325,7 @@ function Paginacao({
           variant="outline"
           size="sm"
           className={cn(
-            "h-8 w-8 text-xs",
+            "h-8 w-8 text-xs hidden sm:inline-flex",
             p === pagina && "bg-[#1A5276] text-white border-[#1A5276] hover:bg-[#154360] hover:text-white"
           )}
           onClick={() => onMudar(p)}
@@ -336,21 +336,26 @@ function Paginacao({
 
       {end < total - 1 && (
         <>
-          {end < total - 2 && <span className="text-slate-400 text-sm px-1">…</span>}
-          <Button variant="outline" size="sm" className="h-8 w-8 text-xs" onClick={() => onMudar(total - 1)}>
+          {end < total - 2 && <span className="hidden sm:inline-block text-slate-400 text-sm px-1">…</span>}
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex h-8 w-8 text-xs" onClick={() => onMudar(total - 1)}>
             {total}
           </Button>
         </>
       )}
 
+      {/* Mobile only page status */}
+      <span className="sm:hidden text-sm text-slate-500 font-medium px-3">
+        Pág {pagina + 1} de {total}
+      </span>
+
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8"
+        className="h-10 w-10 sm:h-8 sm:w-8 shrink-0"
         disabled={pagina >= total - 1}
         onClick={() => onMudar(pagina + 1)}
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 sm:h-3 sm:w-3" />
       </Button>
     </div>
   )
@@ -588,23 +593,23 @@ export function LicitacoesClient({
           </p>
         </div>
 
-        {/* Botão filtros — mobile */}
+        {/* Botão FAB filtros — mobile */}
         <Sheet open={filtrosOpen} onOpenChange={setFiltrosOpen}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="lg:hidden gap-2"
-            onClick={() => setFiltrosOpen(true)}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filtros
-            {filtrosAtivos > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1A5276] text-[10px] font-bold text-white">
-                {filtrosAtivos}
-              </span>
-            )}
-          </Button>
-          <SheetContent side="left" className="w-80 overflow-y-auto">
+          <div className="lg:hidden fixed bottom-20 right-4 z-40">
+            <Button
+              size="icon"
+              className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20"
+              onClick={() => setFiltrosOpen(true)}
+            >
+              <SlidersHorizontal className="h-6 w-6" />
+              {filtrosAtivos > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-[11px] font-bold text-white border-2 border-white shadow-sm">
+                  {filtrosAtivos}
+                </span>
+              )}
+            </Button>
+          </div>
+          <SheetContent side="left" className="w-[85vw] sm:w-80 overflow-y-auto">
             <SheetHeader className="mb-5">
               <SheetTitle>Filtros</SheetTitle>
             </SheetHeader>

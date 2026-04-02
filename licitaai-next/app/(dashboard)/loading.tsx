@@ -12,23 +12,22 @@ export default function DashboardLoading() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm h-28"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm h-32 flex flex-col justify-between"
           >
-            <div className="flex justify-between">
-              <div className="space-y-2 flex-1">
-                <div className="h-3 w-24 rounded bg-slate-200" />
-                <div className="h-8 w-16 rounded bg-slate-200" />
-                <div className="h-2 w-20 rounded bg-slate-100" />
+            <div className="flex justify-between items-start">
+              <div className="space-y-3 flex-1">
+                <div className="h-4 w-24 rounded-full bg-slate-200" />
+                <div className="h-8 w-20 rounded-md bg-slate-200" />
               </div>
-              <div className="h-11 w-11 rounded-full bg-slate-200 shrink-0" />
+              <div className="h-10 w-10 rounded-xl bg-slate-100 shrink-0" />
             </div>
           </div>
         ))}
       </div>
 
       {/* Chart */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm h-64">
-        <div className="h-4 w-40 rounded bg-slate-200 mb-6" />
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-64">
+        <div className="h-4 w-40 rounded-full bg-slate-200 mb-8" />
         <div className="flex items-end gap-4 h-36">
           {Array.from({ length: 6 }).map((_, i) => (
             <div

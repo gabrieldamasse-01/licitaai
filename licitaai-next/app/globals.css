@@ -2,67 +2,221 @@
 @tailwind components;
 @tailwind utilities;
 
+@custom-variant dark (&:is(.dark *));
+
+/* ─── LicitaIA Brand Tokens ────────────────────────────────────────────────── */
+:root {
+  /* Brand palette */
+  --licit-950: #050D1A;
+  --licit-900: #0A1628;
+  --licit-800: #0F2040;
+  --licit-700: #1A3A6B;
+  --licit-600: #1D4ED8;
+  --licit-500: #2563EB;
+  --licit-400: #60A5FA;
+  --licit-300: #93C5FD;
+  --licit-electric: #38BDF8;
+  --licit-success: #10B981;
+  --licit-warning: #F59E0B;
+  --licit-danger: #EF4444;
+
+  /* Shadcn CSS vars — remapped to brand */
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+
+  /* Primary → brand blue */
+  --primary: #1D4ED8;
+  --primary-foreground: oklch(0.985 0 0);
+
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: #EF4444;
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: #1D4ED8;
+
+  /* Chart colours */
+  --chart-1: #1D4ED8;
+  --chart-2: #10B981;
+  --chart-3: #F59E0B;
+  --chart-4: #8B5CF6;
+  --chart-5: #EF4444;
+
+  /* Sidebar */
+  --sidebar: #0A1628;
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #1D4ED8;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: rgba(255,255,255,0.06);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: rgba(255,255,255,0.08);
+  --sidebar-ring: #60A5FA;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: #2563EB;
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: #60A5FA;
+}
+
+/* ─── Base Resets ───────────────────────────────────────────────────────────── */
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* ── Mobile touch UX ─────────────────────────────────────────────────────── */
+
+  /* Remove 300ms tap delay on all interactive elements */
+  a, button, [role="button"], input, select, textarea, label {
+    touch-action: manipulation;
+  }
+
+  /* Remove blue tap highlight on iOS/Android */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Minimum 44×44px touch targets (WCAG 2.5.5) */
+  button, [role="button"], a {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Restore inline for specific elements that shouldn't be flex */
+  a.inline-link,
+  p a,
+  nav a,
+  .prose a {
+    display: inline;
+    min-height: unset;
+    min-width: unset;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+/* ─── Utility Classes ───────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Gradient text — hero headline */
+  .gradient-text-hero {
+    background: linear-gradient(135deg, #ffffff 0%, #bfdbfe 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  /* Gradient text — electric blue accent */
+  .gradient-text-electric {
+    background: linear-gradient(90deg, #1D4ED8, #38BDF8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Brand gradient background */
+  .gradient-brand {
+    background: linear-gradient(135deg, #1D4ED8 0%, #0EA5E9 100%);
+  }
+
+  /* Glassmorphism card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Glassmorphism — light variant (for nav on scroll) */
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  /* Radial glow blob */
+  .glow-blue {
+    background: radial-gradient(ellipse at center, rgba(29, 78, 216, 0.35) 0%, transparent 70%);
+  }
+
+  .glow-electric {
+    background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.25) 0%, transparent 70%);
+  }
+
+  /* Button glow on hover */
+  .btn-glow:hover {
+    box-shadow: 0 0 20px rgba(29, 78, 216, 0.5), 0 4px 15px rgba(29, 78, 216, 0.3);
   }
 }
+
+/* ─── Keyframe Animations ───────────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.08); }
+}
+
+@keyframes dot-ping {
+  0%    { transform: scale(1); opacity: 1; }
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes grid-scroll {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float         { animation: float 6s ease-in-out infinite; }
+.animate-glow-pulse    { animation: glow-pulse 3s ease-in-out infinite; }
+.animate-dot-ping      { animation: dot-ping 1.5s ease-out infinite; }
+.animate-slide-up-fade { animation: slide-up-fade 0.6s ease-out both; }

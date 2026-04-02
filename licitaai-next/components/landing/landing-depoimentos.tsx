@@ -1,87 +1,93 @@
-import { Star } from "lucide-react"
+"use client"
 
-const depoimentos = [
+import { Star } from "lucide-react"
+import { motion } from "motion/react"
+
+const testimonials = [
   {
-    nome: "Rodrigo Almeida",
-    cargo: "Diretor Comercial",
-    empresa: "TechServ Soluções",
-    texto:
-      "A LicitaIA transformou nossa operação de licitações. Em 6 meses aumentamos nossa taxa de participação em 340% e fechamos 8 contratos que nunca teríamos descoberto manualmente.",
-    estrelas: 5,
-    avatar: "RA",
-    cor: "#1A5276",
+    author: "Carlos Silveira",
+    role: "Diretor Comercial",
+    company: "TechGov Soluções",
+    content: "Antes do LicitaIA nossa equipe perdia 4 horas diárias lendo diários oficiais. Hoje recebemos as oportunidades filtradas logo cedo, com 98% de precisão. Nosseguro tempo e aumentamos nossas vitórias em 45%.",
+    rating: 5,
   },
   {
-    nome: "Fernanda Costa",
-    cargo: "Gerente de Contratos",
-    empresa: "Construmax Engenharia",
-    texto:
-      "O sistema de alertas é incrível. Antes perdíamos prazos por falta de monitoramento. Agora recebo notificações instantâneas de licitações compatíveis com nossa área.",
-    estrelas: 5,
-    avatar: "FC",
-    cor: "#27AE60",
+    author: "Mariana Costa",
+    role: "Gerente de Licitações",
+    company: "Construtora Horizonte",
+    content: "O Score de Relevância é um divisor de águas. Ele não só encontra o edital, como rankeia as licitações onde temos mais chances de vencer. O painel é super intuitivo.",
+    rating: 5,
   },
   {
-    nome: "Paulo Mendonça",
-    cargo: "Sócio-Fundador",
-    empresa: "Alpha Facilities",
-    texto:
-      "A análise de editais com IA economiza horas de trabalho da nossa equipe. O sistema identifica riscos e oportunidades que levaríamos dias para mapear.",
-    estrelas: 5,
-    avatar: "PM",
-    cor: "#2E86C1",
+    author: "Roberto Almeida",
+    role: "Sócio Administrador",
+    company: "Almeida & Cia Fornecimento",
+    content: "Como pequena empresa, não tínhamos braço para monitorar o Brasil inteiro. A plataforma democratizou nosso acesso, ano passado fechamos nosso primeiro grande pregão federal graças ao alerta instantâneo.",
+    rating: 5,
   },
 ]
 
 export function LandingDepoimentos() {
   return (
-    <section className="py-24 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <span className="text-sm font-semibold text-[#2E86C1] uppercase tracking-widest">
-            Resultados reais
-          </span>
-          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">
-            O que dizem nossos clientes
-          </h2>
-          <p className="text-xl text-gray-500">
-            Mais de 2.400 empresas já transformaram seus resultados em
-            licitações
-          </p>
+    <section id="depoimentos" className="py-24 bg-[#0A1628] relative">
+      {/* Background glow */}
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-700/10 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <motion.div 
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true, margin: "-100px" }}
+             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card border border-emerald-500/30 text-emerald-300 text-sm font-medium mb-6"
+          >
+            Casos de Sucesso
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-3xl md:text-5xl font-bold text-white mb-6"
+          >
+            Quem usa, aprova e <span className="text-blue-400">vence</span>
+          </motion.h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {depoimentos.map((d) => (
-            <div
-              key={d.nome}
-              className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-all border border-gray-100"
+        {/* Horizontal Carousel for Mobile, Grid for Desktop */}
+        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+          {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="glass-card flex-col flex justify-between p-8 rounded-3xl min-w-[300px] sm:min-w-[350px] md:min-w-0 snap-center border border-white/5 hover:border-blue-500/30 transition-all"
             >
-              <div className="flex items-center gap-1 mb-4">
-                {Array.from({ length: d.estrelas }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 text-yellow-400 fill-yellow-400"
-                  />
-                ))}
+              <div>
+                <div className="flex gap-1 mb-6">
+                  {Array.from({ length: testimonial.rating }).map((_, i) => (
+                    <Star key={i} className="w-5 h-5 fill-emerald-500 text-emerald-500" />
+                  ))}
+                </div>
+                <p className="text-slate-300 text-lg leading-relaxed mb-8">
+                  &quot;{testimonial.content}&quot;
+                </p>
               </div>
-              <p className="text-gray-600 leading-relaxed mb-6 italic">
-                &ldquo;{d.texto}&rdquo;
-              </p>
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                  style={{ backgroundColor: d.cor }}
-                >
-                  {d.avatar}
+              
+              <div className="flex items-center gap-4 pt-6 border-t border-white/10">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-400 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  {testimonial.author.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">{d.nome}</p>
-                  <p className="text-sm text-gray-500">
-                    {d.cargo} · {d.empresa}
+                  <h4 className="font-bold text-white">{testimonial.author}</h4>
+                  <p className="text-sm text-slate-400">
+                    {testimonial.role} • <span className="text-blue-400">{testimonial.company}</span>
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

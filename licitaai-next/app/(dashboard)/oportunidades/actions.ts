@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { fetchEffectiLicitacoes, type NormalizedLicitacao } from "@/lib/effecti"
-import { calcularScore as calcScore, scoreLabel as getScoreLabel, CNAE_MAP, normalizar, extrairKeywords as extractKeywords } from "@/lib/scoring"
+import { calcularScore as calcScore, scoreLabel as getScoreLabel, extrairKeywords as extractKeywords } from "@/lib/scoring"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

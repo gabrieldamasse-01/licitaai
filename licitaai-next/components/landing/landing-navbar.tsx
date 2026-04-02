@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
-import { Menu, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Menu, X, Scale } from "lucide-react"
+import { motion, AnimatePresence } from "motion/react"
+import { cn } from "@/lib/utils"
 
 interface LandingNavbarProps {
   isLoggedIn: boolean
@@ -10,49 +12,59 @@ interface LandingNavbarProps {
 
 export function LandingNavbar({ isLoggedIn }: LandingNavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  // Handle scroll for glassmorphism
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   return (
-    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled 
+          ? "bg-[#0A1628]/80 backdrop-blur-xl border-b border-white/10 shadow-lg"
+          : "bg-transparent border-transparent"
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20 transition-all duration-300">
+          
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#1A5276] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">L</span>
+          <Link href="/" className="flex items-center gap-3 group relative z-50">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-400 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300">
+              <Scale className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-[#1A5276]">
-              Licita<span className="text-[#2E86C1]">IA</span>
-            </span>
+            <span className="text-xl font-bold tracking-tight text-white">LicitaIA</span>
           </Link>
 
-          {/* Desktop nav */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            <a
-              href="#planos"
-              className="text-gray-600 hover:text-[#1A5276] font-medium text-sm transition-colors"
-            >
-              Planos
-            </a>
-            <a
-              href="#beneficios"
-              className="text-gray-600 hover:text-[#1A5276] font-medium text-sm transition-colors"
-            >
-              Benefícios
-            </a>
-            <a
-              href="#como-funciona"
-              className="text-gray-600 hover:text-[#1A5276] font-medium text-sm transition-colors"
-            >
-              Como funciona
-            </a>
+            {["Benefícios", "Solução", "Depoimentos", "Planos"].map((item) => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              >
+                {item}
+              </a>
+            ))}
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="bg-[#1A5276] text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-[#154360] transition-colors text-sm"
+                className="h-10 px-5 inline-flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 text-sm font-medium text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] transition-all"
               >
                 Ir para o Dashboard
               </Link>
@@ -60,13 +72,13 @@ export function LandingNavbar({ isLoggedIn }: LandingNavbarProps) {
               <>
                 <Link
                   href="/auth/login"
-                  className="text-gray-700 font-semibold px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-colors text-sm"
+                  className="h-10 px-5 inline-flex items-center justify-center rounded-full text-sm font-medium text-white hover:bg-white/10 transition-colors"
                 >
                   Entrar
                 </Link>
                 <Link
                   href="/auth/sign-up"
-                  className="bg-[#1A5276] text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-[#154360] transition-colors text-sm"
+                  className="h-10 px-5 inline-flex items-center justify-center rounded-full bg-white hover:bg-slate-100 text-sm font-medium text-[#0A1628] transition-colors"
                 >
                   Começar grátis
                 </Link>
@@ -74,75 +86,71 @@ export function LandingNavbar({ isLoggedIn }: LandingNavbarProps) {
             )}
           </div>
 
-          {/* Mobile toggle */}
+          {/* Mobile Toggle */}
           <button
-            className="md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-600"
+            className="md:hidden relative z-50 p-2 -mr-2 text-white/70 hover:text-white transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-label="Menu"
           >
-            {mobileOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
+      </div>
 
-        {/* Mobile menu */}
+      {/* Mobile Menu */}
+      <AnimatePresence>
         {mobileOpen && (
-          <div className="md:hidden pb-4 pt-2 space-y-1 border-t border-gray-100 mt-2">
-            <a
-              href="#planos"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center px-4 py-3 text-gray-700 text-sm font-medium hover:bg-gray-50 rounded-xl transition-colors"
-            >
-              Planos
-            </a>
-            <a
-              href="#beneficios"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center px-4 py-3 text-gray-700 text-sm font-medium hover:bg-gray-50 rounded-xl transition-colors"
-            >
-              Benefícios
-            </a>
-            <a
-              href="#como-funciona"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center px-4 py-3 text-gray-700 text-sm font-medium hover:bg-gray-50 rounded-xl transition-colors"
-            >
-              Como funciona
-            </a>
-            <div className="pt-3 border-t border-gray-100 space-y-2 px-1">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-full left-0 right-0 bg-[#0A1628]/95 backdrop-blur-xl border-b border-white/10 md:hidden"
+          >
+            <div className="px-4 pt-2 pb-6 space-y-1">
+              {["Benefícios", "Solução", "Depoimentos", "Planos"].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-4 py-3 text-base font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                >
+                  {item}
+                </a>
+              ))}
+              
+              <div className="pt-4 mt-2 mb-2 border-t border-white/10"></div>
+              
               {isLoggedIn ? (
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileOpen(false)}
-                  className="block text-center bg-[#1A5276] text-white font-semibold py-3 rounded-xl text-sm hover:bg-[#154360] transition-colors"
+                  className="w-full h-12 flex items-center justify-center rounded-xl bg-blue-600 text-white font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)]"
                 >
                   Ir para o Dashboard
                 </Link>
               ) : (
-                <>
-                  <Link
-                    href="/auth/login"
-                    onClick={() => setMobileOpen(false)}
-                    className="block text-center border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-                  >
-                    Entrar
-                  </Link>
+                <div className="flex flex-col gap-3">
                   <Link
                     href="/auth/sign-up"
                     onClick={() => setMobileOpen(false)}
-                    className="block text-center bg-[#1A5276] text-white font-semibold py-3 rounded-xl text-sm hover:bg-[#154360] transition-colors"
+                    className="w-full h-12 flex items-center justify-center rounded-xl bg-white text-[#0A1628] font-medium"
                   >
                     Começar grátis
                   </Link>
-                </>
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full h-12 flex items-center justify-center rounded-xl border border-white/20 text-white font-medium hover:bg-white/5 transition-colors"
+                  >
+                    Entrar
+                  </Link>
+                </div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
-    </nav>
+      </AnimatePresence>
+    </motion.nav>
   )
 }

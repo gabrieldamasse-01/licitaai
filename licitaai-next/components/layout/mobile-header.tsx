@@ -1,15 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, LogOut, Scale } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { LogOut, Scale, ChevronDown } from "lucide-react"
+
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
-import { SidebarNav } from "@/components/layout/app-sidebar"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
@@ -36,68 +34,39 @@ export function MobileHeader({ email }: { email: string }) {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm md:px-6">
-      {/* Esquerda: hamburguer + logo mobile */}
-      <div className="flex items-center gap-3">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden text-slate-500 hover:text-slate-900"
-            onClick={() => setOpen(true)}
-            aria-label="Abrir menu"
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 shadow-sm z-30 sticky top-0 md:hidden">
+      {/* Brand logo */}
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.2)]">
+          <Scale className="h-4 w-4 text-white" />
+        </div>
+        <span className="text-[15px] font-bold text-slate-900 tracking-tight">Licita<span className="text-blue-600">IA</span></span>
+      </div>
+
+      {/* User profile popover */}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center gap-2 focus:outline-none rounded-full focus-visible:ring-2 focus-visible:ring-blue-500 hover:opacity-80 transition-opacity">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 border border-slate-200 text-sm font-bold text-blue-600 select-none">
+              {initial}
+            </div>
+            <ChevronDown className="w-4 h-4 text-slate-400" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-56 p-2 rounded-xl">
+          <div className="p-2 border-b border-slate-100 mb-1">
+            <p className="text-sm font-semibold text-slate-900 truncate">{firstName}</p>
+            <p className="text-xs text-slate-500 truncate">{email}</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-start gap-2 h-10 px-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <SheetContent side="left" className="w-64 p-0 bg-slate-900 border-slate-700">
-            <SheetHeader className="flex h-16 flex-row items-center gap-3 border-b border-slate-700/50 px-5 py-0 space-y-0">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600">
-                <Scale className="h-5 w-5 text-white" />
-              </div>
-              <div className="leading-tight">
-                <SheetTitle className="text-[15px] font-bold text-white tracking-tight leading-none">
-                  LicitaAI
-                </SheetTitle>
-                <p className="text-[11px] text-slate-400 mt-0.5">Plataforma de Licitações</p>
-              </div>
-            </SheetHeader>
-            <SidebarNav onNavigate={() => setOpen(false)} />
-          </SheetContent>
-        </Sheet>
-
-        {/* Logo compacto — mobile only */}
-        <div className="flex items-center gap-2 md:hidden">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600">
-            <Scale className="h-3.5 w-3.5 text-white" />
-          </div>
-          <span className="text-sm font-bold text-slate-900">LicitaAI</span>
-        </div>
-      </div>
-
-      {/* Direita: avatar + nome + logout */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white select-none">
-            {initial}
-          </div>
-          <div className="hidden sm:block leading-tight">
-            <p className="text-sm font-semibold text-slate-800 leading-none">{firstName}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Administrador</p>
-          </div>
-        </div>
-
-        <div className="h-5 w-px bg-slate-200 hidden sm:block" />
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLogout}
-          className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-2"
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="ml-1.5 hidden sm:inline text-sm">Sair</span>
-        </Button>
-      </div>
+            <LogOut className="w-4 h-4" />
+            Sair da plataforma
+          </button>
+        </PopoverContent>
+      </Popover>
     </header>
   )
 }

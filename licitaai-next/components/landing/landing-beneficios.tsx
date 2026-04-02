@@ -1,72 +1,90 @@
-import { Search, Brain, FileCheck } from "lucide-react"
+"use client"
 
-const beneficios = [
+import { Search, Filter, Bell, Clock, FileText, Zap } from "lucide-react"
+import { motion } from "motion/react"
+
+const benefits = [
   {
     icon: Search,
-    title: "Monitoramento Automático",
-    description:
-      "Acompanhamos mais de 15 mil licitações por mês em todos os portais públicos — COMPRASNET, BEC, Licitações-e e muito mais. Nunca perca uma oportunidade.",
-    color: "blue",
+    title: "Busca Inteligente",
+    description: "Nossa IA varre mais de 15.000 editais mensais no ComprasNet para encontrar as melhores oportunidades para você.",
   },
   {
-    icon: Brain,
-    title: "Análise com Inteligência Artificial",
-    description:
-      "Nossa IA analisa editais, identifica riscos, calcula compatibilidade com o perfil da sua empresa e gera um ranking de oportunidades personalizado.",
-    color: "indigo",
+    icon: Filter,
+    title: "Filtros Avançados",
+    description: "Crie filtros complexos por palavras-chave exclusivas, localidade e UASG para não perder nenhuma oportunidade.",
   },
   {
-    icon: FileCheck,
-    title: "Gestão de Documentos e Propostas",
-    description:
-      "Organize habilitações, certidões e documentos técnicos em um só lugar. Receba alertas de vencimento e monte propostas com agilidade.",
-    color: "teal",
+    icon: Bell,
+    title: "Alertas em Tempo Real",
+    description: "Receba notificações imediatamente quando novos editais com seu perfil forem publicados.",
+  },
+  {
+    icon: Clock,
+    title: "Economia de Tempo",
+    description: "O que levava horas lendo diários oficiais, agora leva segundos com nossa triagem automatizada.",
+  },
+  {
+    icon: FileText,
+    title: "Análise de Editais",
+    description: "A IA resume os pontos mais importantes do edital e destaca possíveis riscos e exigências.",
+  },
+  {
+    icon: Zap,
+    title: "Score de Relevância",
+    description: "Nossa IA classifica cada licitação de 0 a 100% de match com o perfil da sua empresa.",
   },
 ]
 
 export function LandingBeneficios() {
   return (
-    <section className="py-24 bg-white" id="beneficios">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <span className="text-sm font-semibold text-[#2E86C1] uppercase tracking-widest">
-            Por que LicitaIA?
-          </span>
-          <h2 className="text-4xl font-bold text-gray-900 mt-3 mb-4">
-            Tudo que sua empresa precisa para{" "}
-            <span className="text-[#1A5276]">vencer licitações</span>
-          </h2>
-          <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-            Da descoberta à proposta vencedora — a LicitaIA cuida de cada etapa
-            do processo licitatório com tecnologia de ponta.
-          </p>
+    <section id="beneficios" className="py-24 bg-[#0A1628] relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-0 w-96 h-96 bg-blue-600/10 blur-[100px] -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl md:text-4xl font-bold text-white mb-6"
+          >
+            Tudo que você precisa para <br className="hidden md:block"/>
+            <span className="text-blue-400">multiplicar suas vendas</span> públicas
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-lg text-slate-400"
+          >
+            Nossa plataforma consolida todas as ferramentas necessárias para você
+            focar no que importa: preparar a melhor proposta e vencer.
+          </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {beneficios.map((b) => {
-            const Icon = b.icon
-            const colors = {
-              blue: "bg-blue-50 text-[#2E86C1]",
-              indigo: "bg-indigo-50 text-indigo-600",
-              teal: "bg-teal-50 text-teal-600",
-            }
-            return (
-              <div
-                key={b.title}
-                className="group bg-white border border-gray-100 rounded-2xl p-8 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-              >
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${colors[b.color as keyof typeof colors]}`}
-                >
-                  <Icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  {b.title}
-                </h3>
-                <p className="text-gray-500 leading-relaxed">{b.description}</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {benefits.map((benefit, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="glass-card p-8 rounded-2xl group hover:border-blue-500/30 transition-all duration-300"
+            >
+              <div className="w-14 h-14 rounded-xl bg-blue-600/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600/20 transition-all duration-300">
+                <benefit.icon className="w-7 h-7 text-blue-400" />
               </div>
-            )
-          })}
+              <h3 className="text-xl font-bold text-white mb-3">{benefit.title}</h3>
+              <p className="text-slate-400 leading-relaxed">
+                {benefit.description}
+              </p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
