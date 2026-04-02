@@ -1,17 +1,31 @@
-import { Settings } from "lucide-react"
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { ConfiguracoesEmail } from '@/components/configuracoes-client'
 
-export default function ConfiguracoesPage() {
+export default async function ConfiguracoesPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const { data: company } = await supabase
+    .from('companies')
+    .select('razao_social, email_contato')
+    .eq('user_id', user.id)
+    .single()
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Configurações</h1>
-        <p className="text-sm text-slate-500 mt-1">Preferências da conta e da plataforma</p>
+        <p className="text-sm text-slate-500 mt-1">
+          Preferências de notificação
+          {company?.razao_social ? ` de ${company.razao_social}` : ''}.
+        </p>
       </div>
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-        <Settings className="h-10 w-10 text-slate-300 mb-3" />
-        <p className="text-sm font-medium text-slate-500">Esta seção está em desenvolvimento</p>
-        <p className="text-xs text-slate-400 mt-1">Em breve disponível</p>
-      </div>
+
+      <ConfiguracoesEmail emailAtual={company?.email_contato ?? null} />
     </div>
   )
 }
