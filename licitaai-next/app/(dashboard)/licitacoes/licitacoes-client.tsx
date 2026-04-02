@@ -7,6 +7,9 @@ import {
   AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { format, parseISO } from "date-fns"
+import { ptBR } from "date-fns/locale"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -52,7 +55,11 @@ function formatCurrency(value: number): string {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "—"
-  return dateStr.split(" ")[0]
+  try {
+    return format(parseISO(dateStr.split(" ")[0]), "dd/MM/yyyy", { locale: ptBR })
+  } catch {
+    return dateStr.split(" ")[0]
+  }
 }
 
 function getModalidadeClass(modalidade: string): string {

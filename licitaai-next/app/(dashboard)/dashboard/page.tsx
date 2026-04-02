@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { Building2, FileText, Search, Target, Clock, ArrowRight, Sparkles } from "lucide-react"
-import { GraficoLicitacoes } from "@/components/grafico-licitacoes"
+import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { format, parseISO } from "date-fns"
+import { ptBR } from "date-fns/locale"
+
 
 type CompanyRelation = { razao_social: string } | { razao_social: string }[] | null
 type LicitacaoRelation = { objeto: string } | { objeto: string }[] | null
@@ -21,8 +24,11 @@ function getObjeto(licitacoes: LicitacaoRelation): string {
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return "—"
-  const [year, month, day] = dateStr.split("-")
-  return `${day}/${month}/${year}`
+  try {
+    return format(parseISO(dateStr), "dd/MM/yyyy", { locale: ptBR })
+  } catch {
+    return dateStr
+  }
 }
 
 function getDocStatusBadge(status: string, dataValidade: string | null) {

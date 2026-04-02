@@ -9,7 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { SidebarNav } from "@/components/app-sidebar"
+import { SidebarNav } from "@/components/layout/app-sidebar"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
@@ -76,7 +76,6 @@ export function MobileHeader({ email }: { email: string }) {
 
       {/* Direita: avatar + nome + logout */}
       <div className="flex items-center gap-3">
-        {/* Avatar + nome */}
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white select-none">
             {initial}

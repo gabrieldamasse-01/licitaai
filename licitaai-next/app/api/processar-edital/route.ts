@@ -1,3 +1,8 @@
+/**
+ * @licitaai-readonly
+ * API Route servidor — executa apenas no Node.js runtime do servidor.
+ * Não expor chaves secretas ou lógica de negócio sensível no cliente.
+ */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 

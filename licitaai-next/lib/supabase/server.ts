@@ -1,3 +1,9 @@
+/**
+ * @licitaai-readonly
+ * Client Supabase do servidor — usa cookieStore e só pode ser importado em
+ * Server Components, Server Actions ou API Routes.
+ * NUNCA importe em Client Components (arquivos com "use client").
+ */
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
