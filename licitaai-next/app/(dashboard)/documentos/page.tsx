@@ -26,8 +26,8 @@ export default async function DocumentosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Documentos</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-white">Documentos</h1>
+        <p className="text-sm text-slate-400 mt-1">
           {documents?.length ?? 0} documento{(documents?.length ?? 0) !== 1 ? "s" : ""} cadastrado{(documents?.length ?? 0) !== 1 ? "s" : ""}
         </p>
       </div>

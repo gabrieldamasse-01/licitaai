@@ -26,8 +26,8 @@ export default async function ConfiguracoesPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Configurações</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-white">Configurações</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Gerencie o perfil, CNAEs e preferências de alerta
           {company?.razao_social ? ` de ${company.razao_social}` : ''}.
         </p>

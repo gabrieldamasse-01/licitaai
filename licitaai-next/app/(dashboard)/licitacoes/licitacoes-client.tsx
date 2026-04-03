@@ -63,43 +63,43 @@ function formatDate(dateStr: string | null): string {
 }
 
 function getModalidadeClass(modalidade: string): string {
-  if (modalidade.includes("Pregão")) return "bg-blue-50 text-blue-700 border-blue-200"
-  if (modalidade === "Dispensa") return "bg-amber-50 text-amber-700 border-amber-200"
-  if (modalidade === "Concorrência") return "bg-violet-50 text-violet-700 border-violet-200"
-  if (modalidade === "Credenciamento") return "bg-cyan-50 text-cyan-700 border-cyan-200"
-  if (modalidade === "Inexigibilidade") return "bg-rose-50 text-rose-700 border-rose-200"
-  return "bg-slate-50 text-slate-600 border-slate-200"
+  if (modalidade.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
+  if (modalidade === "Dispensa") return "bg-amber-950/60 text-amber-300 border-amber-800/50"
+  if (modalidade === "Concorrência") return "bg-violet-950/60 text-violet-300 border-violet-800/50"
+  if (modalidade === "Credenciamento") return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
+  if (modalidade === "Inexigibilidade") return "bg-rose-950/60 text-rose-300 border-rose-800/50"
+  return "bg-slate-800 text-slate-300 border-slate-700"
 }
 
 function getPortalClass(portal: string): string {
-  if (portal.includes("PNCP")) return "bg-emerald-50 text-emerald-700 border-emerald-200"
-  if (portal.includes("ComprasNet")) return "bg-blue-50 text-blue-700 border-blue-200"
-  if (portal.includes("Compras Públicas")) return "bg-cyan-50 text-cyan-700 border-cyan-200"
-  if (portal.includes("Licitações")) return "bg-orange-50 text-orange-700 border-orange-200"
-  return "bg-slate-50 text-slate-600 border-slate-200"
+  if (portal.includes("PNCP")) return "bg-emerald-950/60 text-emerald-300 border-emerald-800/50"
+  if (portal.includes("ComprasNet")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
+  if (portal.includes("Compras Públicas")) return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
+  if (portal.includes("Licitações")) return "bg-orange-950/60 text-orange-300 border-orange-800/50"
+  return "bg-slate-800 text-slate-300 border-slate-700"
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 animate-pulse">
+    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 space-y-4 animate-pulse">
       <div className="flex gap-2">
-        <div className="h-5 w-10 rounded-full bg-slate-200" />
-        <div className="h-5 w-28 rounded-full bg-slate-200" />
-        <div className="h-5 w-20 rounded-full bg-slate-200" />
+        <div className="h-5 w-10 rounded-full bg-slate-700" />
+        <div className="h-5 w-28 rounded-full bg-slate-700" />
+        <div className="h-5 w-20 rounded-full bg-slate-700" />
       </div>
       <div className="space-y-2">
-        <div className="h-4 bg-slate-200 rounded w-full" />
-        <div className="h-4 bg-slate-200 rounded w-4/5" />
+        <div className="h-4 bg-slate-700 rounded w-full" />
+        <div className="h-4 bg-slate-700 rounded w-4/5" />
       </div>
-      <div className="h-3 bg-slate-200 rounded w-3/5" />
-      <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+      <div className="h-3 bg-slate-700 rounded w-3/5" />
+      <div className="flex justify-between items-center pt-2 border-t border-slate-700">
         <div className="space-y-1.5">
-          <div className="h-4 bg-slate-200 rounded w-28" />
-          <div className="h-3 bg-slate-200 rounded w-20" />
+          <div className="h-4 bg-slate-700 rounded w-28" />
+          <div className="h-3 bg-slate-700 rounded w-20" />
         </div>
-        <div className="h-8 w-28 bg-slate-200 rounded-md" />
+        <div className="h-8 w-28 bg-slate-700 rounded-md" />
       </div>
     </div>
   )
@@ -113,10 +113,10 @@ function LicitacaoCard({
   onVerDetalhes: () => void
 }) {
   return (
-    <article className="group flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200">
+    <article className="group flex flex-col gap-3 rounded-xl border border-slate-700 bg-slate-800 p-5 shadow-sm hover:shadow-md hover:border-slate-600 transition-all duration-200">
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
-        <Badge variant="outline" className="text-[11px] px-2 py-0.5 font-bold bg-slate-50 text-slate-700 border-slate-300">
+        <Badge variant="outline" className="text-[11px] px-2 py-0.5 font-bold bg-slate-700 text-slate-300 border-slate-600">
           {lic.uf || "—"}
         </Badge>
         {lic.modalidade && (
@@ -129,7 +129,7 @@ function LicitacaoCard({
             {lic.portal.replace("Portal Nacional de Contratações Públicas - ", "")}
           </Badge>
         )}
-        <Badge variant="outline" className="text-[11px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
+        <Badge variant="outline" className="text-[11px] px-2 py-0.5 bg-emerald-950/60 text-emerald-300 border-emerald-800/50">
           {lic.portal || "PNCP"}
         </Badge>
       </div>

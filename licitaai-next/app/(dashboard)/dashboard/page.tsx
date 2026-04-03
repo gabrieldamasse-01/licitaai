@@ -36,15 +36,15 @@ function formatDate(dateStr: string | null) {
 }
 
 function getDocStatusBadge(dataValidade: string | null) {
-  if (!dataValidade) return { label: "Sem data", cls: "bg-slate-100 text-slate-500 border-slate-200" }
+  if (!dataValidade) return { label: "Sem data", cls: "bg-slate-700 text-slate-400 border-slate-600" }
   const validade = new Date(dataValidade + "T00:00:00")
   const hoje = new Date()
   const em7 = new Date(); em7.setDate(hoje.getDate() + 7)
   const em30 = new Date(); em30.setDate(hoje.getDate() + 30)
-  if (validade < hoje) return { label: "Expirado", cls: "bg-red-100 text-red-700 border-red-200" }
-  if (validade <= em7) return { label: "Crítico", cls: "bg-red-100 text-red-700 border-red-200" }
-  if (validade <= em30) return { label: "Vencendo", cls: "bg-amber-100 text-amber-700 border-amber-200" }
-  return { label: "Válido", cls: "bg-emerald-100 text-emerald-700 border-emerald-200" }
+  if (validade < hoje) return { label: "Expirado", cls: "bg-red-950/50 text-red-400 border-red-800/50" }
+  if (validade <= em7) return { label: "Crítico", cls: "bg-red-950/50 text-red-400 border-red-800/50" }
+  if (validade <= em30) return { label: "Vencendo", cls: "bg-amber-950/50 text-amber-400 border-amber-800/50" }
+  return { label: "Válido", cls: "bg-emerald-950/50 text-emerald-400 border-emerald-800/50" }
 }
 
 async function getMetrics() {
@@ -144,13 +144,13 @@ export default async function DashboardPage() {
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
             Bom dia!{" "}
-            <span className="text-sm font-medium text-slate-500 block sm:inline sm:ml-2">
+            <span className="text-sm font-medium text-slate-400 block sm:inline sm:ml-2">
               Hoje é {formatDate(new Date().toISOString().split("T")[0])}
             </span>
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Aqui está o resumo da sua operação hoje.</p>
+          <p className="mt-1 text-sm text-slate-400">Aqui está o resumo da sua operação hoje.</p>
         </div>
         <Link
           href="/oportunidades"
@@ -166,20 +166,20 @@ export default async function DashboardPage() {
         {metricCards.map(({ key, title, description, icon: Icon, iconBg, iconColor }) => (
           <div
             key={key}
-            className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm transition-all hover:shadow-md hover:border-blue-100"
+            className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800 p-4 md:p-5 shadow-sm transition-all hover:shadow-md hover:border-slate-600"
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-xs md:text-sm font-medium text-slate-500">{title}</p>
+                <p className="text-xs md:text-sm font-medium text-slate-400">{title}</p>
                 <div className={`flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-xl md:rounded-2xl shadow-sm ${iconBg}`}>
                   <Icon className={`h-4 w-4 md:h-5 md:w-5 ${iconColor}`} />
                 </div>
               </div>
               <div>
-                <p className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+                <p className="text-2xl md:text-3xl font-bold tracking-tight text-white">
                   {metrics[key].toLocaleString("pt-BR")}
                 </p>
-                <p className="text-[10px] md:text-xs text-slate-400 mt-1 truncate">{description}</p>
+                <p className="text-[10px] md:text-xs text-slate-500 mt-1 truncate">{description}</p>
               </div>
             </div>
           </div>
@@ -187,10 +187,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* Gráfico */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-xl border border-slate-700 bg-slate-800 p-6 shadow-sm">
         <div className="mb-5">
-          <h2 className="text-base font-semibold text-slate-900">Licitações por Mês</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Últimos 6 meses · dados ilustrativos</p>
+          <h2 className="text-base font-semibold text-white">Licitações por Mês</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Últimos 6 meses · dados ilustrativos</p>
         </div>
         <GraficoLicitacoes />
       </div>
@@ -199,32 +199,32 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
         {/* Documentos com Vencimento Próximo */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
+        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex bg-amber-50 p-1.5 rounded-lg">
-                <Clock className="h-4 w-4 text-amber-600" />
+              <div className="flex bg-amber-900/30 p-1.5 rounded-lg">
+                <Clock className="h-4 w-4 text-amber-400" />
               </div>
-              <h2 className="text-base font-semibold text-slate-900">Documentos com Vencimento Próximo</h2>
+              <h2 className="text-base font-semibold text-white">Documentos com Vencimento Próximo</h2>
             </div>
             <Link
               href="/documentos"
-              className="group flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 shrink-0"
+              className="group flex items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300 shrink-0"
             >
               Ver todos <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
 
           {documentosVencendo.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <div className="bg-white p-3 rounded-2xl shadow-sm mb-3">
-                <FileText className="h-8 w-8 text-slate-300" />
+            <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-700/30 rounded-xl border border-dashed border-slate-700">
+              <div className="bg-slate-700 p-3 rounded-2xl shadow-sm mb-3">
+                <FileText className="h-8 w-8 text-slate-500" />
               </div>
-              <p className="text-sm font-medium text-slate-600">Nenhum documento vencendo</p>
-              <p className="text-xs text-slate-400 mt-1">Documentos com validade próxima aparecerão aqui.</p>
+              <p className="text-sm font-medium text-slate-300">Nenhum documento vencendo</p>
+              <p className="text-xs text-slate-500 mt-1">Documentos com validade próxima aparecerão aqui.</p>
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-slate-100">
+            <ul className="flex flex-col divide-y divide-slate-700">
               {documentosVencendo.map((doc) => {
                 const badge = getDocStatusBadge(doc.data_validade)
                 const company = getRazaoSocial((doc as { companies: CompanyRelation }).companies)
@@ -238,8 +238,8 @@ export default async function DashboardPage() {
                     }`}
                   >
                     <div className="flex flex-1 min-w-0 flex-col gap-0.5">
-                      <p className="truncate text-sm font-semibold text-slate-900">{doc.tipo}</p>
-                      <p className="truncate text-xs text-slate-500">
+                      <p className="truncate text-sm font-semibold text-white">{doc.tipo}</p>
+                      <p className="truncate text-xs text-slate-400">
                         {company} · {formatDate(doc.data_validade)}
                       </p>
                     </div>
@@ -254,32 +254,32 @@ export default async function DashboardPage() {
         </div>
 
         {/* Últimas Oportunidades Salvas */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
+        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex bg-blue-50 p-1.5 rounded-lg">
-                <Sparkles className="h-4 w-4 text-blue-600" />
+              <div className="flex bg-blue-900/30 p-1.5 rounded-lg">
+                <Sparkles className="h-4 w-4 text-blue-400" />
               </div>
-              <h2 className="text-base font-semibold text-slate-900">Últimas Oportunidades Salvas</h2>
+              <h2 className="text-base font-semibold text-white">Últimas Oportunidades Salvas</h2>
             </div>
             <Link
               href="/oportunidades"
-              className="group flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 shrink-0"
+              className="group flex items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300 shrink-0"
             >
               Ver todas <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
 
           {ultimasOportunidades.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <div className="bg-white p-3 rounded-2xl shadow-sm mb-3">
-                <Sparkles className="h-8 w-8 text-slate-300" />
+            <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-700/30 rounded-xl border border-dashed border-slate-700">
+              <div className="bg-slate-700 p-3 rounded-2xl shadow-sm mb-3">
+                <Sparkles className="h-8 w-8 text-slate-500" />
               </div>
-              <p className="text-sm font-medium text-slate-600">Nenhuma oportunidade salva</p>
-              <p className="text-xs text-slate-400 mt-1">Licitações salvas aparecerão aqui.</p>
+              <p className="text-sm font-medium text-slate-300">Nenhuma oportunidade salva</p>
+              <p className="text-xs text-slate-500 mt-1">Licitações salvas aparecerão aqui.</p>
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-slate-100">
+            <ul className="flex flex-col divide-y divide-slate-700">
               {ultimasOportunidades.map((match) => {
                 const licitacao = (match as { licitacoes: LicitacaoRelation }).licitacoes
                 const objeto = getObjeto(licitacao)
@@ -289,17 +289,17 @@ export default async function DashboardPage() {
                 return (
                   <li key={match.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                     <div className="flex flex-1 min-w-0 flex-col gap-0.5">
-                      <p className="line-clamp-2 text-sm font-semibold text-slate-900 leading-snug">{titulo}</p>
+                      <p className="line-clamp-2 text-sm font-semibold text-white leading-snug">{titulo}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <p className="truncate text-xs text-slate-500">{orgao}</p>
-                        <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />
-                        <p className="text-xs text-slate-400 shrink-0">
+                        <p className="truncate text-xs text-slate-400">{orgao}</p>
+                        <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+                        <p className="text-xs text-slate-500 shrink-0">
                           {formatDate((match.created_at as string).split("T")[0])}
                         </p>
                       </div>
                     </div>
                     {match.relevancia_score != null && match.relevancia_score > 0 && (
-                      <span className="shrink-0 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">
+                      <span className="shrink-0 text-[11px] font-bold text-violet-400 bg-violet-900/30 border border-violet-800/50 px-2 py-0.5 rounded-full">
                         {match.relevancia_score}%
                       </span>
                     )}

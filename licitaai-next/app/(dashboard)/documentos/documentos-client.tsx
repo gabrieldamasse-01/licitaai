@@ -59,20 +59,20 @@ type StatusInfo = {
 
 function getStatusInfo(doc: Document): StatusInfo {
   if (doc.status === "vencido") {
-    return { label: "Expirado", className: "bg-red-100 text-red-700 border-red-200" }
+    return { label: "Expirado", className: "bg-red-950/50 text-red-400 border-red-800/50" }
   }
   if (doc.status === "pendente") {
-    return { label: "Pendente", className: "bg-slate-100 text-slate-500 border-slate-200" }
+    return { label: "Pendente", className: "bg-slate-700 text-slate-400 border-slate-600" }
   }
   if (doc.status === "ativo" && doc.data_validade) {
     const validade = new Date(doc.data_validade + "T00:00:00")
     const em30 = new Date()
     em30.setDate(em30.getDate() + 30)
     if (validade <= em30) {
-      return { label: "Vencendo", className: "bg-amber-100 text-amber-700 border-amber-200" }
+      return { label: "Vencendo", className: "bg-amber-950/50 text-amber-400 border-amber-800/50" }
     }
   }
-  return { label: "Válido", className: "bg-emerald-100 text-emerald-700 border-emerald-200" }
+  return { label: "Válido", className: "bg-emerald-950/50 text-emerald-400 border-emerald-800/50" }
 }
 
 function getRazaoSocial(companies: Document["companies"]): string {
@@ -153,7 +153,7 @@ export function DocumentosClient({
             placeholder="Buscar por tipo ou empresa..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
         <Button onClick={abrirNovo} className="bg-blue-600 hover:bg-blue-700 shrink-0">
@@ -164,16 +164,16 @@ export function DocumentosClient({
 
       {/* Empty state */}
       {filtrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-          <FileText className="h-10 w-10 text-slate-300 mb-3" />
-          <p className="text-sm font-medium text-slate-500">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
+          <FileText className="h-10 w-10 text-slate-600 mb-3" />
+          <p className="text-sm font-medium text-slate-400">
             {busca ? "Nenhum documento encontrado" : "Nenhum documento cadastrado"}
           </p>
           {!busca && (
             <Button
               variant="outline"
               size="sm"
-              className="mt-4"
+              className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700"
               onClick={abrirNovo}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -184,37 +184,37 @@ export function DocumentosClient({
       ) : (
         <>
           {/* Tabela — desktop */}
-          <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div className="hidden md:block rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Nome do Arquivo</TableHead>
-                  <TableHead>Emissão</TableHead>
-                  <TableHead>Validade</TableHead>
-                  <TableHead>Status</TableHead>
+                <TableRow className="bg-slate-800 border-slate-700">
+                  <TableHead className="text-slate-400">Tipo</TableHead>
+                  <TableHead className="text-slate-400">Empresa</TableHead>
+                  <TableHead className="text-slate-400">Nome do Arquivo</TableHead>
+                  <TableHead className="text-slate-400">Emissão</TableHead>
+                  <TableHead className="text-slate-400">Validade</TableHead>
+                  <TableHead className="text-slate-400">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtrados.map((doc) => {
                   const status = getStatusInfo(doc)
                   return (
-                    <TableRow key={doc.id}>
-                      <TableCell className="font-medium">{doc.tipo}</TableCell>
-                      <TableCell className="text-slate-600">
+                    <TableRow key={doc.id} className="border-slate-700 hover:bg-slate-700/50">
+                      <TableCell className="font-medium text-white">{doc.tipo}</TableCell>
+                      <TableCell className="text-slate-400">
                         {getRazaoSocial(doc.companies)}
                       </TableCell>
                       <TableCell className="text-slate-500 max-w-[200px] truncate">
                         {doc.nome_arquivo}
                       </TableCell>
-                      <TableCell className="text-slate-500">
+                      <TableCell className="text-slate-400">
                         {formatDate(doc.data_emissao)}
                       </TableCell>
-                      <TableCell className="text-slate-500">
+                      <TableCell className="text-slate-400">
                         <span className="flex items-center gap-1.5">
                           {doc.data_validade && (
-                            <CalendarClock className="h-3.5 w-3.5 text-slate-400" />
+                            <CalendarClock className="h-3.5 w-3.5 text-slate-500" />
                           )}
                           {formatDate(doc.data_validade)}
                         </span>
@@ -241,12 +241,12 @@ export function DocumentosClient({
               return (
                 <div
                   key={doc.id}
-                  className="rounded-xl border border-slate-200 bg-white p-4 space-y-3"
+                  className="rounded-xl border border-slate-700 bg-slate-800 p-4 space-y-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-semibold text-slate-900">{doc.tipo}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="font-semibold text-white">{doc.tipo}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
                         {getRazaoSocial(doc.companies)}
                       </p>
                     </div>
@@ -254,8 +254,8 @@ export function DocumentosClient({
                       {status.label}
                     </Badge>
                   </div>
-                  <p className="text-sm text-slate-500 truncate">{doc.nome_arquivo}</p>
-                  <div className="flex items-center gap-4 text-xs text-slate-400 pt-1 border-t border-slate-100">
+                  <p className="text-sm text-slate-400 truncate">{doc.nome_arquivo}</p>
+                  <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 border-t border-slate-700">
                     {doc.data_emissao && (
                       <span>Emissão: {formatDate(doc.data_emissao)}</span>
                     )}
@@ -275,27 +275,27 @@ export function DocumentosClient({
 
       {/* Sheet — formulário */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-slate-800">
           <SheetHeader className="mb-6">
-            <SheetTitle>Novo Documento</SheetTitle>
+            <SheetTitle className="text-white">Novo Documento</SheetTitle>
           </SheetHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="company_id">
-                Empresa <span className="text-red-500">*</span>
+              <Label htmlFor="company_id" className="text-slate-300">
+                Empresa <span className="text-red-400">*</span>
               </Label>
               <Select
                 value={form.company_id}
                 onValueChange={(v) => setForm((f) => ({ ...f, company_id: v }))}
                 required
               >
-                <SelectTrigger id="company_id">
+                <SelectTrigger id="company_id" className="bg-slate-800 border-slate-600 text-white">
                   <SelectValue placeholder="Selecione a empresa" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-800 border-slate-700">
                   {companies.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
+                    <SelectItem key={c.id} value={c.id} className="text-white focus:bg-slate-700">
                       {c.razao_social}
                     </SelectItem>
                   ))}
@@ -304,20 +304,20 @@ export function DocumentosClient({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="document_type_id">
-                Tipo de Documento <span className="text-red-500">*</span>
+              <Label htmlFor="document_type_id" className="text-slate-300">
+                Tipo de Documento <span className="text-red-400">*</span>
               </Label>
               <Select
                 value={form.document_type_id}
                 onValueChange={handleDocumentTypeChange}
                 required
               >
-                <SelectTrigger id="document_type_id">
+                <SelectTrigger id="document_type_id" className="bg-slate-800 border-slate-600 text-white">
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-800 border-slate-700">
                   {documentTypes.map((dt) => (
-                    <SelectItem key={dt.id} value={dt.id}>
+                    <SelectItem key={dt.id} value={dt.id} className="text-white focus:bg-slate-700">
                       {dt.nome}
                     </SelectItem>
                   ))}
@@ -326,37 +326,40 @@ export function DocumentosClient({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="nome_arquivo">
-                Nome do Arquivo <span className="text-red-500">*</span>
+              <Label htmlFor="nome_arquivo" className="text-slate-300">
+                Nome do Arquivo <span className="text-red-400">*</span>
               </Label>
               <Input
                 id="nome_arquivo"
                 value={form.nome_arquivo}
                 onChange={(e) => setForm((f) => ({ ...f, nome_arquivo: e.target.value }))}
                 placeholder="Ex: cnd_federal_empresa_2026.pdf"
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="data_emissao">Data de Emissão</Label>
+              <Label htmlFor="data_emissao" className="text-slate-300">Data de Emissão</Label>
               <Input
                 id="data_emissao"
                 type="date"
                 value={form.data_emissao ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, data_emissao: e.target.value }))}
+                className="bg-slate-800 border-slate-600 text-white"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="data_validade">Data de Validade</Label>
+              <Label htmlFor="data_validade" className="text-slate-300">Data de Validade</Label>
               <Input
                 id="data_validade"
                 type="date"
                 value={form.data_validade ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, data_validade: e.target.value }))}
+                className="bg-slate-800 border-slate-600 text-white"
               />
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Status calculado automaticamente com base na validade.
               </p>
             </div>
@@ -365,7 +368,7 @@ export function DocumentosClient({
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
                 onClick={() => setSheetOpen(false)}
               >
                 Cancelar

@@ -157,7 +157,7 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
             placeholder="Buscar por nome ou CNPJ..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
         <Button onClick={abrirNova} className="bg-blue-600 hover:bg-blue-700 shrink-0">
@@ -168,16 +168,16 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
 
       {/* Tabela desktop / Cards mobile */}
       {filtradas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-          <Building2 className="h-10 w-10 text-slate-300 mb-3" />
-          <p className="text-sm font-medium text-slate-500">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
+          <Building2 className="h-10 w-10 text-slate-600 mb-3" />
+          <p className="text-sm font-medium text-slate-400">
             {busca ? "Nenhuma empresa encontrada" : "Nenhuma empresa cadastrada"}
           </p>
           {!busca && (
             <Button
               variant="outline"
               size="sm"
-              className="mt-4"
+              className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700"
               onClick={abrirNova}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -188,39 +188,39 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
       ) : (
         <>
           {/* Tabela — desktop */}
-          <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div className="hidden md:block rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
             <Table className="data-table">
               <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead>Razão Social</TableHead>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead>Porte</TableHead>
-                  <TableHead>Setor (CNAE)</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                <TableRow className="bg-slate-800 border-slate-700">
+                  <TableHead className="text-slate-400">Razão Social</TableHead>
+                  <TableHead className="text-slate-400">CNPJ</TableHead>
+                  <TableHead className="text-slate-400">Porte</TableHead>
+                  <TableHead className="text-slate-400">Setor (CNAE)</TableHead>
+                  <TableHead className="text-slate-400">Status</TableHead>
+                  <TableHead className="text-right text-slate-400">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtradas.map((company) => (
                   <TableRow
                     key={company.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer border-slate-700 hover:bg-slate-700/50"
                     onClick={() => router.push(`/clientes/${company.id}`)}
                   >
-                    <TableCell className="font-medium">{company.razao_social}</TableCell>
-                    <TableCell className="font-mono text-xs">{displayCNPJ(company.cnpj)}</TableCell>
+                    <TableCell className="font-medium text-white">{company.razao_social}</TableCell>
+                    <TableCell className="font-mono text-xs text-slate-400">{displayCNPJ(company.cnpj)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{PORTE_LABELS[company.porte] ?? company.porte}</Badge>
+                      <Badge variant="outline" className="border-slate-600 text-slate-300">{PORTE_LABELS[company.porte] ?? company.porte}</Badge>
                     </TableCell>
-                    <TableCell className="text-slate-500">
+                    <TableCell className="text-slate-400">
                       {company.cnae?.[0] ?? "—"}
                     </TableCell>
                     <TableCell>
                       <Badge
                         className={
                           company.ativo
-                            ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                            : "bg-slate-100 text-slate-500 border-slate-200"
+                            ? "bg-emerald-900/50 text-emerald-400 border-emerald-800/50"
+                            : "bg-slate-700 text-slate-400 border-slate-600"
                         }
                         variant="outline"
                       >
@@ -264,41 +264,41 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
             {filtradas.map((company) => (
               <div
                 key={company.id}
-                className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 cursor-pointer"
+                className="rounded-xl border border-slate-700 bg-slate-800 p-4 space-y-3 cursor-pointer"
                 onClick={() => router.push(`/clientes/${company.id}`)}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-slate-900">{company.razao_social}</p>
-                    <p className="text-xs font-mono text-slate-500 mt-0.5">
+                    <p className="font-semibold text-white">{company.razao_social}</p>
+                    <p className="text-xs font-mono text-slate-400 mt-0.5">
                       {displayCNPJ(company.cnpj)}
                     </p>
                   </div>
                   <Badge
                     className={
                       company.ativo
-                        ? "bg-emerald-100 text-emerald-700 border-emerald-200 shrink-0"
-                        : "bg-slate-100 text-slate-500 border-slate-200 shrink-0"
+                        ? "bg-emerald-900/50 text-emerald-400 border-emerald-800/50 shrink-0"
+                        : "bg-slate-700 text-slate-400 border-slate-600 shrink-0"
                     }
                     variant="outline"
                   >
                     {company.ativo ? "Ativo" : "Inativo"}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-slate-500">
-                  <Badge variant="outline">{PORTE_LABELS[company.porte] ?? company.porte}</Badge>
+                <div className="flex items-center gap-3 text-sm text-slate-400">
+                  <Badge variant="outline" className="border-slate-600 text-slate-300">{PORTE_LABELS[company.porte] ?? company.porte}</Badge>
                   {company.cnae?.[0] && (
                     <span className="truncate">{company.cnae[0]}</span>
                   )}
                 </div>
                 <div
-                  className="flex gap-2 pt-1 border-t border-slate-100"
+                  className="flex gap-2 pt-1 border-t border-slate-700"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
                     onClick={() => abrirEditar(company)}
                   >
                     <Pencil className="h-3.5 w-3.5 mr-1.5" />
@@ -307,7 +307,7 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={`flex-1 ${company.ativo ? "text-red-500 border-red-200 hover:bg-red-50" : "text-emerald-600 border-emerald-200 hover:bg-emerald-50"}`}
+                    className={`flex-1 ${company.ativo ? "text-red-400 border-red-800/50 hover:bg-red-900/30" : "text-emerald-400 border-emerald-800/50 hover:bg-emerald-900/30"}`}
                     onClick={() => handleToggleAtivo(company)}
                     disabled={isPending}
                   >
@@ -326,30 +326,31 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
 
       {/* Sheet — formulário */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-slate-800">
           <SheetHeader className="mb-6">
-            <SheetTitle>
+            <SheetTitle className="text-white">
               {editando ? "Editar Empresa" : "Nova Empresa"}
             </SheetTitle>
           </SheetHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="razao_social">
-                Razão Social <span className="text-red-500">*</span>
+              <Label htmlFor="razao_social" className="text-slate-300">
+                Razão Social <span className="text-red-400">*</span>
               </Label>
               <Input
                 id="razao_social"
                 value={form.razao_social}
                 onChange={(e) => setForm((f) => ({ ...f, razao_social: e.target.value }))}
                 placeholder="Empresa LTDA"
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="cnpj">
-                CNPJ <span className="text-red-500">*</span>
+              <Label htmlFor="cnpj" className="text-slate-300">
+                CNPJ <span className="text-red-400">*</span>
               </Label>
               <Input
                 id="cnpj"
@@ -358,59 +359,63 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
                   setForm((f) => ({ ...f, cnpj: formatCNPJ(e.target.value) }))
                 }
                 placeholder="00.000.000/0000-00"
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="porte">Porte</Label>
+              <Label htmlFor="porte" className="text-slate-300">Porte</Label>
               <Select
                 value={form.porte}
                 onValueChange={(v) =>
                   setForm((f) => ({ ...f, porte: v as EmpresaFormData["porte"] }))
                 }
               >
-                <SelectTrigger id="porte">
+                <SelectTrigger id="porte" className="bg-slate-800 border-slate-600 text-white">
                   <SelectValue placeholder="Selecione o porte" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MEI">MEI</SelectItem>
-                  <SelectItem value="ME">ME — Microempresa</SelectItem>
-                  <SelectItem value="EPP">EPP — Pequeno Porte</SelectItem>
-                  <SelectItem value="MEDIO">Médio Porte</SelectItem>
-                  <SelectItem value="GRANDE">Grande Porte</SelectItem>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="MEI" className="text-white focus:bg-slate-700">MEI</SelectItem>
+                  <SelectItem value="ME" className="text-white focus:bg-slate-700">ME — Microempresa</SelectItem>
+                  <SelectItem value="EPP" className="text-white focus:bg-slate-700">EPP — Pequeno Porte</SelectItem>
+                  <SelectItem value="MEDIO" className="text-white focus:bg-slate-700">Médio Porte</SelectItem>
+                  <SelectItem value="GRANDE" className="text-white focus:bg-slate-700">Grande Porte</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="cnae">CNAE Principal</Label>
+              <Label htmlFor="cnae" className="text-slate-300">CNAE Principal</Label>
               <Input
                 id="cnae"
                 value={form.cnae ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, cnae: e.target.value }))}
                 placeholder="Ex: 6201-5/01 — Desenvolvimento de programas"
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email_contato">Email de Contato</Label>
+              <Label htmlFor="email_contato" className="text-slate-300">Email de Contato</Label>
               <Input
                 id="email_contato"
                 type="email"
                 value={form.email_contato ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, email_contato: e.target.value }))}
                 placeholder="contato@empresa.com.br"
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="contato">Telefone / Contato</Label>
+              <Label htmlFor="contato" className="text-slate-300">Telefone / Contato</Label>
               <Input
                 id="contato"
                 value={form.contato ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, contato: e.target.value }))}
                 placeholder="(11) 99999-9999"
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
               />
             </div>
 
@@ -418,7 +423,7 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
                 onClick={() => setSheetOpen(false)}
               >
                 Cancelar
