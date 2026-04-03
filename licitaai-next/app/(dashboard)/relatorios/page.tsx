@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import dynamic from "next/dynamic"
 import {
   Users,
   Target,
@@ -20,21 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { type MesData, type EmpresaDocData } from "./graficos"
 import {
-  type MesData,
-  type EmpresaDocData,
-  GraficoSkeleton,
-} from "./graficos"
-
-// Recharts usa APIs do browser — carregado apenas no cliente
-const GraficoOportunidadesMes = dynamic(
-  () => import("./graficos").then((m) => m.GraficoOportunidadesMes),
-  { ssr: false, loading: () => <GraficoSkeleton /> },
-)
-const GraficoDocsEmpresa = dynamic(
-  () => import("./graficos").then((m) => m.GraficoDocsEmpresa),
-  { ssr: false, loading: () => <GraficoSkeleton /> },
-)
+  GraficoOportunidadesMesWrapper as GraficoOportunidadesMes,
+  GraficoDocsEmpresaWrapper as GraficoDocsEmpresa,
+} from "./graficos-wrapper"
 
 // ─── Checklist (espelhado de oportunidades/actions.ts) ────────────────────────
 
