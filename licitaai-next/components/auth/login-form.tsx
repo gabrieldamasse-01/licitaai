@@ -167,7 +167,7 @@ export function LoginForm({
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex flex-col justify-center px-6 py-10 md:px-12 lg:px-16 bg-white">
+      <div className="flex flex-col justify-center px-6 py-10 md:px-12 lg:px-16 bg-white text-slate-900">
         {/* Mobile-only logo */}
         <div className="flex justify-center mb-8 md:hidden">
           <Link href="/" className="flex items-center gap-3 inline-flex">

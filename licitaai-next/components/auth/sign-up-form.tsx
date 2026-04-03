@@ -116,7 +116,7 @@ export function SignUpForm({
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex flex-col justify-center px-6 py-10 md:px-12 lg:px-16 bg-white overflow-y-auto">
+      <div className="flex flex-col justify-center px-6 py-10 md:px-12 lg:px-16 bg-white text-slate-900 overflow-y-auto">
         {/* Mobile-only logo */}
         <div className="flex justify-center mb-8 md:hidden">
           <Link href="/" className="flex items-center gap-3 inline-flex">

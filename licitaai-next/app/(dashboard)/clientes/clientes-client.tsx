@@ -158,7 +158,6 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-300"
-            style={{ color: 'white' }}
           />
         </div>
         <Button onClick={abrirNova} className="bg-blue-600 hover:bg-blue-700 shrink-0">
