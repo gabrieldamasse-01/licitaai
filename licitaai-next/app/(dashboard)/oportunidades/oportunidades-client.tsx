@@ -461,18 +461,18 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
   return (
     <>
       {/* ── Empresa selector ── */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-5">
         <div className="flex items-center gap-2 mb-3">
           <Building2 className="h-4 w-4 text-slate-400" />
-          <p className="text-sm font-medium text-slate-700">Empresa</p>
+          <p className="text-sm font-medium text-slate-300">Empresa</p>
         </div>
 
         {empresas.length === 0 ? (
-          <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 p-3">
-            <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-            <p className="text-sm text-amber-700">
+          <div className="flex items-start gap-2 rounded-lg bg-amber-950/50 border border-amber-800/50 p-3">
+            <AlertCircle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-amber-300">
               Nenhuma empresa cadastrada.{" "}
-              <a href="/clientes" className="font-semibold underline hover:text-amber-900">
+              <a href="/clientes" className="font-semibold underline hover:text-amber-200">
                 Cadastre uma empresa
               </a>{" "}
               para ver oportunidades.
@@ -481,12 +481,16 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Select value={empresaId} onValueChange={handleEmpresaChange}>
-              <SelectTrigger className="w-full sm:w-96">
-                <SelectValue placeholder="Selecione uma empresa..." />
+              <SelectTrigger className="w-full sm:w-96 bg-slate-800 border-slate-600 text-white focus:ring-blue-500/30 [&>span]:text-white">
+                <SelectValue placeholder="Selecione uma empresa..." className="text-slate-400" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-slate-800 border-slate-700">
                 {empresas.map((e) => (
-                  <SelectItem key={e.id} value={e.id}>
+                  <SelectItem
+                    key={e.id}
+                    value={e.id}
+                    className="text-white focus:bg-slate-700 focus:text-white cursor-pointer"
+                  >
                     <span className="font-medium">{e.razao_social}</span>
                     <span className="ml-2 text-xs text-slate-400">{e.porte}</span>
                   </SelectItem>
@@ -495,9 +499,9 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
             </Select>
 
             {empresaSelecionada && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400">
                 CNAEs:{" "}
-                <span className="font-mono">
+                <span className="font-mono text-slate-300">
                   {empresaSelecionada.cnae?.length
                     ? empresaSelecionada.cnae.join(", ")
                     : "não informado"}
