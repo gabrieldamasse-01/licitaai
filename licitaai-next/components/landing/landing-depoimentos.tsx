@@ -80,18 +80,18 @@ export function LandingDepoimentos() {
                     <Star key={i} className="w-5 h-5 fill-emerald-500 text-emerald-500" />
                   ))}
                 </div>
-                <p className="text-slate-300 text-lg leading-relaxed mb-8">
+                <p className="text-slate-300 text-base leading-relaxed mb-8">
                   &quot;{testimonial.content}&quot;
                 </p>
               </div>
               
               <div className="flex items-center gap-4 pt-6 border-t border-white/10">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-400 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-400 flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">
                   {testimonial.author.charAt(0)}
                 </div>
                 <div>
-                  <h4 className="font-bold text-white">{testimonial.author}</h4>
-                  <p className="text-sm text-slate-400">
+                  <h4 className="text-base font-semibold text-white">{testimonial.author}</h4>
+                  <p className="text-sm text-slate-400 mt-0.5">
                     {testimonial.role} • <span className="text-blue-400">{testimonial.company}</span>
                   </p>
                 </div>

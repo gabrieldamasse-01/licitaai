@@ -104,7 +104,7 @@ export function LandingPlanos() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg text-slate-400"
+            className="text-lg text-slate-300"
           >
             Comece grátis. Faça upgrade quando quiser. Sem fidelidade — cancele com um clique.
           </motion.p>
@@ -167,7 +167,7 @@ export function LandingPlanos() {
                       </span>
                     )}
                   </div>
-                  <p className={`text-sm mt-3 ${isDestaque ? "text-blue-100" : "text-slate-400"}`}>
+                  <p className={`text-base mt-3 ${isDestaque ? "text-blue-100" : "text-slate-300"}`}>
                     {plano.descricao}
                   </p>
                 </div>
@@ -177,13 +177,13 @@ export function LandingPlanos() {
                   {plano.recursos.map((r) => (
                     <li key={r} className="flex items-start gap-3">
                       <div
-                        className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                        className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
                           isDestaque
                             ? "bg-emerald-400/20 text-emerald-300"
                             : "bg-emerald-500/20 text-emerald-400"
                         }`}
                       >
-                        <Check className="w-3 h-3" />
+                        <Check className="w-3.5 h-3.5" />
                       </div>
                       <span className={`text-sm ${isDestaque ? "text-white" : "text-slate-300"}`}>
                         {r}
@@ -192,8 +192,8 @@ export function LandingPlanos() {
                   ))}
                   {plano.recursos_nao.map((r) => (
                     <li key={r} className="flex items-start gap-3 opacity-40">
-                      <div className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center bg-slate-800 text-slate-500">
-                        <X className="w-3 h-3" />
+                      <div className="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center bg-slate-800 text-slate-500">
+                        <X className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-sm text-slate-500 line-through">{r}</span>
                     </li>

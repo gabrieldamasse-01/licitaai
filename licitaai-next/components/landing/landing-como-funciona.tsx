@@ -61,14 +61,14 @@ export function LandingComoFunciona() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg text-slate-400"
+            className="text-lg text-slate-300"
           >
             Configure uma vez e deixe a IA trabalhar por você — monitorando o PNCP
             24 horas por dia.
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {steps.map((step, index) => (
             <motion.div
               key={index}
@@ -84,13 +84,13 @@ export function LandingComoFunciona() {
               </span>
 
               {/* Icon */}
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} bg-opacity-10 flex items-center justify-center mb-6 shrink-0`}>
-                <div className={`absolute w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} opacity-10`} />
-                <step.icon className="w-7 h-7 text-white relative z-10" />
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} bg-opacity-10 flex items-center justify-center mb-6 shrink-0`}>
+                <div className={`absolute w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} opacity-10`} />
+                <step.icon className="w-8 h-8 text-white relative z-10" />
               </div>
 
-              <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-              <p className="text-slate-400 leading-relaxed text-sm flex-1">
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-3">{step.title}</h3>
+              <p className="text-slate-300 leading-relaxed text-base flex-1">
                 {step.description}
               </p>
 

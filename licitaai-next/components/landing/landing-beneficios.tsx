@@ -66,14 +66,14 @@ export function LandingBeneficios() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-lg text-slate-400"
+            className="text-lg text-slate-300"
           >
             Automatizamos as etapas mais trabalhosas para que sua equipe
             foque no que realmente importa: elaborar a melhor proposta.
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
           {features.map((feature, index) => (
             <motion.div
               key={index}
@@ -83,10 +83,10 @@ export function LandingBeneficios() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="glass-card p-8 rounded-2xl group hover:border-blue-500/30 transition-all duration-300 flex gap-6"
             >
-              <div className="text-3xl shrink-0 mt-1">{feature.emoji}</div>
+              <div className="text-4xl shrink-0 mt-1">{feature.emoji}</div>
               <div>
                 <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-                <p className="text-slate-400 leading-relaxed text-sm">
+                <p className="text-slate-300 leading-relaxed text-base">
                   {feature.description}
                 </p>
               </div>
