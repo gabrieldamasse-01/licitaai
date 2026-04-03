@@ -38,7 +38,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   const inicio = Date.now()
-  const supabase = createServiceClient()
+  let supabase: ReturnType<typeof createServiceClient>
+  try {
+    supabase = createServiceClient()
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Falha ao criar cliente Supabase' },
+      { status: 500 },
+    )
+  }
 
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
