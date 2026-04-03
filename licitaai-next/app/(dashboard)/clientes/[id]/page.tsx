@@ -209,24 +209,32 @@ export default async function ClienteDetalhePage({
         <SummaryCard
           label="Total de Documentos"
           value={docs.length}
-          icon={<FileText className="h-5 w-5 text-slate-400" />}
+          icon={<FileText className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-slate-500 to-slate-600"
+          borderColor="metric-card-slate"
         />
         <SummaryCard
           label="Válidos"
           value={docValidos}
-          icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+          icon={<CheckCircle2 className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-emerald-400 to-emerald-600"
+          borderColor="metric-card-emerald"
           valueClassName="text-emerald-600"
         />
         <SummaryCard
           label="Vencendo / Expirados"
           value={docVencendo + docExpirados}
-          icon={<AlertTriangle className="h-5 w-5 text-amber-500" />}
+          icon={<AlertTriangle className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-amber-400 to-amber-500"
+          borderColor="metric-card-amber"
           valueClassName={docVencendo + docExpirados > 0 ? "text-amber-600" : undefined}
         />
         <SummaryCard
           label="Oportunidades Salvas"
           value={matches.length}
-          icon={<Target className="h-5 w-5 text-blue-500" />}
+          icon={<Target className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-blue-500 to-blue-600"
+          borderColor="metric-card-blue"
           valueClassName="text-blue-600"
         />
       </div>
@@ -255,7 +263,7 @@ export default async function ClienteDetalhePage({
           />
         ) : (
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <Table>
+            <Table className="data-table">
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead>Tipo</TableHead>
@@ -318,7 +326,7 @@ export default async function ClienteDetalhePage({
           />
         ) : (
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <Table>
+            <Table className="data-table">
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead>Objeto</TableHead>
@@ -437,20 +445,28 @@ function SummaryCard({
   label,
   value,
   icon,
+  iconBg,
+  borderColor,
   valueClassName,
 }: {
   label: string
   value: number
   icon: React.ReactNode
+  iconBg?: string
+  borderColor?: string
   valueClassName?: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+    <div className={`metric-card ${borderColor ?? ""} rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/60 p-4 space-y-3`}>
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
-        {icon}
+        <div className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm ${iconBg ?? "bg-slate-100"}`}>
+          {icon}
+        </div>
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-right leading-tight max-w-[80px]">
+          {label}
+        </p>
       </div>
-      <p className={`text-3xl font-bold text-slate-900 ${valueClassName ?? ""}`}>{value}</p>
+      <p className={`text-4xl font-bold tracking-tight text-slate-900 ${valueClassName ?? ""}`}>{value}</p>
     </div>
   )
 }

@@ -243,25 +243,33 @@ export default async function RelatoriosPage() {
         <MetricCard
           label="Clientes Ativos"
           value={(companies ?? []).length}
-          icon={<Users className="h-5 w-5 text-blue-500" />}
+          icon={<Users className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-blue-500 to-blue-600"
+          borderColor="metric-card-blue"
           valueColor="text-blue-600"
         />
         <MetricCard
           label="Oportunidades Salvas"
           value={totalMatches}
-          icon={<Target className="h-5 w-5 text-emerald-500" />}
+          icon={<Target className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-emerald-400 to-emerald-600"
+          borderColor="metric-card-emerald"
           valueColor="text-emerald-600"
         />
         <MetricCard
           label="Docs Vencendo (30d)"
           value={docsVencendo30}
-          icon={<FileWarning className="h-5 w-5 text-amber-500" />}
+          icon={<FileWarning className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-amber-400 to-amber-500"
+          borderColor="metric-card-amber"
           valueColor={docsVencendo30 > 0 ? "text-amber-600" : undefined}
         />
         <MetricCard
           label="Taxa de Habilitação"
           value={`${taxaHabilitacao}%`}
-          icon={<ShieldCheck className="h-5 w-5 text-violet-500" />}
+          icon={<ShieldCheck className="h-5 w-5 text-white" />}
+          iconBg="bg-gradient-to-br from-violet-500 to-violet-600"
+          borderColor="metric-card-violet"
           valueColor="text-violet-600"
           sub={`${empresasCompletas} de ${(companies ?? []).length} completa${empresasCompletas !== 1 ? "s" : ""}`}
         />
@@ -297,7 +305,7 @@ export default async function RelatoriosPage() {
           </div>
         ) : (
           <div className="rounded-xl border border-red-200 bg-white overflow-hidden">
-            <Table>
+            <Table className="data-table">
               <TableHeader>
                 <TableRow className="bg-red-50">
                   <TableHead>Tipo</TableHead>
@@ -367,7 +375,7 @@ export default async function RelatoriosPage() {
           </div>
         ) : (
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <Table>
+            <Table className="data-table">
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead>Empresa</TableHead>
@@ -417,25 +425,33 @@ function MetricCard({
   label,
   value,
   icon,
+  iconBg,
+  borderColor,
   valueColor,
   sub,
 }: {
   label: string
   value: number | string
   icon: React.ReactNode
+  iconBg?: string
+  borderColor?: string
   valueColor?: string
   sub?: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+    <div className={`metric-card ${borderColor ?? ""} rounded-xl border border-slate-200 bg-white p-4 space-y-3 bg-gradient-to-br from-white to-slate-50/60`}>
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide leading-tight">
+        <div className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm ${iconBg ?? "bg-slate-100"}`}>
+          {icon}
+        </div>
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-right leading-tight max-w-[80px]">
           {label}
         </p>
-        {icon}
       </div>
-      <p className={`text-3xl font-bold text-slate-900 ${valueColor ?? ""}`}>{value}</p>
-      {sub && <p className="text-xs text-slate-400">{sub}</p>}
+      <div>
+        <p className={`text-4xl font-bold tracking-tight text-slate-900 ${valueColor ?? ""}`}>{value}</p>
+        {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+      </div>
     </div>
   )
 }

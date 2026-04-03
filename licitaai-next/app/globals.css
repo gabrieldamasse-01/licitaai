@@ -220,3 +220,55 @@
 .animate-glow-pulse    { animation: glow-pulse 3s ease-in-out infinite; }
 .animate-dot-ping      { animation: dot-ping 1.5s ease-out infinite; }
 .animate-slide-up-fade { animation: slide-up-fade 0.6s ease-out both; }
+
+/* ─── Data Table Enhancements ───────────────────────────────────────────────── */
+@layer utilities {
+  /* Zebra striping + hover for shadcn TableBody rows */
+  .data-table tbody tr:nth-child(even) {
+    background-color: rgba(248, 250, 252, 0.6);
+  }
+
+  .data-table tbody tr:hover {
+    background-color: rgba(239, 246, 255, 0.7);
+  }
+
+  /* Primary button gradient */
+  .btn-primary-gradient {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    transition: box-shadow 0.15s, transform 0.1s;
+  }
+
+  .btn-primary-gradient:hover {
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary-gradient:active {
+    transform: translateY(0);
+  }
+
+  /* Metric card with colored left border */
+  .metric-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+  }
+
+  .metric-card-blue::before   { background: linear-gradient(to bottom, #3b82f6, #2563eb); }
+  .metric-card-emerald::before{ background: linear-gradient(to bottom, #10b981, #059669); }
+  .metric-card-amber::before  { background: linear-gradient(to bottom, #f59e0b, #d97706); }
+  .metric-card-red::before    { background: linear-gradient(to bottom, #ef4444, #dc2626); }
+  .metric-card-violet::before { background: linear-gradient(to bottom, #8b5cf6, #7c3aed); }
+  .metric-card-cyan::before   { background: linear-gradient(to bottom, #06b6d4, #0891b2); }
+  .metric-card-slate::before  { background: linear-gradient(to bottom, #64748b, #475569); }
+}

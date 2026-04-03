@@ -189,7 +189,7 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
         <>
           {/* Tabela — desktop */}
           <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <Table>
+            <Table className="data-table">
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead>Razão Social</TableHead>
