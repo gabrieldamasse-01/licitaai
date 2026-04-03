@@ -27,7 +27,7 @@ export type EmpresaDocData = {
 
 export function GraficoSkeleton() {
   return (
-    <div className="h-64 w-full animate-pulse rounded-lg bg-slate-100" />
+    <div className="h-64 w-full animate-pulse rounded-lg bg-slate-700" />
   )
 }
 
@@ -45,24 +45,26 @@ export function GraficoOportunidadesMes({ data }: { data: MesData[] }) {
   return (
     <ResponsiveContainer width="100%" height={256}>
       <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
         <XAxis
           dataKey="mes"
-          tick={{ fontSize: 12, fill: "#64748b" }}
+          tick={{ fontSize: 12, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
           allowDecimals={false}
-          tick={{ fontSize: 12, fill: "#64748b" }}
+          tick={{ fontSize: 12, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip
           contentStyle={{
             borderRadius: 8,
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            border: "1px solid #334155",
+            backgroundColor: "#1e293b",
+            color: "#f1f5f9",
+            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
             fontSize: 13,
           }}
           formatter={(value) => [value, "Oportunidades"]}
@@ -91,10 +93,10 @@ export function GraficoDocsEmpresa({ data }: { data: EmpresaDocData[] }) {
         margin={{ top: 4, right: 8, left: -16, bottom: 0 }}
         barSize={24}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
         <XAxis
           dataKey="empresa"
-          tick={{ fontSize: 11, fill: "#64748b" }}
+          tick={{ fontSize: 11, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
           interval={0}
@@ -104,20 +106,22 @@ export function GraficoDocsEmpresa({ data }: { data: EmpresaDocData[] }) {
         />
         <YAxis
           allowDecimals={false}
-          tick={{ fontSize: 12, fill: "#64748b" }}
+          tick={{ fontSize: 12, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip
           contentStyle={{
             borderRadius: 8,
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            border: "1px solid #334155",
+            backgroundColor: "#1e293b",
+            color: "#f1f5f9",
+            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
             fontSize: 13,
           }}
         />
         <Legend
-          wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+          wrapperStyle={{ fontSize: 12, paddingTop: 8, color: "#94a3b8" }}
           formatter={(value: string) =>
             value === "validos"
               ? "Válidos"

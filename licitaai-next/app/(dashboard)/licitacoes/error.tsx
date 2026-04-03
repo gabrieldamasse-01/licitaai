@@ -17,16 +17,16 @@ export default function LicitacoesError({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center p-6">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-        <AlertTriangle className="h-7 w-7 text-red-600" />
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-950/50 border border-red-800/50">
+        <AlertTriangle className="h-7 w-7 text-red-400" />
       </div>
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold text-slate-900">Erro ao carregar licitações</h2>
-        <p className="text-sm text-slate-500">
+        <h2 className="text-lg font-semibold text-white">Erro ao carregar licitações</h2>
+        <p className="text-sm text-slate-400">
           {error.message || "Não foi possível buscar as licitações. Tente novamente."}
         </p>
       </div>
-      <Button onClick={reset} variant="outline" size="sm">
+      <Button onClick={reset} variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-700">
         Tentar novamente
       </Button>
     </div>

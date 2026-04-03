@@ -257,7 +257,7 @@ export default async function ClienteDetalhePage({
 
         {docs.length === 0 ? (
           <EmptyState
-            icon={<FileText className="h-10 w-10 text-slate-300" />}
+            icon={<FileText className="h-10 w-10 text-slate-600" />}
             message="Nenhum documento cadastrado"
             sub="Adicione documentos de habilitação para este cliente."
           />
@@ -315,11 +315,11 @@ export default async function ClienteDetalhePage({
 
         {matches.length === 0 ? (
           <EmptyState
-            icon={<Inbox className="h-10 w-10 text-slate-300" />}
+            icon={<Inbox className="h-10 w-10 text-slate-600" />}
             message="Nenhuma oportunidade salva"
             sub="Acesse Oportunidades para encontrar licitações relevantes."
             action={
-              <Button variant="outline" size="sm" asChild className="mt-4">
+              <Button variant="outline" size="sm" asChild className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700">
                 <Link href="/oportunidades">Ver Oportunidades</Link>
               </Button>
             }

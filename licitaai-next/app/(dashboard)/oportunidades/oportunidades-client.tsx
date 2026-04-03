@@ -48,12 +48,12 @@ function formatDate(dateStr: string): string {
 }
 
 function getModalidadeClass(modalidade: string): string {
-  if (modalidade?.includes("Pregão")) return "bg-blue-50 text-blue-700 border-blue-200"
-  if (modalidade === "Dispensa") return "bg-amber-50 text-amber-700 border-amber-200"
-  if (modalidade === "Concorrência") return "bg-violet-50 text-violet-700 border-violet-200"
-  if (modalidade === "Inexigibilidade") return "bg-rose-50 text-rose-700 border-rose-200"
-  if (modalidade === "Credenciamento") return "bg-cyan-50 text-cyan-700 border-cyan-200"
-  return "bg-slate-50 text-slate-600 border-slate-200"
+  if (modalidade?.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
+  if (modalidade === "Dispensa") return "bg-amber-950/60 text-amber-300 border-amber-800/50"
+  if (modalidade === "Concorrência") return "bg-violet-950/60 text-violet-300 border-violet-800/50"
+  if (modalidade === "Inexigibilidade") return "bg-rose-950/60 text-rose-300 border-rose-800/50"
+  if (modalidade === "Credenciamento") return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
+  return "bg-slate-800 text-slate-300 border-slate-700"
 }
 
 function getModalidadeClassDark(modalidade: string): string {
@@ -75,10 +75,10 @@ function ScoreBadge({ score, label, dark = false }: { score: number; label: stri
         ? "bg-amber-950/60 text-amber-400 border-amber-800/50"
         : "bg-slate-800 text-slate-400 border-slate-700"
     : score >= 80
-      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+      ? "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
       : score >= 60
-        ? "bg-amber-100 text-amber-700 border-amber-200"
-        : "bg-slate-100 text-slate-600 border-slate-200"
+        ? "bg-amber-950/60 text-amber-400 border-amber-800/50"
+        : "bg-slate-700 text-slate-400 border-slate-600"
 
   return (
     <span
@@ -94,22 +94,22 @@ function ScoreBadge({ score, label, dark = false }: { score: number; label: stri
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 animate-pulse space-y-3">
+    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 animate-pulse space-y-3">
       <div className="flex gap-2">
-        <div className="h-5 w-24 rounded-full bg-slate-200" />
-        <div className="h-5 w-10 rounded-full bg-slate-200" />
-        <div className="h-5 w-20 rounded-full bg-slate-200" />
+        <div className="h-5 w-24 rounded-full bg-slate-700" />
+        <div className="h-5 w-10 rounded-full bg-slate-700" />
+        <div className="h-5 w-20 rounded-full bg-slate-700" />
       </div>
-      <div className="h-4 w-3/4 rounded bg-slate-200" />
-      <div className="h-4 w-1/2 rounded bg-slate-100" />
-      <div className="h-3 w-2/3 rounded bg-slate-100" />
+      <div className="h-4 w-3/4 rounded bg-slate-700" />
+      <div className="h-4 w-1/2 rounded bg-slate-700" />
+      <div className="h-3 w-2/3 rounded bg-slate-700" />
       <div className="flex justify-between pt-1">
-        <div className="h-3 w-1/3 rounded bg-slate-100" />
-        <div className="h-3 w-1/4 rounded bg-slate-100" />
+        <div className="h-3 w-1/3 rounded bg-slate-700" />
+        <div className="h-3 w-1/4 rounded bg-slate-700" />
       </div>
       <div className="flex gap-2 pt-1">
-        <div className="h-8 flex-1 rounded-lg bg-slate-100" />
-        <div className="h-8 w-10 rounded-lg bg-slate-100" />
+        <div className="h-8 flex-1 rounded-lg bg-slate-700" />
+        <div className="h-8 w-10 rounded-lg bg-slate-700" />
       </div>
     </div>
   )
@@ -131,11 +131,11 @@ function OportunidadeCard({
   onSalvar: () => void
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 hover:shadow-md hover:border-slate-300 transition-all flex flex-col gap-3">
+    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 hover:shadow-md hover:border-slate-600 transition-all flex flex-col gap-3">
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         <ScoreBadge score={op.score} label={op.scoreLabel} />
-        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600">
+        <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-700 px-2 py-0.5 text-xs text-slate-300">
           {op.uf}
         </span>
         <span
@@ -146,24 +146,24 @@ function OportunidadeCard({
       </div>
 
       {/* Objeto */}
-      <p className="text-sm font-medium text-slate-800 line-clamp-2 leading-snug">
+      <p className="text-sm font-medium text-slate-100 line-clamp-2 leading-snug">
         {op.objetoSemTags || op.objeto}
       </p>
 
       {/* Órgão */}
-      <p className="text-xs text-slate-500 truncate">{op.orgao}</p>
+      <p className="text-xs text-slate-400 truncate">{op.orgao}</p>
 
       {/* Motivo */}
-      <p className="text-xs italic text-slate-400 leading-snug">{op.motivo}</p>
+      <p className="text-xs italic text-slate-500 leading-snug">{op.motivo}</p>
 
       {/* Valor + data */}
-      <div className="flex items-center justify-between text-xs text-slate-500">
-        <span className="font-medium text-slate-700">
+      <div className="flex items-center justify-between text-xs text-slate-400">
+        <span className="font-medium text-slate-200">
           {formatCurrency(op.valorTotalEstimado)}
         </span>
         <span>
           Enc.{" "}
-          <span className="font-medium text-amber-700">
+          <span className="font-medium text-amber-400">
             {formatDate(op.dataFinalProposta)}
           </span>
         </span>
@@ -174,7 +174,7 @@ function OportunidadeCard({
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-xs"
+          className="flex-1 text-xs border-slate-600 text-slate-200 hover:bg-slate-700"
           onClick={onVerDetalhes}
         >
           Ver detalhes
@@ -534,11 +534,11 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
         <>
           {oportunidades.length > 0 ? (
             <div>
-              <p className="mb-4 text-sm text-slate-600">
-                <span className="font-bold text-emerald-600">{oportunidades.length}</span>{" "}
+              <p className="mb-4 text-sm text-slate-400">
+                <span className="font-bold text-emerald-400">{oportunidades.length}</span>{" "}
                 {oportunidades.length === 1 ? "oportunidade encontrada" : "oportunidades encontradas"}{" "}
                 para{" "}
-                <span className="font-semibold text-slate-900">
+                <span className="font-semibold text-white">
                   {empresaSelecionada?.razao_social}
                 </span>
                 {analisadas > 0 && (
@@ -563,19 +563,19 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-              <Target className="mb-3 h-10 w-10 text-slate-300" />
-              <p className="text-sm font-medium text-slate-500">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
+              <Target className="mb-3 h-10 w-10 text-slate-600" />
+              <p className="text-sm font-medium text-slate-400">
                 Nenhuma oportunidade relevante encontrada
               </p>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-500">
                 Tente atualizar o CNAE ou o perfil da empresa em{" "}
-                <a href="/clientes" className="text-blue-500 underline">
+                <a href="/clientes" className="text-blue-400 underline">
                   Clientes
                 </a>
               </p>
               {analisadas > 0 && (
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 text-xs text-slate-500">
                   {analisadas} licitações analisadas nos últimos 5 dias
                 </p>
               )}
@@ -586,12 +586,12 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
 
       {/* ── Initial empty state (no empresa selected) ── */}
       {!isPending && !jaAcessado && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-          <Target className="mb-3 h-10 w-10 text-slate-300" />
-          <p className="text-sm font-medium text-slate-500">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
+          <Target className="mb-3 h-10 w-10 text-slate-600" />
+          <p className="text-sm font-medium text-slate-400">
             Selecione uma empresa para ver oportunidades
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-500">
             O sistema buscará licitações dos últimos 5 dias e calculará a
             relevância por CNAE e perfil
           </p>

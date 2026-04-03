@@ -73,17 +73,17 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+    <div className="rounded-xl border border-slate-700 bg-slate-800 p-6 space-y-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-700">
           {icon}
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+          <h2 className="text-sm font-semibold text-white">{title}</h2>
+          <p className="text-xs text-slate-400 mt-0.5">{description}</p>
         </div>
       </div>
-      <div className="border-t border-slate-100 pt-4">{children}</div>
+      <div className="border-t border-slate-700 pt-4">{children}</div>
     </div>
   )
 }
@@ -109,20 +109,21 @@ function PerfilSection({ company }: { company: Company }) {
       <form action={action} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="razao_social">
-              Razão Social <span className="text-red-500">*</span>
+            <Label htmlFor="razao_social" className="text-slate-300">
+              Razão Social <span className="text-red-400">*</span>
             </Label>
             <Input
               id="razao_social"
               name="razao_social"
               defaultValue={company?.razao_social ?? ''}
               placeholder="Empresa LTDA"
+              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
               required
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="cnpj">
-              CNPJ <span className="text-red-500">*</span>
+            <Label htmlFor="cnpj" className="text-slate-300">
+              CNPJ <span className="text-red-400">*</span>
             </Label>
             <Input
               id="cnpj"
@@ -130,26 +131,29 @@ function PerfilSection({ company }: { company: Company }) {
               value={cnpj}
               onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
               placeholder="00.000.000/0000-00"
+              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
               required
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="email_contato">E-mail de Contato</Label>
+            <Label htmlFor="email_contato" className="text-slate-300">E-mail de Contato</Label>
             <Input
               id="email_contato"
               name="email_contato"
               type="email"
               defaultValue={company?.email_contato ?? ''}
               placeholder="contato@empresa.com.br"
+              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="contato">Telefone</Label>
+            <Label htmlFor="contato" className="text-slate-300">Telefone</Label>
             <Input
               id="contato"
               name="contato"
               defaultValue={company?.contato ?? ''}
               placeholder="(11) 99999-9999"
+              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -209,7 +213,7 @@ function CnaesSection({ initialCnaes }: { initialCnaes: string[] }) {
                 <button
                   type="button"
                   onClick={() => remover(cnae)}
-                  className="rounded-full p-0.5 hover:bg-slate-200 transition-colors"
+                  className="rounded-full p-0.5 hover:bg-slate-600 transition-colors"
                   aria-label={`Remover ${cnae}`}
                 >
                   <X className="h-3 w-3" />
@@ -226,7 +230,7 @@ function CnaesSection({ initialCnaes }: { initialCnaes: string[] }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionar())}
             placeholder="Ex: 6201-5/01 — Desenvolvimento de software"
-            className="flex-1"
+            className="flex-1 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
           />
           <Button type="button" variant="outline" size="sm" onClick={adicionar}>
             <Plus className="h-4 w-4" />

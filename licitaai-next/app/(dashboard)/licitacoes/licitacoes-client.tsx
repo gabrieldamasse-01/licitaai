@@ -135,19 +135,19 @@ function LicitacaoCard({
       </div>
 
       {/* Objeto */}
-      <p className="text-sm font-medium text-slate-800 line-clamp-2 leading-relaxed flex-1">
+      <p className="text-sm font-medium text-slate-100 line-clamp-2 leading-relaxed flex-1">
         {lic.objetoSemTags || "Sem descrição"}
       </p>
 
       {/* Órgão */}
-      <p className="text-xs text-slate-500 truncate">
+      <p className="text-xs text-slate-400 truncate">
         {lic.orgao || lic.unidadeGestora || "—"}
       </p>
 
       {/* Rodapé */}
-      <div className="flex items-end justify-between gap-3 pt-3 border-t border-slate-100">
+      <div className="flex items-end justify-between gap-3 pt-3 border-t border-slate-700">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">
+          <p className="text-sm font-semibold text-white">
             {formatCurrency(lic.valorTotalEstimado)}
           </p>
           <p className="text-[11px] text-slate-400 mt-0.5">
@@ -178,9 +178,9 @@ function DetalheConteudo({
 }) {
   return (
     <div className="flex flex-col h-full">
-      <SheetHeader className="pb-4 border-b border-slate-100 space-y-0">
+      <SheetHeader className="pb-4 border-b border-slate-700 space-y-0">
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <Badge variant="outline" className="text-xs font-bold bg-slate-50 text-slate-700">{lic.uf}</Badge>
+          <Badge variant="outline" className="text-xs font-bold bg-slate-700 text-slate-300 border-slate-600">{lic.uf}</Badge>
           {lic.modalidade && (
             <Badge variant="outline" className={cn("text-xs", getModalidadeClass(lic.modalidade))}>
               {lic.modalidade}
@@ -192,7 +192,7 @@ function DetalheConteudo({
             </Badge>
           )}
         </div>
-        <SheetTitle className="text-base font-semibold text-slate-900 leading-relaxed pr-6">
+        <SheetTitle className="text-base font-semibold text-white leading-relaxed pr-6">
           {lic.objetoSemTags}
         </SheetTitle>
       </SheetHeader>
@@ -210,9 +210,9 @@ function DetalheConteudo({
             { label: "SRP", value: lic.srpDescricao || "—" },
             { label: "CAPAG", value: lic.rankingCapag || "—" },
           ].map(({ label, value }) => (
-            <div key={label} className="rounded-lg bg-slate-50 px-3 py-2.5">
+            <div key={label} className="rounded-lg bg-slate-800 border border-slate-700 px-3 py-2.5">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
-              <p className="text-sm text-slate-800 mt-0.5 font-medium break-words">{value || "—"}</p>
+              <p className="text-sm text-slate-100 mt-0.5 font-medium break-words">{value || "—"}</p>
             </div>
           ))}
         </div>
@@ -225,7 +225,7 @@ function DetalheConteudo({
             </p>
             <div className="flex flex-wrap gap-1.5">
               {lic.palavraEncontrada.map((p) => (
-                <Badge key={p} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                <Badge key={p} variant="outline" className="text-xs bg-blue-900/50 text-blue-400 border-blue-800/50">
                   {p}
                 </Badge>
               ))}
@@ -246,7 +246,7 @@ function DetalheConteudo({
                     href={a.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-start gap-2 text-xs text-[#2E86C1] hover:text-[#1A5276] hover:underline"
+                    className="flex items-start gap-2 text-xs text-blue-400 hover:text-blue-300 hover:underline"
                   >
                     <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                     <span className="break-all">{a.nome}</span>
@@ -259,8 +259,8 @@ function DetalheConteudo({
       </div>
 
       {/* Ações fixas no rodapé */}
-      <div className="flex gap-3 pt-4 border-t border-slate-100 mt-4">
-        <Button asChild className="flex-1 bg-[#1A5276] hover:bg-[#154360] text-white gap-2">
+      <div className="flex gap-3 pt-4 border-t border-slate-700 mt-4">
+        <Button asChild className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-2">
           <a href={lic.url} target="_blank" rel="noopener noreferrer">
             <ExternalLink className="h-4 w-4" />
             Acessar Edital
@@ -268,7 +268,7 @@ function DetalheConteudo({
         </Button>
         <Button
           variant="outline"
-          className="flex-1 gap-2"
+          className="flex-1 gap-2 border-slate-600 text-slate-200 hover:bg-slate-700"
           onClick={() => onSalvar(lic)}
           disabled={isSaving}
         >
@@ -336,15 +336,15 @@ function Paginacao({
 
       {end < total - 1 && (
         <>
-          {end < total - 2 && <span className="hidden sm:inline-block text-slate-400 text-sm px-1">…</span>}
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex h-8 w-8 text-xs" onClick={() => onMudar(total - 1)}>
+          {end < total - 2 && <span className="hidden sm:inline-block text-slate-500 text-sm px-1">…</span>}
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex h-8 w-8 text-xs border-slate-700 text-slate-300 hover:bg-slate-700" onClick={() => onMudar(total - 1)}>
             {total}
           </Button>
         </>
       )}
 
       {/* Mobile only page status */}
-      <span className="sm:hidden text-sm text-slate-500 font-medium px-3">
+      <span className="sm:hidden text-sm text-slate-400 font-medium px-3">
         Pág {pagina + 1} de {total}
       </span>
 
@@ -458,7 +458,7 @@ export function LicitacoesClient({
             placeholder="Objeto ou órgão..."
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            className="pl-8 h-9 text-sm"
+            className="pl-8 h-9 text-sm bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
       </div>
@@ -475,7 +475,7 @@ export function LicitacoesClient({
               type="date"
               value={dataInicio}
               onChange={(e) => setDataInicio(e.target.value)}
-              className="h-9 text-sm"
+              className="h-9 text-sm bg-slate-800 border-slate-600 text-white"
             />
           </div>
           <div className="space-y-1">
@@ -484,7 +484,7 @@ export function LicitacoesClient({
               type="date"
               value={dataFim}
               onChange={(e) => setDataFim(e.target.value)}
-              className="h-9 text-sm"
+              className="h-9 text-sm bg-slate-800 border-slate-600 text-white"
             />
           </div>
         </div>
@@ -522,8 +522,8 @@ export function LicitacoesClient({
               className={cn(
                 "rounded px-1.5 py-0.5 text-[11px] font-medium border transition-colors",
                 ufsSel.has(uf)
-                  ? "bg-[#1A5276] text-white border-[#1A5276]"
-                  : "bg-white text-slate-600 border-slate-300 hover:border-[#2E86C1] hover:text-[#2E86C1]"
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-slate-800 text-slate-400 border-slate-600 hover:border-blue-500 hover:text-blue-400"
               )}
             >
               {uf}
@@ -557,7 +557,7 @@ export function LicitacoesClient({
                 onCheckedChange={() => toggleMod(m)}
                 className="data-[state=checked]:bg-[#1A5276] data-[state=checked]:border-[#1A5276]"
               />
-              <span className="text-sm text-slate-700 select-none">{m}</span>
+              <span className="text-sm text-slate-300 select-none">{m}</span>
             </div>
           ))}
         </div>
@@ -583,8 +583,8 @@ export function LicitacoesClient({
       {/* Cabeçalho */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Licitações</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-3xl font-bold tracking-tight text-white">Licitações</h1>
+          <p className="text-sm text-slate-400 mt-1">
             {isPending
               ? "Buscando licitações..."
               : totalRegistros > 0
@@ -609,9 +609,9 @@ export function LicitacoesClient({
               )}
             </Button>
           </div>
-          <SheetContent side="left" className="w-[85vw] sm:w-80 overflow-y-auto">
+          <SheetContent side="left" className="w-[85vw] sm:w-80 overflow-y-auto bg-slate-900 border-slate-800">
             <SheetHeader className="mb-5">
-              <SheetTitle>Filtros</SheetTitle>
+              <SheetTitle className="text-white">Filtros</SheetTitle>
             </SheetHeader>
             {painelFiltros}
           </SheetContent>
@@ -622,7 +622,7 @@ export function LicitacoesClient({
       <div className="flex gap-6">
         {/* Sidebar desktop */}
         <aside className="hidden lg:block w-72 shrink-0">
-          <div className="sticky top-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="sticky top-6 rounded-xl border border-slate-700 bg-slate-800 p-5 shadow-sm">
             {painelFiltros}
           </div>
         </aside>
@@ -631,13 +631,13 @@ export function LicitacoesClient({
         <div className="flex-1 min-w-0 space-y-4">
           {/* Erro */}
           {dados.error && !isPending && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="rounded-xl border border-red-800/50 bg-red-950/50 p-4 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-red-800">{dados.error}</p>
+                <p className="text-sm font-medium text-red-300">{dados.error}</p>
                 <button
                   onClick={() => buscar(paginaAtual)}
-                  className="text-xs text-red-600 hover:underline mt-1"
+                  className="text-xs text-red-400 hover:underline mt-1"
                 >
                   Tentar novamente
                 </button>
@@ -656,9 +656,9 @@ export function LicitacoesClient({
 
           {/* Estado vazio */}
           {!isPending && !dados.error && licitacoesFiltradas.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-20 text-center">
-              <Scale className="h-10 w-10 text-slate-300 mb-3" />
-              <p className="text-sm font-medium text-slate-500">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
+              <Scale className="h-10 w-10 text-slate-600 mb-3" />
+              <p className="text-sm font-medium text-slate-400">
                 {filtrosAtivos > 0
                   ? "Nenhuma licitação corresponde aos filtros"
                   : "Nenhuma licitação encontrada neste período"}
@@ -666,12 +666,12 @@ export function LicitacoesClient({
               {filtrosAtivos > 0 ? (
                 <button
                   onClick={limparFiltros}
-                  className="mt-3 text-xs text-[#2E86C1] hover:underline"
+                  className="mt-3 text-xs text-blue-400 hover:underline"
                 >
                   Limpar filtros
                 </button>
               ) : (
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   Ajuste o período e clique em Buscar
                 </p>
               )}
@@ -707,7 +707,7 @@ export function LicitacoesClient({
 
       {/* Sheet de detalhes */}
       <Sheet open={detalheOpen} onOpenChange={setDetalheOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col p-6">
+        <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col p-6 bg-slate-900 border-slate-800">
           {detalhe && (
             <DetalheConteudo
               lic={detalhe}

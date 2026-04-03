@@ -17,12 +17,12 @@ export default function DashboardError({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center p-6">
-      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-red-50 mb-2 border border-red-100">
-        <AlertTriangle className="h-10 w-10 text-red-500" />
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-red-950/50 mb-2 border border-red-800/50">
+        <AlertTriangle className="h-10 w-10 text-red-400" />
       </div>
       <div className="space-y-2 mb-4">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Algo deu errado</h2>
-        <p className="text-base text-slate-500 max-w-md mx-auto">
+        <h2 className="text-2xl font-bold tracking-tight text-white">Algo deu errado</h2>
+        <p className="text-base text-slate-400 max-w-md mx-auto">
           {error.message || "Ocorreu um erro inesperado ao carregar esta página. Nossa equipe foi notificada."}
         </p>
       </div>
