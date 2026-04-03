@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Plus, Search, Pencil, PowerOff, Power, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -80,6 +81,7 @@ const emptyForm: EmpresaFormData = {
 }
 
 export function ClientesClient({ companies }: { companies: Company[] }) {
+  const router = useRouter()
   const [busca, setBusca] = useState("")
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editando, setEditando] = useState<Company | null>(null)
@@ -200,7 +202,11 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
               </TableHeader>
               <TableBody>
                 {filtradas.map((company) => (
-                  <TableRow key={company.id}>
+                  <TableRow
+                    key={company.id}
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/clientes/${company.id}`)}
+                  >
                     <TableCell className="font-medium">{company.razao_social}</TableCell>
                     <TableCell className="font-mono text-xs">{displayCNPJ(company.cnpj)}</TableCell>
                     <TableCell>
@@ -221,7 +227,7 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
                         {company.ativo ? "Ativo" : "Inativo"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
@@ -258,7 +264,8 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
             {filtradas.map((company) => (
               <div
                 key={company.id}
-                className="rounded-xl border border-slate-200 bg-white p-4 space-y-3"
+                className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 cursor-pointer"
+                onClick={() => router.push(`/clientes/${company.id}`)}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -284,7 +291,10 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
                     <span className="truncate">{company.cnae[0]}</span>
                   )}
                 </div>
-                <div className="flex gap-2 pt-1 border-t border-slate-100">
+                <div
+                  className="flex gap-2 pt-1 border-t border-slate-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Button
                     variant="outline"
                     size="sm"
