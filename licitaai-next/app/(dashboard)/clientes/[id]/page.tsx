@@ -64,25 +64,25 @@ function resolveDocStatus(
 ): DocStatus {
   const validade = dataValidade ? new Date(dataValidade + "T00:00:00") : null
   if (validade && validade < hoje)
-    return { label: "Expirado", className: "bg-red-100 text-red-700 border-red-200" }
+    return { label: "Expirado", className: "bg-red-950/50 text-red-400 border-red-800/50" }
   if (validade && validade <= em30)
-    return { label: "Vencendo", className: "bg-amber-100 text-amber-700 border-amber-200" }
+    return { label: "Vencendo", className: "bg-amber-950/50 text-amber-400 border-amber-800/50" }
   if (status === "ativo")
-    return { label: "Válido", className: "bg-emerald-100 text-emerald-700 border-emerald-200" }
+    return { label: "Válido", className: "bg-emerald-950/50 text-emerald-400 border-emerald-800/50" }
   const map: Record<string, DocStatus> = {
-    pendente: { label: "Pendente", className: "bg-blue-100 text-blue-700 border-blue-200" },
-    processando: { label: "Processando", className: "bg-blue-100 text-blue-700 border-blue-200" },
-    rejeitado: { label: "Rejeitado", className: "bg-red-100 text-red-700 border-red-200" },
-    vencido: { label: "Expirado", className: "bg-red-100 text-red-700 border-red-200" },
+    pendente: { label: "Pendente", className: "bg-blue-900/50 text-blue-400 border-blue-800/50" },
+    processando: { label: "Processando", className: "bg-blue-900/50 text-blue-400 border-blue-800/50" },
+    rejeitado: { label: "Rejeitado", className: "bg-red-950/50 text-red-400 border-red-800/50" },
+    vencido: { label: "Expirado", className: "bg-red-950/50 text-red-400 border-red-800/50" },
   }
-  return map[status] ?? { label: status, className: "bg-slate-100 text-slate-600 border-slate-200" }
+  return map[status] ?? { label: status, className: "bg-slate-700 text-slate-400 border-slate-600" }
 }
 
 function scoreClassName(score: number) {
-  if (score >= 85) return "bg-emerald-100 text-emerald-700 border-emerald-200"
-  if (score >= 70) return "bg-blue-100 text-blue-700 border-blue-200"
-  if (score >= 60) return "bg-amber-100 text-amber-700 border-amber-200"
-  return "bg-slate-100 text-slate-600 border-slate-200"
+  if (score >= 85) return "bg-emerald-950/50 text-emerald-400 border-emerald-800/50"
+  if (score >= 70) return "bg-blue-900/50 text-blue-400 border-blue-800/50"
+  if (score >= 60) return "bg-amber-950/50 text-amber-400 border-amber-800/50"
+  return "bg-slate-700 text-slate-400 border-slate-600"
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -152,36 +152,36 @@ export default async function ClienteDetalhePage({
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-sm text-slate-500">
-        <Link href="/clientes" className="hover:text-slate-800 transition-colors">
+      <nav className="flex items-center gap-1.5 text-sm text-slate-400">
+        <Link href="/clientes" className="hover:text-slate-200 transition-colors">
           Clientes
         </Link>
         <span>/</span>
-        <span className="text-slate-900 font-medium truncate max-w-xs">
+        <span className="text-white font-medium truncate max-w-xs">
           {company.razao_social}
         </span>
       </nav>
 
       {/* Header */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <div className="rounded-xl border border-slate-700 bg-slate-800 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-slate-900">{company.razao_social}</h1>
+              <h1 className="text-2xl font-bold text-white">{company.razao_social}</h1>
               <Badge
                 variant="outline"
                 className={
                   company.ativo
-                    ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                    : "bg-slate-100 text-slate-500 border-slate-200"
+                    ? "bg-emerald-900/50 text-emerald-400 border-emerald-800/50"
+                    : "bg-slate-700 text-slate-400 border-slate-600"
                 }
               >
                 {company.ativo ? "Ativo" : "Inativo"}
               </Badge>
             </div>
-            <p className="font-mono text-sm text-slate-500">{displayCNPJ(company.cnpj)}</p>
-            <div className="flex items-center gap-2 flex-wrap text-sm text-slate-500">
-              <Badge variant="outline">{PORTE_LABELS[company.porte] ?? company.porte}</Badge>
+            <p className="font-mono text-sm text-slate-400">{displayCNPJ(company.cnpj)}</p>
+            <div className="flex items-center gap-2 flex-wrap text-sm text-slate-400">
+              <Badge variant="outline" className="border-slate-600 text-slate-300">{PORTE_LABELS[company.porte] ?? company.porte}</Badge>
               {company.cnae?.[0] && <span>{company.cnae[0]}</span>}
               {company.email_contato && (
                 <span className="hidden sm:inline">· {company.email_contato}</span>
@@ -193,7 +193,7 @@ export default async function ClienteDetalhePage({
           </div>
 
           <div className="flex gap-2 shrink-0">
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-700" asChild>
               <Link href="/clientes">
                 <ArrowLeft className="h-4 w-4 mr-1.5" />
                 Voltar
@@ -219,7 +219,7 @@ export default async function ClienteDetalhePage({
           icon={<CheckCircle2 className="h-5 w-5 text-white" />}
           iconBg="bg-gradient-to-br from-emerald-400 to-emerald-600"
           borderColor="metric-card-emerald"
-          valueClassName="text-emerald-600"
+          valueClassName="text-emerald-400"
         />
         <SummaryCard
           label="Vencendo / Expirados"
@@ -227,7 +227,7 @@ export default async function ClienteDetalhePage({
           icon={<AlertTriangle className="h-5 w-5 text-white" />}
           iconBg="bg-gradient-to-br from-amber-400 to-amber-500"
           borderColor="metric-card-amber"
-          valueClassName={docVencendo + docExpirados > 0 ? "text-amber-600" : undefined}
+          valueClassName={docVencendo + docExpirados > 0 ? "text-amber-400" : undefined}
         />
         <SummaryCard
           label="Oportunidades Salvas"
@@ -235,7 +235,7 @@ export default async function ClienteDetalhePage({
           icon={<Target className="h-5 w-5 text-white" />}
           iconBg="bg-gradient-to-br from-blue-500 to-blue-600"
           borderColor="metric-card-blue"
-          valueClassName="text-blue-600"
+          valueClassName="text-blue-400"
         />
       </div>
 
@@ -244,10 +244,10 @@ export default async function ClienteDetalhePage({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-slate-400" />
-            <h2 className="text-base font-semibold text-slate-900">Documentos</h2>
-            <span className="text-sm text-slate-500">({docs.length})</span>
+            <h2 className="text-base font-semibold text-white">Documentos</h2>
+            <span className="text-sm text-slate-400">({docs.length})</span>
           </div>
-          <Button size="sm" variant="outline" asChild>
+          <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700" asChild>
             <Link href={`/documentos?empresa=${id}`}>
               <Plus className="h-4 w-4 mr-1.5" />
               Adicionar Documento
@@ -262,14 +262,14 @@ export default async function ClienteDetalhePage({
             sub="Adicione documentos de habilitação para este cliente."
           />
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
             <Table className="data-table">
               <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Emissão</TableHead>
-                  <TableHead>Validade</TableHead>
-                  <TableHead>Status</TableHead>
+                <TableRow className="bg-slate-800 border-slate-700">
+                  <TableHead className="text-slate-400">Tipo</TableHead>
+                  <TableHead className="text-slate-400">Emissão</TableHead>
+                  <TableHead className="text-slate-400">Validade</TableHead>
+                  <TableHead className="text-slate-400">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -281,14 +281,14 @@ export default async function ClienteDetalhePage({
                     em30,
                   )
                   return (
-                    <TableRow key={doc.id}>
-                      <TableCell className="font-medium">
+                    <TableRow key={doc.id} className="border-slate-700 hover:bg-slate-700/50">
+                      <TableCell className="font-medium text-white">
                         {doc.tipo || doc.nome_arquivo || "—"}
                       </TableCell>
-                      <TableCell className="text-slate-500 text-sm">
+                      <TableCell className="text-slate-400 text-sm">
                         {formatDate(doc.data_emissao)}
                       </TableCell>
-                      <TableCell className="text-slate-500 text-sm">
+                      <TableCell className="text-slate-400 text-sm">
                         {formatDate(doc.data_validade)}
                       </TableCell>
                       <TableCell>
@@ -309,8 +309,8 @@ export default async function ClienteDetalhePage({
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Target className="h-5 w-5 text-slate-400" />
-          <h2 className="text-base font-semibold text-slate-900">Oportunidades Salvas</h2>
-          <span className="text-sm text-slate-500">({matches.length})</span>
+          <h2 className="text-base font-semibold text-white">Oportunidades Salvas</h2>
+          <span className="text-sm text-slate-400">({matches.length})</span>
         </div>
 
         {matches.length === 0 ? (
@@ -325,14 +325,14 @@ export default async function ClienteDetalhePage({
             }
           />
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
             <Table className="data-table">
               <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead>Objeto</TableHead>
-                  <TableHead>Órgão</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Salvo em</TableHead>
+                <TableRow className="bg-slate-800 border-slate-700">
+                  <TableHead className="text-slate-400">Objeto</TableHead>
+                  <TableHead className="text-slate-400">Órgão</TableHead>
+                  <TableHead className="text-slate-400">Score</TableHead>
+                  <TableHead className="text-slate-400">Salvo em</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -341,13 +341,13 @@ export default async function ClienteDetalhePage({
                     ? match.licitacoes[0]
                     : match.licitacoes
                   return (
-                    <TableRow key={match.id}>
+                    <TableRow key={match.id} className="border-slate-700 hover:bg-slate-700/50">
                       <TableCell className="max-w-xs">
-                        <span className="text-sm leading-snug">
+                        <span className="text-sm leading-snug text-white">
                           {lic?.objeto ? truncate(lic.objeto) : "—"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-slate-500 text-sm whitespace-nowrap">
+                      <TableCell className="text-slate-400 text-sm whitespace-nowrap">
                         {lic?.orgao ? truncate(lic.orgao, 40) : "—"}
                       </TableCell>
                       <TableCell>
@@ -358,7 +358,7 @@ export default async function ClienteDetalhePage({
                           {match.relevancia_score ?? 0}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-slate-500 text-sm whitespace-nowrap">
+                      <TableCell className="text-slate-400 text-sm whitespace-nowrap">
                         {match.created_at
                           ? new Date(match.created_at).toLocaleDateString("pt-BR")
                           : "—"}
@@ -376,13 +376,13 @@ export default async function ClienteDetalhePage({
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-slate-400" />
-          <h2 className="text-base font-semibold text-slate-900">Habilitação</h2>
-          <span className="text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-white">Habilitação</h2>
+          <span className="text-sm text-slate-400">
             {checklistOk}/{checklist.length} documentos ok
           </span>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
+        <div className="rounded-xl border border-slate-700 bg-slate-800 divide-y divide-slate-700">
           {checklist.map((item) => (
             <div key={item.nome} className="flex items-center justify-between px-4 py-3 gap-3">
               <div className="flex items-center gap-3 min-w-0">
@@ -397,7 +397,7 @@ export default async function ClienteDetalhePage({
                 )}
                 <span
                   className={`text-sm font-medium ${
-                    item.status === "faltando" ? "text-slate-400" : "text-slate-800"
+                    item.status === "faltando" ? "text-slate-500" : "text-slate-100"
                   }`}
                 >
                   {item.nome}
@@ -414,12 +414,12 @@ export default async function ClienteDetalhePage({
                   variant="outline"
                   className={
                     item.status === "ok"
-                      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                      ? "bg-emerald-950/50 text-emerald-400 border-emerald-800/50"
                       : item.status === "vencendo"
-                        ? "bg-amber-100 text-amber-700 border-amber-200"
+                        ? "bg-amber-950/50 text-amber-400 border-amber-800/50"
                         : item.status === "vencido"
-                          ? "bg-red-100 text-red-700 border-red-200"
-                          : "bg-slate-100 text-slate-500 border-slate-200"
+                          ? "bg-red-950/50 text-red-400 border-red-800/50"
+                          : "bg-slate-700 text-slate-400 border-slate-600"
                   }
                 >
                   {item.status === "ok"
@@ -457,16 +457,16 @@ function SummaryCard({
   valueClassName?: string
 }) {
   return (
-    <div className={`metric-card ${borderColor ?? ""} rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/60 p-4 space-y-3`}>
+    <div className={`metric-card ${borderColor ?? ""} rounded-xl border border-slate-700 bg-slate-800 p-4 space-y-3`}>
       <div className="flex items-center justify-between">
-        <div className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm ${iconBg ?? "bg-slate-100"}`}>
+        <div className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm ${iconBg ?? "bg-slate-700"}`}>
           {icon}
         </div>
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-right leading-tight max-w-[80px]">
           {label}
         </p>
       </div>
-      <p className={`text-4xl font-bold tracking-tight text-slate-900 ${valueClassName ?? ""}`}>{value}</p>
+      <p className={`text-4xl font-bold tracking-tight text-white ${valueClassName ?? ""}`}>{value}</p>
     </div>
   )
 }
@@ -483,10 +483,10 @@ function EmptyState({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-14 text-center px-4">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-14 text-center px-4">
       {icon}
-      <p className="mt-3 text-sm font-medium text-slate-500">{message}</p>
-      <p className="mt-1 text-xs text-slate-400">{sub}</p>
+      <p className="mt-3 text-sm font-medium text-slate-400">{message}</p>
+      <p className="mt-1 text-xs text-slate-500">{sub}</p>
       {action}
     </div>
   )
