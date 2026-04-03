@@ -48,13 +48,16 @@ export function LandingNavbar({ isLoggedIn }: LandingNavbarProps) {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            {["Benefícios", "Solução", "Depoimentos", "Planos"].map((item) => (
+            {[
+              { label: "Como funciona", href: "#como-funciona" },
+              { label: "Preços", href: "#planos" },
+            ].map((item) => (
               <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
+                key={item.label}
+                href={item.href}
                 className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
               >
-                {item}
+                {item.label}
               </a>
             ))}
           </div>
@@ -108,14 +111,17 @@ export function LandingNavbar({ isLoggedIn }: LandingNavbarProps) {
             className="absolute top-full left-0 right-0 bg-[#0A1628]/95 backdrop-blur-xl border-b border-white/10 md:hidden"
           >
             <div className="px-4 pt-2 pb-6 space-y-1">
-              {["Benefícios", "Solução", "Depoimentos", "Planos"].map((item) => (
+              {[
+                { label: "Como funciona", href: "#como-funciona" },
+                { label: "Preços", href: "#planos" },
+              ].map((item) => (
                 <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
+                  key={item.label}
+                  href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className="block px-4 py-3 text-base font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
                 >
-                  {item}
+                  {item.label}
                 </a>
               ))}
               

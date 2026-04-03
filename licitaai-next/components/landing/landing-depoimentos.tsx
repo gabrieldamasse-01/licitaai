@@ -35,7 +35,7 @@ export function LandingDepoimentos() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.div 
+          <motion.div
              initial={{ opacity: 0, y: 20 }}
              whileInView={{ opacity: 1, y: 0 }}
              viewport={{ once: true, margin: "-100px" }}
@@ -43,7 +43,7 @@ export function LandingDepoimentos() {
           >
             Casos de Sucesso
           </motion.div>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -52,6 +52,15 @@ export function LandingDepoimentos() {
           >
             Quem usa, aprova e <span className="text-blue-400">vence</span>
           </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-2xl font-bold text-white"
+          >
+            <span className="text-blue-400">2.400+</span> empresas já usam o LicitaAI
+          </motion.p>
         </div>
 
         {/* Horizontal Carousel for Mobile, Grid for Desktop */}

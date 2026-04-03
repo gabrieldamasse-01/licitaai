@@ -1,119 +1,107 @@
 "use client"
 
-import { Search, Brain, Target, Trophy } from "lucide-react"
+import { Building2, Brain, Bell } from "lucide-react"
 import { motion } from "motion/react"
 
 const steps = [
   {
-    icon: Search,
-    title: "1. Mapeamento Automático",
-    description: "Nossa IA se conecta ao ComprasNet e a diversos diários oficiais, buscando 24h por dia novos editais.",
-    color: "from-blue-600 to-blue-400"
+    number: "01",
+    icon: Building2,
+    title: "Cadastre sua empresa e CNAEs",
+    description:
+      "Informe o CNPJ, os CNAEs da sua empresa e as regiões de interesse. O LicitaAI usa esse perfil para filtrar apenas as licitações realmente relevantes para você.",
+    color: "from-blue-600 to-blue-400",
   },
   {
+    number: "02",
     icon: Brain,
-    title: "2. Leitura e Compreensão",
-    description: "A inteligência artificial lê todo o edital (incluindo anexos), extraindo o objeto, valor estimado, exigências e datas.",
-    color: "from-cyan-500 to-cyan-300"
+    title: "Nossa IA analisa e pontua cada licitação",
+    description:
+      "A inteligência artificial lê cada edital do PNCP, extrai objeto, valor, exigências e datas, e gera um score de relevância de 0 a 100% com base no perfil da sua empresa.",
+    color: "from-cyan-500 to-cyan-300",
   },
   {
-    icon: Target,
-    title: "3. Classificação (Match)",
-    description: "A IA compara as exigências do edital com o perfil e CNAEs da sua empresa, gerando um Score de Relevância de 0 a 100%.",
-    color: "from-emerald-500 to-emerald-300"
-  },
-  {
-    icon: Trophy,
-    title: "4. Tomada de Decisão",
-    description: "Você recebe apenas as melhores oportunidades diretamente no painel ou por e-mail, prontas para análise da sua equipe.",
-    color: "from-blue-500 to-cyan-400"
+    number: "03",
+    icon: Bell,
+    title: "Receba oportunidades relevantes no seu email",
+    description:
+      "Você recebe alertas diários com as melhores oportunidades ranqueadas. Também notificamos sobre documentos de habilitação próximos do vencimento.",
+    color: "from-emerald-500 to-emerald-300",
   },
 ]
 
 export function LandingComoFunciona() {
   return (
-    <section id="solucao" className="py-24 bg-[#050D1A] relative overflow-hidden">
+    <section id="como-funciona" className="py-24 bg-[#050D1A] relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] -translate-y-1/2 pointer-events-none" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <motion.div 
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true, margin: "-100px" }}
-             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card border border-blue-500/30 text-blue-300 text-sm font-medium mb-6"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card border border-blue-500/30 text-blue-300 text-sm font-medium mb-6"
           >
-            A Solução
+            Como funciona
           </motion.div>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-3xl md:text-5xl font-bold text-white mb-6"
           >
-            Como a IA funciona <br className="hidden md:block"/>
-            <span className="text-blue-400">na prática</span>
+            Do cadastro ao alerta em{" "}
+            <span className="text-blue-400">3 passos</span>
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg text-slate-400"
           >
-            Substituímos o trabalho manual e repetitivo por algoritmos de linguagem natural 
-            que processam milhares de páginas por minuto.
+            Configure uma vez e deixe a IA trabalhar por você — monitorando o PNCP
+            24 horas por dia.
           </motion.p>
         </div>
 
-        {/* Vertical Timeline container */}
-        <div className="relative max-w-4xl mx-auto">
-          
-          {/* Connecting line (Desktop) */}
-          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-600/50 via-cyan-400/50 to-transparent -translate-x-1/2" />
-          
-          {/* Connecting line (Mobile) */}
-          <div className="md:hidden absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-blue-600/50 via-cyan-400/50 to-transparent" />
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {steps.map((step, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.15 }}
+              className="relative glass-card p-8 rounded-2xl border border-white/5 hover:border-blue-500/20 transition-all duration-300 flex flex-col"
+            >
+              {/* Step number */}
+              <span className="text-5xl font-black text-white/5 absolute top-6 right-6 leading-none select-none">
+                {step.number}
+              </span>
 
-          <div className="space-y-12 md:space-y-24">
-            {steps.map((step, index) => {
-              const isEven = index % 2 === 0;
-              return (
-                <motion.div 
-                  key={index}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                  className={`relative flex items-center flex-col md:flex-row gap-8 md:gap-16 ${
-                    isEven ? "md:flex-row-reverse" : ""
-                  }`}
-                >
-                  
-                  {/* Timeline icon (Center on desktop, left on mobile) */}
-                  <div className="absolute left-8 md:left-1/2 -ml-6 md:-ml-8 top-0 md:top-1/2 md:-translate-y-1/2 z-10 flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg shadow-blue-500/20 border border-white/10"
-                       style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${step.color} rounded-2xl opacity-20`} />
-                    <step.icon className={`h-6 w-6 md:h-8 md:w-8 text-white relative z-10`} />
-                  </div>
+              {/* Icon */}
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} bg-opacity-10 flex items-center justify-center mb-6 shrink-0`}>
+                <div className={`absolute w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} opacity-10`} />
+                <step.icon className="w-7 h-7 text-white relative z-10" />
+              </div>
 
-                  {/* Empty space for desktop alignment */}
-                  <div className="hidden md:block w-1/2" />
+              <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+              <p className="text-slate-400 leading-relaxed text-sm flex-1">
+                {step.description}
+              </p>
 
-                  {/* Content Card */}
-                  <div className={`w-full md:w-1/2 pl-24 md:pl-0 ${isEven ? "md:pr-16 md:text-right" : "md:pl-16 md:text-left"}`}>
-                    <div className="glass-card p-8 rounded-2xl border border-white/5 hover:border-blue-500/20 transition-all duration-300">
-                      <h3 className="text-xl md:text-2xl font-bold text-white mb-4">{step.title}</h3>
-                      <p className="text-slate-400 leading-relaxed text-base md:text-lg">
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
-
-                </motion.div>
-              );
-            })}
-          </div>
+              {/* Connector arrow (not on last) */}
+              {index < steps.length - 1 && (
+                <div className="hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 text-xs font-bold">
+                  →
+                </div>
+              )}
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

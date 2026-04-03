@@ -28,7 +28,7 @@ export function LandingHero() {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card border border-blue-500/30 text-blue-300 text-sm font-medium mb-8"
           >
             <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-            Nova versão 2.0 com IA Generativa
+            ✨ 15.000+ licitações monitoradas por mês
           </motion.div>
 
           {/* Headline */}
@@ -38,8 +38,9 @@ export function LandingHero() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]"
           >
-            Vença licitações com{" "}
+            Encontre licitações perfeitas{" "}
             <br className="hidden md:block" />
+            para sua empresa com{" "}
             <span className="gradient-text-hero">Inteligência Artificial</span>
           </motion.h1>
 
@@ -50,8 +51,8 @@ export function LandingHero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed"
           >
-            A plataforma completa e automatizada para buscar, analisar e gerenciar 
-            oportunidades do ComprasNet. Ganhe tempo e aumente muito suas taxas de conversão.
+            O LicitaAI analisa milhares de editais e identifica automaticamente as melhores
+            oportunidades para o perfil da sua empresa.
           </motion.p>
 
           {/* CTAs */}
@@ -72,7 +73,7 @@ export function LandingHero() {
               href="#como-funciona"
               className="w-full sm:w-auto h-14 px-8 inline-flex items-center justify-center rounded-full border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium text-lg glass-card transition-all"
             >
-              Entenda como a IA atua
+              Ver demonstração
             </Link>
           </motion.div>
           
