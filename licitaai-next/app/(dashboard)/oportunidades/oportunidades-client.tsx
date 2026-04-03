@@ -56,11 +56,25 @@ function getModalidadeClass(modalidade: string): string {
   return "bg-slate-50 text-slate-600 border-slate-200"
 }
 
+function getModalidadeClassDark(modalidade: string): string {
+  if (modalidade?.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
+  if (modalidade === "Dispensa") return "bg-amber-950/60 text-amber-300 border-amber-800/50"
+  if (modalidade === "Concorrência") return "bg-violet-950/60 text-violet-300 border-violet-800/50"
+  if (modalidade === "Inexigibilidade") return "bg-rose-950/60 text-rose-300 border-rose-800/50"
+  if (modalidade === "Credenciamento") return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
+  return "bg-slate-800 text-slate-300 border-slate-700"
+}
+
 // ─── Score badge ──────────────────────────────────────────────────────────────
 
-function ScoreBadge({ score, label }: { score: number; label: string }) {
-  const cls =
-    score >= 80
+function ScoreBadge({ score, label, dark = false }: { score: number; label: string; dark?: boolean }) {
+  const cls = dark
+    ? score >= 80
+      ? "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
+      : score >= 60
+        ? "bg-amber-950/60 text-amber-400 border-amber-800/50"
+        : "bg-slate-800 text-slate-400 border-slate-700"
+    : score >= 80
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"
       : score >= 60
         ? "bg-amber-100 text-amber-700 border-amber-200"
@@ -211,29 +225,31 @@ function DetalheSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-slate-900 border-slate-800">
         <SheetHeader>
-          <SheetTitle>Detalhes da Oportunidade</SheetTitle>
+          <SheetTitle className="text-white">Detalhes da Oportunidade</SheetTitle>
         </SheetHeader>
 
         <div className="mt-6 space-y-5">
           {/* Badges de score */}
           <div className="flex flex-wrap gap-2">
-            <ScoreBadge score={op.score} label={op.scoreLabel} />
-            <Badge variant="outline">{op.uf}</Badge>
+            <ScoreBadge score={op.score} label={op.scoreLabel} dark />
+            <Badge variant="outline" className="border-slate-700 text-slate-300 bg-transparent">
+              {op.uf}
+            </Badge>
             <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${getModalidadeClass(op.modalidade)}`}
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${getModalidadeClassDark(op.modalidade)}`}
             >
               {op.modalidade}
             </span>
-            <Badge variant="outline" className="text-slate-500">
+            <Badge variant="outline" className="border-slate-700 text-slate-400 bg-transparent">
               {op.portal}
             </Badge>
           </div>
 
           {/* Motivo */}
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            <span className="font-semibold">{op.scoreLabel}: </span>
+          <div className="rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-slate-300">
+            <span className="font-semibold text-slate-200">{op.scoreLabel}: </span>
             {op.motivo}
           </div>
 
@@ -242,12 +258,12 @@ function DetalheSheet({
             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
               Objeto
             </p>
-            <p className="text-sm leading-relaxed text-slate-800">
+            <p className="text-sm leading-relaxed text-slate-100">
               {op.objetoSemTags || op.objeto}
             </p>
           </div>
 
-          <Separator />
+          <Separator className="bg-slate-800" />
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {[
@@ -269,7 +285,7 @@ function DetalheSheet({
                   {label}
                 </p>
                 <p
-                  className={`text-sm ${highlight ? "font-semibold text-slate-900" : "text-slate-700"}`}
+                  className={`text-sm ${highlight ? "font-semibold text-white" : "text-slate-200"}`}
                 >
                   {String(value)}
                 </p>
@@ -277,7 +293,7 @@ function DetalheSheet({
             ))}
           </div>
 
-          <Separator />
+          <Separator className="bg-slate-800" />
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {[
@@ -295,7 +311,7 @@ function DetalheSheet({
                   {label}
                 </p>
                 <p
-                  className={`text-sm ${highlight ? "font-semibold text-amber-700" : "text-slate-700"}`}
+                  className={`text-sm ${highlight ? "font-semibold text-red-400" : "text-slate-200"}`}
                 >
                   {value}
                 </p>
@@ -305,14 +321,14 @@ function DetalheSheet({
 
           {(op.palavraEncontrada?.length ?? 0) > 0 && (
             <>
-              <Separator />
+              <Separator className="bg-slate-800" />
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Palavras-chave encontradas
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {op.palavraEncontrada.map((p, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">
+                    <Badge key={i} variant="outline" className="text-xs border-slate-700 text-slate-300 bg-transparent">
                       {p}
                     </Badge>
                   ))}
@@ -323,7 +339,7 @@ function DetalheSheet({
 
           {(op.anexos?.length ?? 0) > 0 && (
             <>
-              <Separator />
+              <Separator className="bg-slate-800" />
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Anexos ({op.anexos.length})
@@ -335,7 +351,7 @@ function DetalheSheet({
                       href={a.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-blue-600 hover:bg-slate-100 hover:text-blue-800"
+                      className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-blue-400 hover:bg-slate-700 hover:text-blue-300 transition-colors"
                     >
                       <ExternalLink className="h-3 w-3 shrink-0" />
                       <span className="truncate">{a.nome}</span>
@@ -346,15 +362,20 @@ function DetalheSheet({
             </>
           )}
 
-          <Separator />
+          <Separator className="bg-slate-800" />
 
           <ChecklistHabilitacao empresaId={empresaId} />
 
-          <Separator />
+          <Separator className="bg-slate-800" />
 
           <div className="flex flex-wrap gap-2 pb-4">
             {op.url && (
-              <Button variant="outline" size="sm" asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white bg-transparent"
+                asChild
+              >
                 <a href={op.url} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-1.5 h-4 w-4" />
                   Ver no portal
@@ -365,7 +386,7 @@ function DetalheSheet({
               size="sm"
               disabled={salvo || salvando}
               onClick={onSalvar}
-              style={!salvo ? { backgroundColor: "#1A5276" } : undefined}
+              className={salvo ? "border-slate-700 text-slate-400 bg-transparent" : "bg-blue-600 hover:bg-blue-500 text-white"}
             >
               {salvo ? (
                 <>
