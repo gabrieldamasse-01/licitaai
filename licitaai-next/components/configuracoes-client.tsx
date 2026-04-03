@@ -292,10 +292,10 @@ function PreferenciasSection({ prefs }: { prefs: Prefs }) {
         <input type="hidden" name="alert_days" value={alertDays} />
 
         {/* Toggle alertas */}
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-100 p-3">
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
           <div>
-            <p className="text-sm font-medium text-slate-800">Receber alertas por e-mail</p>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-sm font-medium text-white">Receber alertas por e-mail</p>
+            <p className="text-xs text-slate-400 mt-0.5">
               Notificações sobre documentos próximos do vencimento.
             </p>
           </div>
@@ -308,28 +308,29 @@ function PreferenciasSection({ prefs }: { prefs: Prefs }) {
 
         {/* Antecedência */}
         <div className="space-y-1.5">
-          <Label>Antecedência do alerta</Label>
+          <Label className="text-slate-300">Antecedência do alerta</Label>
           <Select value={alertDays} onValueChange={setAlertDays} disabled={!alertasEmail}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-white">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">7 dias antes</SelectItem>
-              <SelectItem value="15">15 dias antes</SelectItem>
-              <SelectItem value="30">30 dias antes</SelectItem>
+            <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectItem value="7" className="text-white focus:bg-slate-700">7 dias antes</SelectItem>
+              <SelectItem value="15" className="text-white focus:bg-slate-700">15 dias antes</SelectItem>
+              <SelectItem value="30" className="text-white focus:bg-slate-700">30 dias antes</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* E-mail dos alertas */}
         <div className="space-y-1.5">
-          <Label htmlFor="alert_email">E-mail para alertas</Label>
+          <Label htmlFor="alert_email" className="text-slate-300">E-mail para alertas</Label>
           <Input
             id="alert_email"
             name="alert_email"
             type="email"
             defaultValue={prefs.alert_email}
             placeholder="alertas@empresa.com.br"
+            className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
             disabled={!alertasEmail}
           />
           <p className="text-xs text-slate-400">
@@ -380,15 +381,15 @@ function SegurancaSection({ userEmail }: { userEmail: string }) {
       description="Gerencie a senha e o acesso à sua conta."
     >
       <div className="space-y-4">
-        <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
-          <p className="text-xs text-slate-500 mb-0.5">E-mail da conta</p>
-          <p className="text-sm font-medium text-slate-900">{userEmail}</p>
+        <div className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3">
+          <p className="text-xs text-slate-400 mb-0.5">E-mail da conta</p>
+          <p className="text-sm font-medium text-white">{userEmail}</p>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-100 p-3">
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
           <div>
-            <p className="text-sm font-medium text-slate-800">Alterar senha</p>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-sm font-medium text-white">Alterar senha</p>
+            <p className="text-xs text-slate-400 mt-0.5">
               Enviaremos um link de redefinição para o e-mail acima.
             </p>
           </div>
