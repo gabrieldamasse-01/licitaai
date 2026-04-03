@@ -157,7 +157,8 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
             placeholder="Buscar por nome ou CNPJ..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
+            className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-300"
+            style={{ color: 'white' }}
           />
         </div>
         <Button onClick={abrirNova} className="bg-blue-600 hover:bg-blue-700 shrink-0">

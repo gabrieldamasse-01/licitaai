@@ -223,13 +223,13 @@
 
 /* ─── Data Table Enhancements ───────────────────────────────────────────────── */
 @layer utilities {
-  /* Zebra striping + hover for shadcn TableBody rows */
+  /* Zebra striping + hover for shadcn TableBody rows — dark mode */
   .data-table tbody tr:nth-child(even) {
-    background-color: rgba(248, 250, 252, 0.6);
+    background-color: rgba(15, 23, 42, 0.4);
   }
 
   .data-table tbody tr:hover {
-    background-color: rgba(239, 246, 255, 0.7);
+    background-color: rgba(51, 65, 85, 0.5);
   }
 
   /* Primary button gradient */
