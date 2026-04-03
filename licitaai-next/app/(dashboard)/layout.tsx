@@ -18,6 +18,18 @@ export default async function DashboardLayout({
     redirect("/auth/login")
   }
 
+  // Redirecionar para onboarding se não tiver empresa cadastrada
+  const { data: company } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle()
+
+  if (!company) {
+    redirect("/onboarding")
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Sidebar desktop */}
