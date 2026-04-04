@@ -11,6 +11,7 @@ import {
   X,
   Mail,
   RefreshCw,
+  Crown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { UpgradeButton } from '@/components/upgrade-button'
 import {
   salvarPerfil,
   salvarCnaes,
@@ -46,6 +48,11 @@ type Prefs = {
   alertas_email: boolean
   alert_days: number
   alert_email: string
+}
+
+type Plano = {
+  plano: string
+  planoExpiraEm: string | null
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -409,19 +416,91 @@ function SegurancaSection({ userEmail }: { userEmail: string }) {
   )
 }
 
+// ─── 5. Plano ─────────────────────────────────────────────────────────────────
+
+function PlanoSection({ plano, planoExpiraEm }: Plano) {
+  const isPro = plano === 'pro'
+
+  const expiresFormatted = planoExpiraEm
+    ? new Date(planoExpiraEm).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null
+
+  return (
+    <Section
+      icon={<Crown className="h-4 w-4 text-slate-400" />}
+      title="Plano atual"
+      description="Gerencie sua assinatura e recursos disponíveis."
+    >
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-white">
+              {isPro ? '⚡ Plano Pro' : 'Plano Gratuito'}
+            </p>
+            {isPro && expiresFormatted ? (
+              <p className="text-xs text-slate-400 mt-0.5">
+                Renova em {expiresFormatted}
+              </p>
+            ) : (
+              <p className="text-xs text-slate-400 mt-0.5">
+                Acesso básico à plataforma
+              </p>
+            )}
+          </div>
+          <Badge
+            variant="outline"
+            className={
+              isPro
+                ? 'bg-blue-900/50 text-blue-300 border-blue-700/50'
+                : 'bg-slate-700 text-slate-300 border-slate-600'
+            }
+          >
+            {isPro ? 'Pro' : 'Gratuito'}
+          </Badge>
+        </div>
+
+        {isPro ? (
+          <p className="text-xs text-slate-400">
+            Para cancelar ou alterar sua assinatura, entre em contato com o suporte.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            <div className="rounded-lg bg-blue-950/40 border border-blue-800/50 p-3 text-xs text-blue-300 space-y-1">
+              <p className="font-semibold text-blue-200">Plano Pro — R$97/mês</p>
+              <p>
+                Análise ilimitada de editais com IA, alertas prioritários e suporte dedicado.
+              </p>
+            </div>
+            <UpgradeButton />
+          </div>
+        )}
+      </div>
+    </Section>
+  )
+}
+
 // ─── Export principal ─────────────────────────────────────────────────────────
 
 export function ConfiguracoesClient({
   company,
   prefs,
   userEmail,
+  plano,
+  planoExpiraEm,
 }: {
   company: Company
   prefs: Prefs
   userEmail: string
+  plano: string
+  planoExpiraEm: string | null
 }) {
   return (
     <div className="space-y-4">
+      <PlanoSection plano={plano} planoExpiraEm={planoExpiraEm} />
       <PerfilSection company={company} />
       <CnaesSection initialCnaes={company?.cnae ?? []} />
       <PreferenciasSection prefs={prefs} />

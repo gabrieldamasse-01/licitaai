@@ -19,7 +19,7 @@ export default async function ConfiguracoesPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: prefs } = await (supabase as any)
     .from('user_preferences')
-    .select('alertas_email, alert_days, alert_email')
+    .select('alertas_email, alert_days, alert_email, plano, plano_expira_em')
     .eq('user_id', user.id)
     .single()
 
@@ -45,6 +45,8 @@ export default async function ConfiguracoesPage() {
             : { alertas_email: true, alert_days: 30, alert_email: '' }
         }
         userEmail={user.email ?? ''}
+        plano={prefs?.plano ?? 'gratuito'}
+        planoExpiraEm={prefs?.plano_expira_em ?? null}
       />
     </div>
   )

@@ -49,7 +49,7 @@ const PLANOS_CONFIG = [
     ],
     recursos_nao: [] as string[],
     cta: "Assinar Pro",
-    ctaHref: "/auth/sign-up",
+    ctaHref: "/configuracoes#plano",
   },
   {
     id: "enterprise",
