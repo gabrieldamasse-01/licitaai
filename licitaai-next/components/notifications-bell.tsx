@@ -62,39 +62,48 @@ export function NotificationsBell({ userId }: { userId: string }) {
 
   // Fetch inicial
   async function fetchNotificacoes() {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from("notifications")
-      .select("id, tipo, titulo, mensagem, lida, link, created_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(10)
-    if (data) setNotificacoes(data as Notificacao[])
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from("notifications")
+        .select("id, tipo, titulo, mensagem, lida, link, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10)
+      if (data) setNotificacoes(data as Notificacao[])
+    } catch {
+      // Silencia erros (tabela ainda não existe, RLS, etc.)
+    }
   }
 
   // Supabase Realtime
   useEffect(() => {
-    fetchNotificacoes()
+    fetchNotificacoes().catch(() => {})
 
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          fetchNotificacoes()
-        },
-      )
-      .subscribe()
+    let channel: ReturnType<ReturnType<typeof createClient>["channel"]> | null = null
+    try {
+      const supabase = createClient()
+      channel = supabase
+        .channel(`notifications:${userId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${userId}`,
+          },
+          () => {
+            fetchNotificacoes().catch(() => {})
+          },
+        )
+        .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
+      return () => {
+        supabase.removeChannel(channel!)
+      }
+    } catch {
+      return () => {}
     }
   }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
