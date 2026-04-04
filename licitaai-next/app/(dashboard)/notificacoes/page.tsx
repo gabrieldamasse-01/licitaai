@@ -64,12 +64,12 @@ export default function NotificacoesPage() {
 
   function handleMarcarLida(id: string) {
     setTodas((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)))
-    startTransition(() => marcarComoLida(id))
+    startTransition(async () => { await marcarComoLida(id) })
   }
 
   function handleMarcarTodas() {
     setTodas((prev) => prev.map((n) => ({ ...n, lida: true })))
-    startTransition(() => marcarTodasComoLidas())
+    startTransition(async () => { await marcarTodasComoLidas() })
   }
 
   return (
