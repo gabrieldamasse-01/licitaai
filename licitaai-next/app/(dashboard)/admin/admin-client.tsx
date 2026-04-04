@@ -450,7 +450,7 @@ export default function AdminClient({
       {/* Tabs */}
       <Tabs defaultValue={initialTab} onValueChange={handleTabChange}>
         <TabsList
-          className="flex items-center gap-1 bg-transparent p-0 h-auto border-b border-slate-700/50 pb-0 rounded-none w-full justify-start"
+          className="inline-flex items-center gap-1 bg-transparent p-0 h-auto border-b border-slate-700/50 w-full rounded-none"
         >
           {[
             { value: "visao_geral", label: "Visão Geral" },
@@ -464,7 +464,7 @@ export default function AdminClient({
               value={tab.value}
               className={[
                 // dimensões fixas — sempre iguais para ativo e inativo
-                "h-9 px-4 flex items-center justify-center",
+                "h-9 px-4 w-auto shrink-0 flex items-center justify-center",
                 "text-sm rounded-lg transition-all duration-200 whitespace-nowrap",
                 // borda SEMPRE presente (evita box-model shift ao ativar)
                 "border",
