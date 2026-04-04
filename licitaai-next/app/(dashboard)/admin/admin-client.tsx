@@ -449,7 +449,9 @@ export default function AdminClient({
 
       {/* Tabs */}
       <Tabs defaultValue={initialTab} onValueChange={handleTabChange}>
-        <TabsList className="bg-slate-900/60 border border-slate-700/50 p-1 h-auto flex flex-wrap gap-0.5 rounded-xl">
+        <TabsList
+          className="flex items-center gap-1 bg-transparent p-0 h-auto border-b border-slate-700/50 pb-0 rounded-none w-full justify-start"
+        >
           {[
             { value: "visao_geral", label: "Visão Geral" },
             { value: "clientes", label: "Clientes" },
@@ -461,15 +463,19 @@ export default function AdminClient({
               key={tab.value}
               value={tab.value}
               className={[
-                // base
-                "px-4 py-1.5 text-sm rounded-lg transition-all duration-200",
+                // dimensões fixas — sempre iguais para ativo e inativo
+                "h-9 px-4 flex items-center justify-center",
+                "text-sm rounded-lg transition-all duration-200 whitespace-nowrap",
+                // borda SEMPRE presente (evita box-model shift ao ativar)
+                "border",
                 // inativo
-                "text-slate-400 hover:text-slate-300 hover:bg-slate-800/40",
-                // ativo — liquid glass melhorado
+                "text-slate-400 border-transparent bg-transparent",
+                "hover:text-slate-300 hover:bg-slate-800/40 hover:border-slate-700/30",
+                // ativo — liquid glass
                 "data-[state=active]:text-[#60a5fa] data-[state=active]:font-semibold",
-                "data-[state=active]:border data-[state=active]:border-[rgba(96,165,250,0.5)]",
+                "data-[state=active]:border-[rgba(96,165,250,0.5)]",
                 "data-[state=active]:backdrop-blur-[12px]",
-                "data-[state=active]:shadow-[inset_0_0_16px_rgba(37,99,235,0.25),0_0_8px_rgba(96,165,250,0.15)]",
+                "data-[state=active]:shadow-[inset_0_0_16px_rgba(37,99,235,0.25)]",
                 "data-[state=active]:[background:rgba(37,99,235,0.2)]",
               ].join(" ")}
             >
