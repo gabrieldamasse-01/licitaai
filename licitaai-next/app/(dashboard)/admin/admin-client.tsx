@@ -63,20 +63,25 @@ function AdminToggle({
       aria-checked={checked}
       onClick={onChange}
       disabled={disabled}
-      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full
-                 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2
-                 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2
-                 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
-      style={{
-        background: checked
-          ? "linear-gradient(to right, #3b82f6, #22d3ee)"
-          : "#475569",
-      }}
+      className="px-3 py-1 text-sm font-medium rounded-md transition-all duration-200
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50
+                 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900
+                 disabled:cursor-not-allowed disabled:opacity-40 backdrop-blur-sm"
+      style={
+        checked
+          ? {
+              background: "rgba(37, 99, 235, 0.15)",
+              border: "1px solid rgba(59, 130, 246, 0.4)",
+              color: "#60a5fa",
+            }
+          : {
+              background: "rgba(100, 116, 139, 0.15)",
+              border: "1px solid rgba(100, 116, 139, 0.3)",
+              color: "#94a3b8",
+            }
+      }
     >
-      <span
-        className="pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-200"
-        style={{ transform: checked ? "translateX(18px)" : "translateX(2px)" }}
-      />
+      {checked ? "Ativo" : "Inativo"}
     </button>
   )
 }
