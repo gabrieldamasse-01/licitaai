@@ -26,6 +26,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verifica que o documento pertence a uma empresa do usuário autenticado
+    const { data: docOwnership } = await supabase
+      .from('documents')
+      .select('id, company_id, companies!inner(user_id)')
+      .eq('id', documento_id)
+      .eq('companies.user_id', user.id)
+      .single()
+
+    if (!docOwnership) {
+      return NextResponse.json({ error: 'Documento não autorizado' }, { status: 403 })
+    }
+
     // Dispara o webhook do n8n
     const n8nResponse = await fetch(process.env.N8N_WEBHOOK_URL!, {
       method: 'POST',

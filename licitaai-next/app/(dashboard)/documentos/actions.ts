@@ -68,11 +68,21 @@ export async function atualizarStatusVencidos() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Não autenticado" }
 
+  // Busca apenas as empresas do usuário autenticado
+  const { data: companies } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("user_id", user.id)
+
+  if (!companies || companies.length === 0) return { success: true }
+
+  const companyIds = companies.map((c) => c.id)
   const hoje = new Date().toISOString().split("T")[0]
 
   const { error } = await supabase
     .from("documents")
     .update({ status: "vencido" })
+    .in("company_id", companyIds)
     .lt("data_validade", hoje)
     .eq("status", "ativo")
 

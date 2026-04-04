@@ -184,6 +184,16 @@ export async function salvarOportunidade(
   } = await supabase.auth.getUser()
   if (!user) return { error: "Não autenticado" }
 
+  // Garante que empresaId pertence ao usuário autenticado
+  const { data: empresaOwnership } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("id", empresaId)
+    .eq("user_id", user.id)
+    .single()
+
+  if (!empresaOwnership) return { error: "Empresa não autorizada" }
+
   // 1. Upsert na tabela licitacoes pelo source_id (ID numérico da Effecti)
   const { data: licRow, error: licError } = await supabase
     .from("licitacoes")
