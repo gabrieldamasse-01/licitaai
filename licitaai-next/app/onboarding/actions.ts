@@ -1,6 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 
@@ -43,5 +42,5 @@ export async function criarEmpresaOnboarding(
     return { error: "Erro ao cadastrar empresa" }
   }
 
-  redirect("/oportunidades")
+  return { success: true as const }
 }

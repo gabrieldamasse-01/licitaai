@@ -452,9 +452,15 @@ export function OnboardingWizard() {
       const result = await criarEmpresaOnboarding({ ...empresa, cnaes })
       if (result && "error" in result) {
         toast.error(result.error)
-      } else {
-        setStep(3)
+        return
       }
+      // Dispara email de boas-vindas (fire-and-forget, não bloqueia)
+      fetch("/api/email/boas-vindas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ razao_social: empresa.razao_social }),
+      }).catch(() => {/* silencioso — não crítico */})
+      setStep(3)
     })
   }
 

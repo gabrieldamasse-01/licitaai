@@ -12,6 +12,7 @@ import {
   Settings,
   Scale,
   LogOut,
+  MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -26,7 +27,8 @@ const mainNav = [
 ]
 
 const secondaryNav = [
-  { href: "/configuracoes", label: "Configurações", icon: Settings, iconColor: "text-slate-400" },
+  { href: "/feedback",     label: "Feedback",      icon: MessageSquare, iconColor: "text-violet-400" },
+  { href: "/configuracoes", label: "Configurações", icon: Settings,      iconColor: "text-slate-400" },
 ]
 
 function NavItem({
@@ -127,11 +129,14 @@ export function AppSidebar({ email = "", onNavigate }: { email?: string; onNavig
         ))}
       </nav>
 
-      {/* Versão */}
-      <div className="px-5 py-2 shrink-0">
+      {/* Versão + badge beta */}
+      <div className="px-5 py-2 shrink-0 flex items-center gap-2">
         <p className="text-[10px] text-slate-600 font-medium tracking-wide">
           v1.0 · Integração PNCP
         </p>
+        <span className="rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-400">
+          Beta
+        </span>
       </div>
 
       {/* Footer / Usuário */}
