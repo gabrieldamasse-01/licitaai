@@ -1,9 +1,11 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil',
-  typescript: true,
-})
+export function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-04-30.basil',
+    typescript: true,
+  })
+}
 
 export async function createCheckoutSession({
   userId,
@@ -18,6 +20,7 @@ export async function createCheckoutSession({
   successUrl: string
   cancelUrl: string
 }) {
+  const stripe = getStripe()
   return stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     mode: 'subscription',
