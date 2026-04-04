@@ -26,20 +26,39 @@ export default async function AdminPage() {
 
   // Busca métricas em paralelo
   const [
-    { count: totalUsers },
+    { data: authData },
     { count: totalCompanies },
     { data: feedbacks },
-    { data: recentUsers },
+    { data: companies },
   ] = await Promise.all([
-    admin.from("user_preferences").select("*", { count: "exact", head: true }),
+    // Auth Admin API — acessa auth.users diretamente
+    admin.auth.admin.listUsers({ perPage: 1000 }),
     admin.from("companies").select("*", { count: "exact", head: true }),
-    admin.from("feedback").select("tipo, titulo, descricao, created_at").order("created_at", { ascending: false }).limit(20),
+    admin
+      .from("feedback")
+      .select("tipo, titulo, descricao, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    // Busca empresas para fazer join manual com os usuários
     admin
       .from("companies")
-      .select("razao_social, cnpj, created_at")
+      .select("user_id, razao_social, cnpj, created_at")
       .order("created_at", { ascending: false })
-      .limit(10),
+      .limit(50),
   ])
+
+  const authUsers = authData?.users ?? []
+  const totalUsers = authUsers.length
+
+  // Mapeia user_id → empresa para exibir na tabela
+  const companyByUserId = Object.fromEntries(
+    (companies ?? []).map((c) => [c.user_id, c]),
+  )
+
+  // Usuários mais recentes (últimos 15)
+  const recentAuthUsers = [...authUsers]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 15)
 
   const tipoLabel: Record<string, string> = {
     bug: "🐛 Bug",
@@ -67,7 +86,7 @@ export default async function AdminPage() {
             <Users className="h-5 w-5 text-blue-400" />
             <span className="text-sm text-slate-400">Usuários</span>
           </div>
-          <p className="text-3xl font-bold text-white">{totalUsers ?? 0}</p>
+          <p className="text-3xl font-bold text-white">{totalUsers}</p>
         </div>
         <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5">
           <div className="flex items-center gap-3 mb-2">
@@ -83,6 +102,49 @@ export default async function AdminPage() {
           </div>
           <p className="text-3xl font-bold text-white">{feedbacks?.length ?? 0}</p>
         </div>
+      </div>
+
+      {/* Tabela de usuários */}
+      <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-white">Usuários cadastrados</h2>
+          <span className="text-xs text-slate-500">{totalUsers} no total</span>
+        </div>
+        {recentAuthUsers.length === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-slate-500">Nenhum usuário ainda.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-700/50">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Empresa</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cadastro</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/30">
+                {recentAuthUsers.map((u) => {
+                  const company = companyByUserId[u.id]
+                  return (
+                    <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-5 py-3 text-slate-300">{u.email ?? "—"}</td>
+                      <td className="px-5 py-3">
+                        {company ? (
+                          <span className="text-white font-medium">{company.razao_social}</span>
+                        ) : (
+                          <span className="text-slate-600 italic">Sem empresa</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-slate-500 tabular-nums">
+                        {new Date(u.created_at).toLocaleDateString("pt-BR")}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Feedbacks recentes */}
@@ -104,30 +166,6 @@ export default async function AdminPage() {
                 </div>
                 <p className="text-sm font-medium text-white">{f.titulo}</p>
                 <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{f.descricao}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Usuários recentes */}
-      <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700/50">
-          <h2 className="text-sm font-semibold text-white">Empresas cadastradas recentemente</h2>
-        </div>
-        {!recentUsers || recentUsers.length === 0 ? (
-          <p className="px-5 py-8 text-center text-sm text-slate-500">Nenhuma empresa ainda.</p>
-        ) : (
-          <div className="divide-y divide-slate-700/30">
-            {recentUsers.map((c, i) => (
-              <div key={i} className="px-5 py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-white">{c.razao_social}</p>
-                  <p className="text-xs text-slate-500 font-mono">{c.cnpj}</p>
-                </div>
-                <span className="text-xs text-slate-600">
-                  {new Date(c.created_at).toLocaleDateString("pt-BR")}
-                </span>
               </div>
             ))}
           </div>
