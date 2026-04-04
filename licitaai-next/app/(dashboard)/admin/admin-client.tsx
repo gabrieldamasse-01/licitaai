@@ -37,8 +37,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-
 import {
   adicionarAdmin,
   toggleAdmin,
@@ -47,6 +45,41 @@ import {
 } from "./actions"
 
 const MASTER_EMAIL = "gabriel.damasse@mgnext.com"
+
+// ─── Toggle customizado LicitaAI ─────────────────────────────────────────────
+
+function AdminToggle({
+  checked,
+  onChange,
+  disabled = false,
+}: {
+  checked: boolean
+  onChange: () => void
+  disabled?: boolean
+}) {
+  return (
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      disabled={disabled}
+      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full
+                 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2
+                 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2
+                 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+      style={{
+        background: checked
+          ? "linear-gradient(to right, #3b82f6, #22d3ee)"
+          : "#475569",
+      }}
+    >
+      <span
+        className="pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform duration-200"
+        style={{ transform: checked ? "translateX(18px)" : "translateX(2px)" }}
+      />
+    </button>
+  )
+}
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -411,7 +444,7 @@ export default function AdminClient({
 
       {/* Tabs */}
       <Tabs defaultValue={initialTab} onValueChange={handleTabChange}>
-        <TabsList className="bg-slate-800/50 border border-slate-700/50 p-1 h-auto flex-wrap gap-0.5">
+        <TabsList className="bg-slate-900/60 border border-slate-700/50 p-1 h-auto flex flex-wrap gap-0.5 rounded-xl">
           {[
             { value: "visao_geral", label: "Visão Geral" },
             { value: "clientes", label: "Clientes" },
@@ -422,7 +455,18 @@ export default function AdminClient({
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="text-slate-400 data-[state=active]:bg-slate-700 data-[state=active]:text-white px-4 py-1.5 rounded text-sm"
+              className={[
+                // base
+                "px-4 py-1.5 text-sm rounded-lg transition-all duration-200",
+                // inativo
+                "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50",
+                // ativo — liquid glass
+                "data-[state=active]:text-blue-400 data-[state=active]:font-medium",
+                "data-[state=active]:border data-[state=active]:border-blue-500/40",
+                "data-[state=active]:backdrop-blur-sm",
+                "data-[state=active]:shadow-[inset_0_0_12px_rgba(37,99,235,0.20)]",
+                "data-[state=active]:[background:rgba(37,99,235,0.15)]",
+              ].join(" ")}
             >
               {tab.label}
             </TabsTrigger>
@@ -627,12 +671,9 @@ export default function AdminClient({
                         <span className="line-clamp-2">{fb.descricao}</span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Switch
+                        <AdminToggle
                           checked={fb.resolvido}
-                          onCheckedChange={() =>
-                            handleResolverFeedback(fb.id, fb.resolvido)
-                          }
-                          className="data-[state=checked]:bg-emerald-600"
+                          onChange={() => handleResolverFeedback(fb.id, fb.resolvido)}
                         />
                       </TableCell>
                       <TableCell className="text-slate-500 tabular-nums text-sm">
@@ -777,12 +818,9 @@ export default function AdminClient({
                               Ativo
                             </Badge>
                           ) : (
-                            <Switch
+                            <AdminToggle
                               checked={membro.ativo}
-                              onCheckedChange={() =>
-                                handleToggleAdmin(membro.id, membro.ativo)
-                              }
-                              className="data-[state=checked]:bg-emerald-600"
+                              onChange={() => handleToggleAdmin(membro.id, membro.ativo)}
                             />
                           )}
                         </TableCell>
