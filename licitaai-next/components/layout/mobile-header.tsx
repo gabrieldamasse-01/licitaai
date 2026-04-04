@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/popover"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { NotificationsBell } from "@/components/notifications-bell"
 
 function getFirstName(email: string): string {
   const local = email.split("@")[0]
@@ -21,7 +22,7 @@ function getInitial(email: string): string {
   return getFirstName(email).charAt(0).toUpperCase()
 }
 
-export function MobileHeader({ email }: { email: string }) {
+export function MobileHeader({ email, userId }: { email: string; userId: string }) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const firstName = getFirstName(email)
@@ -42,6 +43,10 @@ export function MobileHeader({ email }: { email: string }) {
         </div>
         <span className="text-[15px] font-bold text-slate-900 tracking-tight">Licita<span className="text-blue-600">IA</span></span>
       </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1">
+        <NotificationsBell userId={userId} />
 
       {/* User profile popover */}
       <Popover open={open} onOpenChange={setOpen}>
@@ -67,6 +72,7 @@ export function MobileHeader({ email }: { email: string }) {
           </button>
         </PopoverContent>
       </Popover>
+      </div>
     </header>
   )
 }

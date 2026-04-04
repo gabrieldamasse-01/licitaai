@@ -230,6 +230,16 @@ export async function salvarOportunidade(
   )
 
   if (matchError) return { error: "Erro ao salvar match: " + matchError.message }
+
+  // Notificação in-app
+  await supabase.from("notifications").insert({
+    user_id: user.id,
+    tipo: "oportunidade_salva",
+    titulo: "Oportunidade salva!",
+    mensagem: `${licitacao.orgao} — ${(licitacao.objetoSemTags || licitacao.objeto).slice(0, 120)}`,
+    link: "/oportunidades",
+  })
+
   revalidatePath("/oportunidades")
   return { success: true }
 }

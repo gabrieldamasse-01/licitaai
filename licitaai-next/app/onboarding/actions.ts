@@ -42,5 +42,14 @@ export async function criarEmpresaOnboarding(
     return { error: "Erro ao cadastrar empresa" }
   }
 
+  // Notificação de boas-vindas
+  await supabase.from("notifications").insert({
+    user_id: user.id,
+    tipo: "boas_vindas",
+    titulo: "Bem-vindo ao LicitaAI! 🎉",
+    mensagem: `Sua empresa ${parsed.data.razao_social} foi cadastrada. Já estamos buscando oportunidades para você.`,
+    link: "/oportunidades",
+  })
+
   return { success: true as const }
 }

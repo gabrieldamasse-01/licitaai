@@ -18,6 +18,7 @@ interface DocumentoAlerta {
 interface EmpresaInfo {
   razao_social: string
   email_contato: string | null
+  user_id: string | null
 }
 
 interface DocumentoComStatus extends DocumentoAlerta {
@@ -97,10 +98,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const companyIds = Object.keys(porEmpresa)
 
-  // Buscar dados das empresas
+  // Buscar dados das empresas (inclui user_id para notificações)
   const { data: empresas, error: errEmpresas } = await supabase
     .from('companies')
-    .select('id, razao_social, email_contato')
+    .select('id, razao_social, email_contato, user_id')
     .in('id', companyIds)
     .eq('ativo', true)
 
@@ -166,6 +167,56 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   // Inserir logs em alert_logs
   if (logsParaInserir.length > 0) {
     await supabase.from('alert_logs').insert(logsParaInserir)
+  }
+
+  // Inserir notificações in-app por documento (uma por empresa, agrupada)
+  const notificacoesParaInserir: {
+    user_id: string
+    tipo: string
+    titulo: string
+    mensagem: string
+    link: string
+  }[] = []
+
+  for (const [companyId, docs] of Object.entries(porEmpresa)) {
+    const empresa = mapaEmpresas.get(companyId)
+    if (!empresa?.user_id) continue
+
+    const docsComStatus: DocumentoComStatus[] = docs.map((doc) => {
+      const validade = new Date(doc.data_validade)
+      validade.setHours(0, 0, 0, 0)
+      const diffMs = validade.getTime() - new Date().getTime()
+      const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+      return { ...doc, diasRestantes, statusLabel: diasRestantes >= 0 ? 'vencendo' : 'expirado' }
+    })
+
+    const expirados = docsComStatus.filter((d) => d.statusLabel === 'expirado')
+    const vencendoList = docsComStatus.filter((d) => d.statusLabel === 'vencendo')
+
+    if (expirados.length > 0) {
+      notificacoesParaInserir.push({
+        user_id: empresa.user_id,
+        tipo: 'documento_expirado',
+        titulo: `${expirados.length} documento${expirados.length > 1 ? 's' : ''} expirado${expirados.length > 1 ? 's' : ''}`,
+        mensagem: expirados.map((d) => d.tipo || d.nome_arquivo).join(', '),
+        link: '/documentos',
+      })
+    }
+
+    if (vencendoList.length > 0) {
+      const menorDias = Math.min(...vencendoList.map((d) => d.diasRestantes))
+      notificacoesParaInserir.push({
+        user_id: empresa.user_id,
+        tipo: 'documento_vencendo',
+        titulo: `${vencendoList.length} documento${vencendoList.length > 1 ? 's' : ''} vencendo em breve`,
+        mensagem: `Vence em ${menorDias} dia${menorDias !== 1 ? 's' : ''}: ${vencendoList.map((d) => d.tipo || d.nome_arquivo).join(', ')}`,
+        link: '/documentos',
+      })
+    }
+  }
+
+  if (notificacoesParaInserir.length > 0) {
+    await supabase.from('notifications').insert(notificacoesParaInserir)
   }
 
   await registrarLog(supabase, inicio, emailsEnviados)

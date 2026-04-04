@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
 import { BottomNav } from "@/components/layout/bottom-nav"
+import { NotificationsBell } from "@/components/notifications-bell"
 
 export default async function DashboardLayout({
   children,
@@ -40,7 +41,11 @@ export default async function DashboardLayout({
 
       {/* Área principal */}
       <div className="flex flex-1 flex-col overflow-hidden relative">
-        <MobileHeader email={user.email ?? ""} />
+        {/* Header desktop (oculto no mobile — MobileHeader cobre o mobile) */}
+        <div className="hidden md:flex h-12 shrink-0 items-center justify-end border-b border-slate-800/60 bg-slate-900 px-6">
+          <NotificationsBell userId={user.id} />
+        </div>
+        <MobileHeader email={user.email ?? ""} userId={user.id} />
         {/* Beta banner */}
         <div className="shrink-0 bg-violet-600/10 border-b border-violet-500/20 px-4 py-2 flex items-center justify-center gap-3">
           <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-400">
