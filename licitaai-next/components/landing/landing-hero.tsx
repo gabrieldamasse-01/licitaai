@@ -64,7 +64,8 @@ export function LandingHero() {
           >
             <Link
               href="/auth/sign-up"
-              className="w-full sm:w-auto h-14 px-8 inline-flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] btn-glow transition-all"
+              className="w-full sm:w-auto h-14 px-8 inline-flex items-center justify-center rounded-full text-white font-semibold text-lg shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] btn-glow transition-all backdrop-blur-[4px]"
+              style={{ background: "rgba(37,99,235,0.85)", border: "1px solid rgba(96,165,250,0.3)" }}
             >
               Começar grátis agora
               <ArrowRight className="ml-2 h-5 w-5" />

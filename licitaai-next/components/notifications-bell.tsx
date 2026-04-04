@@ -143,10 +143,11 @@ export function NotificationsBell({ userId }: { userId: string }) {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-80 p-0 bg-slate-800 border-slate-700 shadow-2xl"
+        className="w-80 p-0 shadow-2xl backdrop-blur-[16px] border"
+        style={{ background: "rgba(15,23,42,0.85)", borderColor: "rgba(96,165,250,0.2)", boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(96,165,250,0.05)" }}
       >
         {/* Header do dropdown */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-blue-400/10">
           <span className="text-sm font-semibold text-white">
             Notificações
             {naoLidas > 0 && (
@@ -186,7 +187,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
                   }
                 }}
                 className={cn(
-                  "w-full text-left flex items-start gap-3 px-4 py-3 border-b border-slate-700/50 last:border-0 transition-colors hover:bg-white/[0.04]",
+                  "w-full text-left flex items-start gap-3 px-4 py-3 border-b border-blue-400/[0.08] last:border-0 transition-colors hover:bg-white/[0.04]",
                   !n.lida && "bg-blue-500/5",
                 )}
               >
@@ -211,7 +212,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-700 px-4 py-2.5">
+        <div className="border-t border-blue-400/10 px-4 py-2.5">
           <Link
             href="/notificacoes"
             onClick={() => setOpen(false)}

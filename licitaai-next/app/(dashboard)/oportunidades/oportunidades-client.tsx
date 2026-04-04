@@ -225,7 +225,7 @@ function DetalheSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-slate-900 border-slate-800">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto backdrop-blur-[12px] border-r" style={{ background: "rgba(15,23,42,0.92)", borderColor: "rgba(96,165,250,0.12)" }}>
         <SheetHeader>
           <SheetTitle className="text-white">Detalhes da Oportunidade</SheetTitle>
         </SheetHeader>

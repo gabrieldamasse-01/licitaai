@@ -326,7 +326,7 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
 
       {/* Sheet — formulário */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-slate-800">
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto backdrop-blur-[12px] border-r" style={{ background: "rgba(15,23,42,0.92)", borderColor: "rgba(96,165,250,0.12)" }}>
           <SheetHeader className="mb-6">
             <SheetTitle className="text-white">
               {editando ? "Editar Empresa" : "Nova Empresa"}

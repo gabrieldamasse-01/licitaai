@@ -166,7 +166,8 @@ export default async function DashboardPage() {
         {metricCards.map(({ key, title, description, icon: Icon, iconBg, iconColor }) => (
           <div
             key={key}
-            className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800 p-4 md:p-5 shadow-sm transition-all hover:shadow-md hover:border-slate-600"
+            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-sm transition-all hover:shadow-md backdrop-blur-[4px]"
+            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-start justify-between gap-2">

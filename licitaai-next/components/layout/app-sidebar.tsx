@@ -54,14 +54,14 @@ function NavItem({
       className={cn(
         "group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 min-h-[44px]",
         isActive
-          ? "bg-blue-600 text-white shadow-lg shadow-blue-900/40"
-          : "text-slate-400 hover:bg-white/[0.07] hover:text-white"
+          ? "[background:rgba(37,99,235,0.18)] text-blue-300 border-l-2 border-blue-400/60 pl-[10px] backdrop-blur-sm shadow-[inset_0_0_12px_rgba(37,99,235,0.15)]"
+          : "text-slate-400 hover:bg-white/[0.07] hover:text-white border-l-2 border-transparent pl-[10px]"
       )}
     >
       <Icon
         className={cn(
           "h-5 w-5 shrink-0 transition-colors",
-          isActive ? "text-white" : `${iconColor} group-hover:brightness-125`
+          isActive ? "text-blue-300" : `${iconColor} group-hover:brightness-125`
         )}
       />
       <span className="truncate">{label}</span>

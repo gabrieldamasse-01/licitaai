@@ -147,7 +147,7 @@ function MetricCard({
   color: string
 }) {
   return (
-    <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5">
+    <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
       <div className="flex items-center gap-3 mb-3">
         <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${color}`}>
           <Icon className="h-4 w-4" />
@@ -439,7 +439,7 @@ export default function AdminClient({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-white">Admin</h1>
-            <Badge className="bg-red-500/20 text-red-300 border-red-500/30 text-[10px] font-semibold uppercase tracking-wider">
+            <Badge className="text-red-300 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-[8px]" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.4)" }}>
               Restrito
             </Badge>
           </div>
