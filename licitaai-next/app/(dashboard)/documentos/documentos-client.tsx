@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import {
   Plus, Search, FileText, CalendarClock,
-  Upload, X, Image as ImageIcon, ExternalLink,
+  Upload, X, Image as ImageIcon, ExternalLink, Sparkles, Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -105,6 +105,15 @@ function isPdf(path: string): boolean {
   return path.toLowerCase().includes(".pdf")
 }
 
+function IaBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/40 bg-violet-950/30 px-2 py-0.5 text-[10px] font-medium text-violet-300">
+      <Sparkles className="h-2.5 w-2.5" />
+      Preenchido por IA
+    </span>
+  )
+}
+
 const emptyForm: DocumentoFormData = {
   company_id: "",
   document_type_id: "",
@@ -131,6 +140,8 @@ export function DocumentosClient({
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
+  const [iaAnalisando, setIaAnalisando] = useState(false)
+  const [iaPreenchido, setIaPreenchido] = useState<Set<string>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const filtrados = useMemo(() => {
@@ -147,6 +158,8 @@ export function DocumentosClient({
     setForm(emptyForm)
     setArquivo(null)
     setUploadProgress(0)
+    setIaPreenchido(new Set())
+    setIaAnalisando(false)
     setSheetOpen(true)
   }
 
@@ -161,11 +174,63 @@ export function DocumentosClient({
     return null
   }
 
+  async function analisarComIA(file: File) {
+    setIaAnalisando(true)
+    setIaPreenchido(new Set())
+    try {
+      const fd = new FormData()
+      fd.append("arquivo", file)
+      const res = await fetch("/api/analisar-documento", { method: "POST", body: fd })
+      if (!res.ok) return
+
+      const json = await res.json() as {
+        success?: boolean
+        data?: {
+          nome_documento: string | null
+          data_emissao: string | null
+          data_validade: string | null
+          orgao_emissor: string | null
+        }
+      }
+      if (!json.success || !json.data) return
+
+      const { data } = json
+      const preenchidos = new Set<string>()
+
+      setForm((f) => {
+        const updates: Partial<DocumentoFormData> = {}
+        if (data.data_emissao) {
+          updates.data_emissao = data.data_emissao
+          preenchidos.add("data_emissao")
+        }
+        if (data.data_validade) {
+          updates.data_validade = data.data_validade
+          preenchidos.add("data_validade")
+        }
+        if (data.nome_documento && !f.nome_arquivo) {
+          updates.nome_arquivo = data.nome_documento
+          preenchidos.add("nome_arquivo")
+        }
+        return { ...f, ...updates }
+      })
+
+      setIaPreenchido(preenchidos)
+      if (preenchidos.size > 0) {
+        toast.success("Campos preenchidos pela IA — revise antes de salvar")
+      }
+    } catch {
+      // falha silenciosa — usuário preenche manualmente
+    } finally {
+      setIaAnalisando(false)
+    }
+  }
+
   const handleFileSelect = useCallback((file: File) => {
     const err = validarArquivo(file)
     if (err) { toast.error(err); return }
     setArquivo(file)
     setForm((f) => ({ ...f, nome_arquivo: f.nome_arquivo || file.name }))
+    analisarComIA(file)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleDragOver(e: React.DragEvent) {
@@ -246,7 +311,7 @@ export function DocumentosClient({
     })
   }
 
-  const isLoading = isUploading || isPending
+  const isLoading = isUploading || isPending || iaAnalisando
 
   return (
     <div className="space-y-4">
@@ -555,41 +620,67 @@ export function DocumentosClient({
               {uploadProgress === 100 && !isUploading && (
                 <p className="text-xs text-emerald-400">Upload concluído</p>
               )}
+
+              {/* Status de análise IA */}
+              {iaAnalisando && (
+                <div className="flex items-center gap-2 rounded-lg border border-violet-500/30 bg-violet-950/20 px-3 py-2">
+                  <Loader2 className="h-3.5 w-3.5 text-violet-400 animate-spin shrink-0" />
+                  <span className="text-xs text-violet-300">Analisando documento com IA...</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="nome_arquivo" className="text-slate-300">
-                Nome do Arquivo <span className="text-red-400">*</span>
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="nome_arquivo" className="text-slate-300">
+                  Nome do Arquivo <span className="text-red-400">*</span>
+                </Label>
+                {iaPreenchido.has("nome_arquivo") && <IaBadge />}
+              </div>
               <Input
                 id="nome_arquivo"
                 value={form.nome_arquivo}
-                onChange={(e) => setForm((f) => ({ ...f, nome_arquivo: e.target.value }))}
+                onChange={(e) => {
+                  setIaPreenchido((s) => { const n = new Set(s); n.delete("nome_arquivo"); return n })
+                  setForm((f) => ({ ...f, nome_arquivo: e.target.value }))
+                }}
                 placeholder="Ex: cnd_federal_empresa_2026.pdf"
-                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                className={`bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 ${iaPreenchido.has("nome_arquivo") ? "border-violet-500/60" : ""}`}
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="data_emissao" className="text-slate-300">Data de Emissão</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="data_emissao" className="text-slate-300">Data de Emissão</Label>
+                {iaPreenchido.has("data_emissao") && <IaBadge />}
+              </div>
               <Input
                 id="data_emissao"
                 type="date"
                 value={form.data_emissao ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, data_emissao: e.target.value }))}
-                className="bg-slate-800 border-slate-600 text-white"
+                onChange={(e) => {
+                  setIaPreenchido((s) => { const n = new Set(s); n.delete("data_emissao"); return n })
+                  setForm((f) => ({ ...f, data_emissao: e.target.value }))
+                }}
+                className={`bg-slate-800 border-slate-600 text-white ${iaPreenchido.has("data_emissao") ? "border-violet-500/60" : ""}`}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="data_validade" className="text-slate-300">Data de Validade</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="data_validade" className="text-slate-300">Data de Validade</Label>
+                {iaPreenchido.has("data_validade") && <IaBadge />}
+              </div>
               <Input
                 id="data_validade"
                 type="date"
                 value={form.data_validade ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, data_validade: e.target.value }))}
-                className="bg-slate-800 border-slate-600 text-white"
+                onChange={(e) => {
+                  setIaPreenchido((s) => { const n = new Set(s); n.delete("data_validade"); return n })
+                  setForm((f) => ({ ...f, data_validade: e.target.value }))
+                }}
+                className={`bg-slate-800 border-slate-600 text-white ${iaPreenchido.has("data_validade") ? "border-violet-500/60" : ""}`}
               />
               <p className="text-xs text-slate-500">
                 Status calculado automaticamente com base na validade.
@@ -611,7 +702,7 @@ export function DocumentosClient({
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
                 disabled={isLoading}
               >
-                {isUploading ? "Enviando..." : isPending ? "Salvando..." : "Cadastrar"}
+                {iaAnalisando ? "Analisando..." : isUploading ? "Enviando..." : isPending ? "Salvando..." : "Cadastrar"}
               </Button>
             </div>
           </form>
