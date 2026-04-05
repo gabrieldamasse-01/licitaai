@@ -9,7 +9,7 @@ export default async function DocumentosPage() {
       supabase
         .from("documents")
         .select(
-          "id, tipo, nome_arquivo, data_emissao, data_validade, status, company_id, companies(razao_social)"
+          "id, tipo, nome_arquivo, arquivo_url, data_emissao, data_validade, status, company_id, companies(razao_social)"
         )
         .order("created_at", { ascending: false }),
       supabase

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
 
 const documentoSchema = z.object({
   company_id: z.string().uuid("Empresa inválida"),
@@ -11,6 +12,7 @@ const documentoSchema = z.object({
   nome_arquivo: z.string().min(1, "Nome do arquivo é obrigatório"),
   data_emissao: z.string().optional(),
   data_validade: z.string().optional(),
+  arquivo_url: z.string().optional(),
 })
 
 export type DocumentoFormData = z.infer<typeof documentoSchema>
@@ -34,7 +36,7 @@ export async function criarDocumento(data: DocumentoFormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Não autenticado" }
 
-  const { company_id, document_type_id, tipo, nome_arquivo, data_emissao, data_validade } = parsed.data
+  const { company_id, document_type_id, tipo, nome_arquivo, data_emissao, data_validade, arquivo_url } = parsed.data
 
   const { data: company } = await supabase
     .from("companies")
@@ -55,12 +57,30 @@ export async function criarDocumento(data: DocumentoFormData) {
     data_emissao: data_emissao || null,
     data_validade: data_validade || null,
     status,
+    arquivo_url: arquivo_url || null,
   })
 
   if (error) return { error: "Erro ao criar documento" }
 
   revalidatePath("/documentos")
   return { success: true }
+}
+
+export async function getSignedUrl(path: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Não autenticado" }
+
+  // Verifica que o path pertence ao usuário (começa com user_id/)
+  if (!path.startsWith(user.id + "/")) return { error: "Acesso negado" }
+
+  const service = createServiceClient()
+  const { data, error } = await service.storage
+    .from("documentos")
+    .createSignedUrl(path, 3600)
+
+  if (error) return { error: "Erro ao gerar link do arquivo" }
+  return { url: data.signedUrl }
 }
 
 export async function atualizarStatusVencidos() {

@@ -1,8 +1,11 @@
 "use client"
 
-import { useState, useTransition, useMemo } from "react"
+import { useState, useTransition, useMemo, useRef, useCallback } from "react"
 import { toast } from "sonner"
-import { Plus, Search, FileText, CalendarClock } from "lucide-react"
+import {
+  Plus, Search, FileText, CalendarClock,
+  Upload, X, Image as ImageIcon, ExternalLink,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -28,12 +31,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { criarDocumento, type DocumentoFormData } from "./actions"
+import { createClient } from "@/lib/supabase/client"
+import { criarDocumento, getSignedUrl, type DocumentoFormData } from "./actions"
 
 type Document = {
   id: string
   tipo: string
   nome_arquivo: string
+  arquivo_url?: string | null
   data_emissao: string | null
   data_validade: string | null
   status: string
@@ -56,6 +61,9 @@ type StatusInfo = {
   label: string
   className: string
 }
+
+const TIPOS_PERMITIDOS = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
 
 function getStatusInfo(doc: Document): StatusInfo {
   if (doc.status === "vencido") {
@@ -87,6 +95,16 @@ function formatDate(dateStr: string | null): string {
   return `${day}/${month}/${year}`
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return bytes + " B"
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB"
+}
+
+function isPdf(path: string): boolean {
+  return path.toLowerCase().includes(".pdf")
+}
+
 const emptyForm: DocumentoFormData = {
   company_id: "",
   document_type_id: "",
@@ -109,6 +127,11 @@ export function DocumentosClient({
   const [sheetOpen, setSheetOpen] = useState(false)
   const [form, setForm] = useState<DocumentoFormData>(emptyForm)
   const [isPending, startTransition] = useTransition()
+  const [arquivo, setArquivo] = useState<File | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const filtrados = useMemo(() => {
     const q = busca.toLowerCase()
@@ -122,6 +145,8 @@ export function DocumentosClient({
 
   function abrirNovo() {
     setForm(emptyForm)
+    setArquivo(null)
+    setUploadProgress(0)
     setSheetOpen(true)
   }
 
@@ -130,18 +155,98 @@ export function DocumentosClient({
     setForm((f) => ({ ...f, document_type_id: id, tipo: dt?.nome ?? "" }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function validarArquivo(file: File): string | null {
+    if (file.size > MAX_BYTES) return "Arquivo muito grande (máx. 10 MB)"
+    if (!TIPOS_PERMITIDOS.includes(file.type)) return "Tipo não permitido. Use PDF, JPG ou PNG"
+    return null
+  }
+
+  const handleFileSelect = useCallback((file: File) => {
+    const err = validarArquivo(file)
+    if (err) { toast.error(err); return }
+    setArquivo(file)
+    setForm((f) => ({ ...f, nome_arquivo: f.nome_arquivo || file.name }))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleDragOver(e: React.DragEvent) {
     e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleFileSelect(file)
+  }
+
+  async function handleAbrirArquivo(path: string) {
+    const result = await getSignedUrl(path)
+    if (result.error) { toast.error(result.error); return }
+    window.open(result.url, "_blank")
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+
+    let arquivo_url: string | undefined
+
+    if (arquivo) {
+      setIsUploading(true)
+      setUploadProgress(10)
+
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        toast.error("Não autenticado")
+        setIsUploading(false)
+        return
+      }
+
+      const ext = arquivo.name.split(".").pop() ?? "bin"
+      const path = `${user.id}/${form.company_id}/${Date.now()}.${ext}`
+
+      const interval = setInterval(() => {
+        setUploadProgress((p) => (p < 85 ? p + 8 : p))
+      }, 200)
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("documentos")
+        .upload(path, arquivo, { contentType: arquivo.type })
+
+      clearInterval(interval)
+
+      if (uploadError) {
+        toast.error("Erro no upload: " + uploadError.message)
+        setIsUploading(false)
+        setUploadProgress(0)
+        return
+      }
+
+      setUploadProgress(100)
+      arquivo_url = uploadData.path
+      setIsUploading(false)
+    }
+
     startTransition(async () => {
-      const result = await criarDocumento(form)
+      const result = await criarDocumento({ ...form, arquivo_url })
       if (result.error) {
         toast.error(result.error)
       } else {
         toast.success("Documento cadastrado!")
         setSheetOpen(false)
+        setArquivo(null)
+        setUploadProgress(0)
       }
     })
   }
+
+  const isLoading = isUploading || isPending
 
   return (
     <div className="space-y-4">
@@ -199,14 +304,36 @@ export function DocumentosClient({
               <TableBody>
                 {filtrados.map((doc) => {
                   const status = getStatusInfo(doc)
+                  const temArquivo = !!doc.arquivo_url
+                  const ehPdf = temArquivo && isPdf(doc.arquivo_url!)
                   return (
                     <TableRow key={doc.id} className="border-slate-700 hover:bg-slate-700/50">
                       <TableCell className="font-medium text-white">{doc.tipo}</TableCell>
                       <TableCell className="text-slate-400">
                         {getRazaoSocial(doc.companies)}
                       </TableCell>
-                      <TableCell className="text-slate-500 max-w-[200px] truncate">
-                        {doc.nome_arquivo}
+                      <TableCell className="max-w-[220px]">
+                        {temArquivo ? (
+                          <button
+                            onClick={() => handleAbrirArquivo(doc.arquivo_url!)}
+                            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors w-full text-left"
+                            title={doc.nome_arquivo}
+                          >
+                            {ehPdf
+                              ? <FileText className="h-3.5 w-3.5 shrink-0" />
+                              : <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                            }
+                            <span className="truncate text-sm">{doc.nome_arquivo}</span>
+                            <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-500 truncate text-sm">{doc.nome_arquivo}</span>
+                            <Badge variant="outline" className="text-xs text-slate-500 border-slate-600 shrink-0">
+                              Sem arquivo
+                            </Badge>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-slate-400">
                         {formatDate(doc.data_emissao)}
@@ -220,10 +347,7 @@ export function DocumentosClient({
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={status.className}
-                        >
+                        <Badge variant="outline" className={status.className}>
                           {status.label}
                         </Badge>
                       </TableCell>
@@ -238,6 +362,8 @@ export function DocumentosClient({
           <div className="flex flex-col gap-3 md:hidden">
             {filtrados.map((doc) => {
               const status = getStatusInfo(doc)
+              const temArquivo = !!doc.arquivo_url
+              const ehPdf = temArquivo && isPdf(doc.arquivo_url!)
               return (
                 <div
                   key={doc.id}
@@ -254,7 +380,27 @@ export function DocumentosClient({
                       {status.label}
                     </Badge>
                   </div>
-                  <p className="text-sm text-slate-400 truncate">{doc.nome_arquivo}</p>
+                  {temArquivo ? (
+                    <button
+                      onClick={() => handleAbrirArquivo(doc.arquivo_url!)}
+                      className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                      title={doc.nome_arquivo}
+                    >
+                      {ehPdf
+                        ? <FileText className="h-3.5 w-3.5 shrink-0" />
+                        : <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                      }
+                      <span className="truncate">{doc.nome_arquivo}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-slate-400 truncate">{doc.nome_arquivo}</p>
+                      <Badge variant="outline" className="text-xs text-slate-500 border-slate-600 shrink-0">
+                        Sem arquivo
+                      </Badge>
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 border-t border-slate-700">
                     {doc.data_emissao && (
                       <span>Emissão: {formatDate(doc.data_emissao)}</span>
@@ -275,7 +421,11 @@ export function DocumentosClient({
 
       {/* Sheet — formulário */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto backdrop-blur-[12px] border-r" style={{ background: "rgba(15,23,42,0.92)", borderColor: "rgba(96,165,250,0.12)" }}>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-lg overflow-y-auto backdrop-blur-[12px] border-r"
+          style={{ background: "rgba(15,23,42,0.92)", borderColor: "rgba(96,165,250,0.12)" }}
+        >
           <SheetHeader className="mb-6">
             <SheetTitle className="text-white">Novo Documento</SheetTitle>
           </SheetHeader>
@@ -325,6 +475,88 @@ export function DocumentosClient({
               </Select>
             </div>
 
+            {/* Upload de arquivo */}
+            <div className="space-y-1.5">
+              <Label className="text-slate-300">Arquivo (PDF, JPG, PNG — máx. 10 MB)</Label>
+
+              {arquivo ? (
+                /* Preview do arquivo selecionado */
+                <div className="flex items-center gap-3 rounded-lg border border-blue-500/40 bg-blue-950/20 p-3">
+                  {isPdf(arquivo.name)
+                    ? <FileText className="h-8 w-8 text-blue-400 shrink-0" />
+                    : <ImageIcon className="h-8 w-8 text-blue-400 shrink-0" />
+                  }
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{arquivo.name}</p>
+                    <p className="text-xs text-slate-400">{formatBytes(arquivo.size)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setArquivo(null); setUploadProgress(0) }}
+                    className="text-slate-400 hover:text-white transition-colors shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                /* Zona de drag & drop */
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`
+                    flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed
+                    cursor-pointer transition-colors py-8 px-4 text-center
+                    ${isDragOver
+                      ? "border-blue-500 bg-blue-950/30"
+                      : "border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800"
+                    }
+                  `}
+                >
+                  <Upload className="h-6 w-6 text-slate-400" />
+                  <div>
+                    <p className="text-sm text-slate-300">
+                      Arraste um arquivo ou <span className="text-blue-400 underline">clique para selecionar</span>
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">PDF, JPG, PNG ou WebP</p>
+                  </div>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFileSelect(file)
+                  e.target.value = ""
+                }}
+              />
+
+              {/* Barra de progresso */}
+              {isUploading && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-slate-400">
+                    <span>Enviando arquivo...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-slate-700 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-blue-500 transition-all duration-200"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {uploadProgress === 100 && !isUploading && (
+                <p className="text-xs text-emerald-400">Upload concluído</p>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="nome_arquivo" className="text-slate-300">
                 Nome do Arquivo <span className="text-red-400">*</span>
@@ -370,15 +602,16 @@ export function DocumentosClient({
                 variant="outline"
                 className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
                 onClick={() => setSheetOpen(false)}
+                disabled={isLoading}
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
-                disabled={isPending}
+                disabled={isLoading}
               >
-                {isPending ? "Salvando..." : "Cadastrar"}
+                {isUploading ? "Enviando..." : isPending ? "Salvando..." : "Cadastrar"}
               </Button>
             </div>
           </form>
