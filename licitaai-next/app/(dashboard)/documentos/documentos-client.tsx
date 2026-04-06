@@ -181,7 +181,11 @@ export function DocumentosClient({
       const fd = new FormData()
       fd.append("arquivo", file)
       const res = await fetch("/api/analisar-documento", { method: "POST", body: fd })
-      if (!res.ok) return
+      if (!res.ok) {
+        console.error("[analisarComIA] status:", res.status, await res.text().catch(() => ""))
+        toast.warning("Análise automática falhou — preencha manualmente")
+        return
+      }
 
       const json = await res.json() as {
         success?: boolean
@@ -218,8 +222,9 @@ export function DocumentosClient({
       if (preenchidos.size > 0) {
         toast.success("Campos preenchidos pela IA — revise antes de salvar")
       }
-    } catch {
-      // falha silenciosa — usuário preenche manualmente
+    } catch (err) {
+      console.error("[analisarComIA] erro:", err)
+      toast.warning("Não foi possível analisar o documento — preencha manualmente")
     } finally {
       setIaAnalisando(false)
     }

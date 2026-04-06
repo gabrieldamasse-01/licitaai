@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@/lib/supabase/server"
 
-export const maxDuration = 30
+export const maxDuration = 60
 
 const PROMPT = `Analise este documento e extraia as seguintes informações em JSON:
 {
@@ -83,7 +83,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: extracted })
   } catch (err) {
-    console.error("[analisar-documento]", err)
-    return NextResponse.json({ error: "Erro ao analisar documento" }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error("Erro ao analisar documento:", msg, err)
+    return NextResponse.json({ error: "Erro ao analisar documento", detail: msg }, { status: 500 })
   }
 }
