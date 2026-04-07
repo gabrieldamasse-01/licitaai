@@ -42,9 +42,10 @@ type EffectiPage = {
 }
 
 export type EffectiParams = {
-  begin: string        // ISO 8601: "2026-03-28T00:00:00" — janela máxima: 5 dias
-  end: string          // ISO 8601: "2026-04-01T23:59:59"
+  begin: string             // ISO 8601: "2026-03-28T00:00:00" — janela máxima: 5 dias
+  end: string               // ISO 8601: "2026-04-01T23:59:59"
   pagina?: number
+  itensPorPagina?: number   // padrão 100
   palavrasChave?: string[]  // keywords para filtrar na origem
 }
 
@@ -143,7 +144,8 @@ export async function fetchEffectiLicitacoes(
   const timeout = setTimeout(() => controller.abort(), 30000)
 
   try {
-    const url = `${BASE_URL}/aviso/licitacao?page=${params.pagina ?? 0}`
+    const url = `${BASE_URL}/aviso/licitacao`
+    const itensPorPagina = params.itensPorPagina ?? 100
 
     const res = await fetch(url, {
       method: "POST",
@@ -154,6 +156,8 @@ export async function fetchEffectiLicitacoes(
       body: JSON.stringify({
         begin: params.begin,
         end: params.end,
+        pagina: params.pagina ?? 0,
+        itensPorPagina,
         ...(params.palavrasChave && params.palavrasChave.length > 0
           ? { palavrasChave: params.palavrasChave }
           : {}),
