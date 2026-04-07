@@ -11,6 +11,7 @@ import {
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { NotificationsBell } from "@/components/notifications-bell"
+import { GlobalSearch } from "@/components/global-search"
 
 function getFirstName(email: string): string {
   const local = email.split("@")[0]
@@ -46,6 +47,7 @@ export function MobileHeader({ email, userId }: { email: string; userId: string 
 
       {/* Actions */}
       <div className="flex items-center gap-1">
+        <GlobalSearch />
         <NotificationsBell userId={userId} />
 
       {/* User profile popover */}

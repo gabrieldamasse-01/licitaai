@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
 import { BottomNav } from "@/components/layout/bottom-nav"
 import { NotificationsBell } from "@/components/notifications-bell"
+import { GlobalSearch } from "@/components/global-search"
 
 export default async function DashboardLayout({
   children,
@@ -42,7 +43,8 @@ export default async function DashboardLayout({
       {/* Área principal */}
       <div className="flex flex-1 flex-col overflow-hidden relative">
         {/* Header desktop (oculto no mobile — MobileHeader cobre o mobile) */}
-        <div className="hidden md:flex h-12 shrink-0 items-center justify-end border-b border-slate-800/60 bg-slate-900 px-6">
+        <div className="hidden md:flex h-12 shrink-0 items-center justify-end gap-1 border-b border-slate-800/60 bg-slate-900 px-6">
+          <GlobalSearch />
           <NotificationsBell userId={user.id} />
         </div>
         <MobileHeader email={user.email ?? ""} userId={user.id} />
