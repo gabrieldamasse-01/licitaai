@@ -1,38 +1,63 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { AlertTriangle } from "lucide-react"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, LogIn, ShieldAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function DashboardError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
-  useEffect(() => {
-    console.error(error)
-  }, [error])
+interface DashboardErrorProps {
+  error: Error;
+  reset: () => void;
+}
+
+export default function DashboardError({ error, reset }: DashboardErrorProps) {
+  const isAuthError = error.message.includes("auth") || error.message.includes("session") || error.message.includes("user");
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center p-6">
-      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-red-950/50 mb-2 border border-red-800/50">
-        <AlertTriangle className="h-10 w-10 text-red-400" />
-      </div>
-      <div className="space-y-2 mb-4">
-        <h2 className="text-2xl font-bold tracking-tight text-white">Algo deu errado</h2>
-        <p className="text-base text-slate-400 max-w-md mx-auto">
-          {error.message || "Ocorreu um erro inesperado ao carregar esta página. Nossa equipe foi notificada."}
-        </p>
-      </div>
-      <Button 
-        onClick={reset} 
-        size="lg"
-        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium shadow-md shadow-blue-600/20 px-8"
-      >
-        Tentar novamente
-      </Button>
+    <div className="min-h-screen flex items-center justify-center p-8 bg-background">
+      <Card className="w-full max-w-md mx-auto border-destructive/20 shadow-2xl">
+        <CardHeader className="text-center space-y-2">
+          <div className="w-20 h-20 mx-auto bg-destructive/10 rounded-2xl flex items-center justify-center">
+            {isAuthError ? (
+              <ShieldAlert className="w-10 h-10 text-destructive" />
+            ) : (
+              <AlertCircle className="w-10 h-10 text-destructive" />
+            )}
+          </div>
+          <CardTitle className="text-2xl font-bold text-destructive">
+            {isAuthError ? "Acesso Negado" : "Erro no Dashboard"}
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            {isAuthError 
+              ? "Você precisa estar logado para acessar esta área."
+              : "Erro ao carregar dashboard. Tente novamente."
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-2">
+          {isAuthError ? (
+            <Button asChild className="w-full bg-primary hover:bg-primary/90" size="lg">
+              <Link href="/auth/login">
+                <LogIn className="w-4 h-4 mr-2" />
+                Fazer Login
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button onClick={reset} className="w-full" size="lg">
+                Tentar Novamente
+              </Button>
+              <Button asChild variant="outline" className="w-full" size="lg">
+                <Link href="/dashboard">
+                  Voltar ao Dashboard
+                </Link>
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }
+
