@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import {
@@ -380,6 +380,29 @@ export default function AdminClient({
     router.push(`/admin?tab=${value}`, { scroll: false })
   }
 
+  // Impersonar cliente
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null)
+  const handleImpersonate = useCallback(async (userId: string) => {
+    setImpersonatingId(userId)
+    try {
+      const res = await fetch("/api/admin/impersonate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId }),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        toast.error(json.error ?? "Erro ao impersonar cliente")
+        return
+      }
+      window.location.href = "/dashboard"
+    } catch {
+      toast.error("Erro ao conectar com o servidor")
+    } finally {
+      setImpersonatingId(null)
+    }
+  }, [])
+
   // Helpers de formatação
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString("pt-BR")
@@ -593,8 +616,10 @@ export default function AdminClient({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-slate-400 hover:text-white hover:bg-slate-700/50"
-                            onClick={() => window.open("/dashboard", "_blank")}
+                            className="h-7 px-2 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10"
+                            onClick={() => handleImpersonate(cliente.id)}
+                            disabled={impersonatingId === cliente.id}
+                            title="Ver como este cliente"
                           >
                             <Eye className="h-3.5 w-3.5" />
                           </Button>

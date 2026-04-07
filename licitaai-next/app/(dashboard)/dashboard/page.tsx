@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
+import { getImpersonatingUserId } from "@/lib/impersonation"
 import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles } from "lucide-react"
 import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
 import Link from "next/link"
@@ -7,6 +9,16 @@ import { ptBR } from "date-fns/locale"
 
 type CompanyRelation = { razao_social: string } | { razao_social: string }[] | null
 type LicitacaoRelation = { objeto: string; orgao: string } | { objeto: string; orgao: string }[] | null
+
+function getSaudacao(): string {
+  const hora = parseInt(
+    new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "numeric", hour12: false }),
+    10,
+  )
+  if (hora >= 5 && hora < 12) return "Bom dia"
+  if (hora >= 12 && hora < 18) return "Boa tarde"
+  return "Boa noite"
+}
 
 function getRazaoSocial(companies: CompanyRelation): string {
   if (!companies) return "—"
@@ -47,24 +59,52 @@ function getDocStatusBadge(dataValidade: string | null) {
   return { label: "Válido", cls: "bg-emerald-950/50 text-emerald-400 border-emerald-800/50" }
 }
 
-async function getMetrics() {
-  const supabase = await createClient()
+// ─── Helpers para buscar company_ids de um user ───────────────────────────────
+
+async function getCompanyIds(userId: string): Promise<string[]> {
+  const service = createServiceClient()
+  const { data } = await service.from("companies").select("id").eq("user_id", userId)
+  return (data ?? []).map((c) => c.id as string)
+}
+
+// ─── Métricas ─────────────────────────────────────────────────────────────────
+
+async function getMetrics(userId: string | null) {
   const hoje = new Date().toISOString().split("T")[0]
   const em30 = new Date(); em30.setDate(em30.getDate() + 30)
   const em30Str = em30.toISOString().split("T")[0]
 
+  if (userId) {
+    // Impersonando — usar service client com filtro explícito
+    const service = createServiceClient()
+    const companyIds = await getCompanyIds(userId)
+
+    if (companyIds.length === 0) {
+      return { totalClientes: 0, licitacoesSalvas: 0, documentosVencendo: 0, documentosExpirados: 0 }
+    }
+
+    const [companies, matches, docsVencendo, docsExpirados] = await Promise.all([
+      service.from("companies").select("*", { count: "exact", head: true }).eq("user_id", userId).eq("ativo", true),
+      service.from("matches").select("*", { count: "exact", head: true }).in("company_id", companyIds),
+      service.from("documents").select("*", { count: "exact", head: true }).in("company_id", companyIds).gte("data_validade", hoje).lte("data_validade", em30Str),
+      service.from("documents").select("*", { count: "exact", head: true }).in("company_id", companyIds).lt("data_validade", hoje),
+    ])
+
+    return {
+      totalClientes: companies.count ?? 0,
+      licitacoesSalvas: matches.count ?? 0,
+      documentosVencendo: docsVencendo.count ?? 0,
+      documentosExpirados: docsExpirados.count ?? 0,
+    }
+  }
+
+  // Normal — usar client com RLS
+  const supabase = await createClient()
   const [companies, matches, docsVencendo, docsExpirados] = await Promise.all([
     supabase.from("companies").select("*", { count: "exact", head: true }).eq("ativo", true),
     supabase.from("matches").select("*", { count: "exact", head: true }),
-    supabase
-      .from("documents")
-      .select("*", { count: "exact", head: true })
-      .gte("data_validade", hoje)
-      .lte("data_validade", em30Str),
-    supabase
-      .from("documents")
-      .select("*", { count: "exact", head: true })
-      .lt("data_validade", hoje),
+    supabase.from("documents").select("*", { count: "exact", head: true }).gte("data_validade", hoje).lte("data_validade", em30Str),
+    supabase.from("documents").select("*", { count: "exact", head: true }).lt("data_validade", hoje),
   ])
 
   return {
@@ -75,9 +115,26 @@ async function getMetrics() {
   }
 }
 
-async function getDocumentosVencendo() {
-  const supabase = await createClient()
+// ─── Documentos vencendo ──────────────────────────────────────────────────────
+
+async function getDocumentosVencendo(userId: string | null) {
   const hoje = new Date().toISOString().split("T")[0]
+
+  if (userId) {
+    const service = createServiceClient()
+    const companyIds = await getCompanyIds(userId)
+    if (companyIds.length === 0) return []
+    const { data } = await service
+      .from("documents")
+      .select("id, tipo, nome_arquivo, data_validade, status, companies(razao_social)")
+      .in("company_id", companyIds)
+      .gte("data_validade", hoje)
+      .order("data_validade", { ascending: true })
+      .limit(5)
+    return data ?? []
+  }
+
+  const supabase = await createClient()
   const { data } = await supabase
     .from("documents")
     .select("id, tipo, nome_arquivo, data_validade, status, companies(razao_social)")
@@ -87,7 +144,22 @@ async function getDocumentosVencendo() {
   return data ?? []
 }
 
-async function getUltimasOportunidades() {
+// ─── Últimas oportunidades ────────────────────────────────────────────────────
+
+async function getUltimasOportunidades(userId: string | null) {
+  if (userId) {
+    const service = createServiceClient()
+    const companyIds = await getCompanyIds(userId)
+    if (companyIds.length === 0) return []
+    const { data } = await service
+      .from("matches")
+      .select("id, licitacao_id, relevancia_score, status, created_at, licitacoes(objeto, orgao)")
+      .in("company_id", companyIds)
+      .order("created_at", { ascending: false })
+      .limit(5)
+    return data ?? []
+  }
+
   const supabase = await createClient()
   const { data } = await supabase
     .from("matches")
@@ -96,6 +168,8 @@ async function getUltimasOportunidades() {
     .limit(5)
   return data ?? []
 }
+
+// ─── Metric cards config ──────────────────────────────────────────────────────
 
 const metricCards = [
   {
@@ -132,11 +206,16 @@ const metricCards = [
   },
 ]
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default async function DashboardPage() {
+  // Verifica se admin está impersonando um cliente
+  const impersonatingUserId = await getImpersonatingUserId()
+
   const [metrics, documentosVencendo, ultimasOportunidades] = await Promise.all([
-    getMetrics(),
-    getDocumentosVencendo(),
-    getUltimasOportunidades(),
+    getMetrics(impersonatingUserId),
+    getDocumentosVencendo(impersonatingUserId),
+    getUltimasOportunidades(impersonatingUserId),
   ])
 
   return (
@@ -145,7 +224,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-            Bom dia!{" "}
+            {getSaudacao()}!{" "}
             <span className="text-sm font-medium text-slate-400 block sm:inline sm:ml-2">
               Hoje é {formatDate(new Date().toISOString().split("T")[0])}
             </span>
