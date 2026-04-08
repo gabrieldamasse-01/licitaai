@@ -154,7 +154,13 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 }
 
 export async function GET(req: NextRequest) {
-  return executar(req)
+  try {
+    return await executar(req)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error("[cron/licitacoes] Erro fatal:", msg)
+    return NextResponse.json({ error: "Erro interno", detalhe: msg }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
