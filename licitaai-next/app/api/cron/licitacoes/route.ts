@@ -87,20 +87,29 @@ async function executar(req: NextRequest): Promise<NextResponse> {
       updated_at:        agora.toISOString(),
     }))
 
+    // Deduplica por source_id — Effecti pode retornar duplicatas na mesma página
+    // (Postgres: ON CONFLICT DO UPDATE não pode afetar a mesma linha duas vezes no batch)
+    const seen = new Set<string>()
+    const deduped = rows.filter((r) => {
+      if (seen.has(r.source_id)) return false
+      seen.add(r.source_id)
+      return true
+    })
+
     // Conta source_ids já existentes para distinguir inseridas vs atualizadas
-    const sourceIds = rows.map((r) => r.source_id)
+    const sourceIds = deduped.map((r) => r.source_id)
     const { count: existentes } = await supabase
       .from("licitacoes")
       .select("source_id", { count: "exact", head: true })
       .in("source_id", sourceIds)
 
     const qtdExistentes = existentes ?? 0
-    const qtdNovas = rows.length - qtdExistentes
+    const qtdNovas = deduped.length - qtdExistentes
 
-    // Upsert em lote
+    // Upsert em lote (usando array deduplicado)
     const { error: upsertError } = await supabase
       .from("licitacoes")
-      .upsert(rows, { onConflict: "source_id" })
+      .upsert(deduped, { onConflict: "source_id" })
 
     if (upsertError) {
       erros.push(`Upsert página ${pagina}: ${upsertError.message}`)
