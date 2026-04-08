@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { fetchEffectiLicitacoes } from "@/lib/effecti"
 
 // Cron de sincronização de licitações — executa 3x/dia via Vercel Cron
-// Schedule: 0 6,15,21 * * * (UTC) — equivale a ~3h, 12h, 18h BRT
+// Schedule: 0 9,15,21 * * * (UTC) — equivale a 6h, 12h, 18h BRT
 // Janela: últimos 5 dias (máximo permitido pela API Effecti)
 // Aceita GET (Vercel Cron) e POST (chamada manual) com Authorization: Bearer <CRON_SECRET>
 

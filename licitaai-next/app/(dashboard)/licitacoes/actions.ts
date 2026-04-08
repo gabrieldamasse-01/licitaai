@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-import { fetchEffectiLicitacoes } from "@/lib/effecti"
 
 export type Licitacao = {
   idLicitacao: number
@@ -52,23 +51,38 @@ const EMPTY_PAGINATION: Pagination = {
   itens_nesta_pagina: 0,
 }
 
-// Fallback: lê licitações salvas no Supabase
-async function fetchFromSupabase(pagina: number): Promise<FetchResult> {
+// Leituras sempre do Supabase — a API externa só alimenta o banco via cron
+export async function fetchLicitacoes({
+  dataInicio,
+  dataFim,
+  pagina = 0,
+}: {
+  dataInicio: string
+  dataFim: string
+  pagina?: number
+  uf?: string
+  modalidades?: string[]
+}): Promise<FetchResult> {
   try {
     const supabase = await createClient()
     const pageSize = 20
     const from = pagina * pageSize
     const to = from + pageSize - 1
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from("licitacoes")
       .select("*", { count: "exact" })
       .eq("status", "ativa")
       .order("created_at", { ascending: false })
-      .range(from, to)
+
+    // Filtro por intervalo de datas (baseado em data_abertura)
+    if (dataInicio) query = query.gte("data_abertura", dataInicio)
+    if (dataFim) query = query.lte("data_abertura", dataFim)
+
+    const { data, error, count } = await query.range(from, to)
 
     if (error || !data) {
-      return { licitacoes: [], pagination: EMPTY_PAGINATION, error: "Erro ao buscar no Supabase." }
+      return { licitacoes: [], pagination: EMPTY_PAGINATION, error: "Erro ao buscar licitações." }
     }
 
     const total = count ?? 0
@@ -80,7 +94,7 @@ async function fetchFromSupabase(pagina: number): Promise<FetchResult> {
       objetoSemTags: row.objeto ?? "",
       modalidade: row.modalidade ?? "",
       uf: row.uf ?? "",
-      portal: "Supabase",
+      portal: row.portal ?? "PNCP",
       processo: row.source_id ?? "",
       valorTotalEstimado: row.valor_estimado ?? 0,
       dataPublicacao: row.created_at ?? "",
@@ -110,40 +124,8 @@ async function fetchFromSupabase(pagina: number): Promise<FetchResult> {
       },
     }
   } catch {
-    return { licitacoes: [], pagination: EMPTY_PAGINATION, error: "Erro ao buscar no Supabase." }
+    return { licitacoes: [], pagination: EMPTY_PAGINATION, error: "Erro ao buscar licitações." }
   }
-}
-
-// Converte "YYYY-MM-DD" para ISO 8601 com horário (exigido pela Effecti)
-function toISO(date: string, endOfDay = false): string {
-  if (date.includes("T")) return date
-  return `${date}T${endOfDay ? "23:59:59" : "00:00:00"}`
-}
-
-export async function fetchLicitacoes({
-  dataInicio,
-  dataFim,
-  pagina = 0,
-}: {
-  dataInicio: string
-  dataFim: string
-  pagina?: number
-  uf?: string
-  modalidades?: string[]
-}): Promise<FetchResult> {
-  const result = await fetchEffectiLicitacoes({
-    begin: toISO(dataInicio),
-    end: toISO(dataFim, true),
-    pagina,
-  })
-
-  if (!result.error) return result
-
-  // Fallback para Supabase se a Effecti falhar
-  const fallback = await fetchFromSupabase(pagina)
-  return fallback.error
-    ? { licitacoes: [], pagination: EMPTY_PAGINATION, error: result.error }
-    : fallback
 }
 
 export async function salvarLicitacao(lic: Licitacao) {
