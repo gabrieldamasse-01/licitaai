@@ -15,6 +15,12 @@ function autenticar(req: NextRequest): boolean {
   return token === process.env.CRON_SECRET
 }
 
+function safeDate(val: string | undefined | null): string | null {
+  if (!val) return null
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d.toISOString()
+}
+
 async function executar(req: NextRequest): Promise<NextResponse> {
   if (!autenticar(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -72,9 +78,9 @@ async function executar(req: NextRequest): Promise<NextResponse> {
       modalidade:        lic.modalidade,
       uf:                lic.uf?.substring(0, 2) || null,
       municipio:         lic.unidadeGestora || null,
-      data_publicacao:   lic.dataPublicacao ? new Date(lic.dataPublicacao).toISOString() : null,
-      data_abertura:     lic.dataInicialProposta ? new Date(lic.dataInicialProposta).toISOString() : null,
-      data_encerramento: lic.dataFinalProposta ? new Date(lic.dataFinalProposta).toISOString() : null,
+      data_publicacao:   safeDate(lic.dataPublicacao),
+      data_abertura:     safeDate(lic.dataInicialProposta),
+      data_encerramento: safeDate(lic.dataFinalProposta),
       source_url:        lic.url || null,
       numero_processo:   lic.processo || null,
       status:            "ativa",
