@@ -34,8 +34,9 @@ async function executar(req: NextRequest): Promise<NextResponse> {
   const beginISO = inicio.toISOString().slice(0, 19)  // "2026-04-02T00:00:00"
   const endISO = agora.toISOString().slice(0, 19)
 
+  let buscadas = 0
   let inseridas = 0
-  let atualizadas = 0
+  let ignoradas = 0   // licitações já existentes (atualizadas no upsert)
   let encerradas = 0
   let totalPaginas = 1
   let pagina = 0
@@ -67,6 +68,8 @@ async function executar(req: NextRequest): Promise<NextResponse> {
     }
 
     if (result.licitacoes.length === 0) break
+
+    buscadas += result.licitacoes.length
 
     // Monta as linhas para upsert
     const rows = result.licitacoes.map((lic) => ({
@@ -116,8 +119,8 @@ async function executar(req: NextRequest): Promise<NextResponse> {
       console.error(`[cron/licitacoes] Erro no upsert página ${pagina}:`, upsertError.message)
     } else {
       inseridas += qtdNovas
-      atualizadas += qtdExistentes
-      console.log(`[cron/licitacoes] Página ${pagina + 1}/${totalPaginas} — +${qtdNovas} novas, ~${qtdExistentes} atualizadas`)
+      ignoradas += qtdExistentes
+      console.log(`[cron/licitacoes] Página ${pagina + 1}/${totalPaginas} — +${qtdNovas} novas, ~${qtdExistentes} já existiam`)
     }
 
     pagina++
@@ -145,8 +148,9 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 
   const resumo = {
     ok: erros.length === 0,
+    buscadas,
     inseridas,
-    atualizadas,
+    ignoradas,
     encerradas,
     total_paginas: totalPaginas,
     paginas_processadas: pagina,
@@ -161,7 +165,7 @@ async function executar(req: NextRequest): Promise<NextResponse> {
   await supabase.from("agent_logs").insert({
     agent: "cron/licitacoes",
     status: erros.length === 0 ? "success" : "error",
-    mensagem: `inseridas=${inseridas} atualizadas=${atualizadas} encerradas=${encerradas} páginas=${pagina}/${totalPaginas}`,
+    mensagem: `buscadas=${buscadas} inseridas=${inseridas} ignoradas=${ignoradas} encerradas=${encerradas} páginas=${pagina}/${totalPaginas}`,
     detalhes: resumo,
   })
 
