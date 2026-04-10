@@ -137,6 +137,7 @@ export function DocumentosClient({
   const [form, setForm] = useState<DocumentoFormData>(emptyForm)
   const [isPending, startTransition] = useTransition()
   const [arquivo, setArquivo] = useState<File | null>(null)
+  const [arquivoErro, setArquivoErro] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
@@ -157,6 +158,7 @@ export function DocumentosClient({
   function abrirNovo() {
     setForm(emptyForm)
     setArquivo(null)
+    setArquivoErro(false)
     setUploadProgress(0)
     setIaPreenchido(new Set())
     setIaAnalisando(false)
@@ -234,6 +236,7 @@ export function DocumentosClient({
     const err = validarArquivo(file)
     if (err) { toast.error(err); return }
     setArquivo(file)
+    setArquivoErro(false)
     setForm((f) => ({ ...f, nome_arquivo: f.nome_arquivo || file.name }))
     analisarComIA(file)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -263,6 +266,11 @@ export function DocumentosClient({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (!arquivo) {
+      setArquivoErro(true)
+      return
+    }
 
     let arquivo_url: string | undefined
 
@@ -547,7 +555,13 @@ export function DocumentosClient({
 
             {/* Upload de arquivo */}
             <div className="space-y-1.5">
-              <Label className="text-slate-300">Arquivo (PDF, JPG, PNG — máx. 10 MB)</Label>
+              <Label className="text-slate-300">
+                Arquivo (PDF, JPG, PNG — máx. 10 MB) <span className="text-red-400">*</span>
+              </Label>
+
+              {arquivoErro && (
+                <p className="text-xs text-red-400">Upload de arquivo obrigatório</p>
+              )}
 
               {arquivo ? (
                 /* Preview do arquivo selecionado */
@@ -580,7 +594,9 @@ export function DocumentosClient({
                     cursor-pointer transition-colors py-8 px-4 text-center
                     ${isDragOver
                       ? "border-blue-500 bg-blue-950/30"
-                      : "border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800"
+                      : arquivoErro
+                        ? "border-red-500/60 bg-red-950/10 hover:border-red-400"
+                        : "border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800"
                     }
                   `}
                 >
