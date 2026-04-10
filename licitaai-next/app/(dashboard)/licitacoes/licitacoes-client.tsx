@@ -483,14 +483,14 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
             {ufsSel.size === UFS.length ? "Desmarcar todos" : "Selecionar todos"}
           </button>
         </div>
-        <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-1">
+        <div className="max-h-[160px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-1">
           <div className="flex flex-wrap gap-1">
             {UFS.map((uf) => (
               <button
                 key={uf}
                 onClick={() => toggleUF(uf)}
                 className={cn(
-                  "rounded px-1.5 py-0.5 text-[11px] font-medium border transition-colors",
+                  "flex items-center justify-center w-8 h-8 text-xs font-medium rounded-md border transition-colors",
                   ufsSel.has(uf)
                     ? "bg-blue-600 text-white border-blue-600"
                     : "bg-slate-800 text-slate-400 border-slate-600 hover:border-blue-500 hover:text-blue-400"
@@ -517,12 +517,12 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
             {modsSel.size === MODALIDADES.length ? "Desmarcar todos" : "Selecionar todos"}
           </button>
         </div>
-        <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-1">
-          <div className="space-y-2.5">
+        <div className="max-h-[160px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-1">
+          <div className="space-y-0.5">
             {MODALIDADES.map((m) => (
               <div
                 key={m}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer py-1 px-2 rounded hover:bg-slate-700/40 transition-colors"
                 onClick={() => toggleMod(m)}
               >
                 <Checkbox
@@ -530,7 +530,7 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
                   onCheckedChange={() => toggleMod(m)}
                   className="data-[state=checked]:bg-[#1A5276] data-[state=checked]:border-[#1A5276]"
                 />
-                <span className="text-sm text-slate-300 select-none">{m}</span>
+                <span className="text-xs text-slate-300 select-none">{m}</span>
               </div>
             ))}
           </div>

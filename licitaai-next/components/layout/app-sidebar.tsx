@@ -128,18 +128,9 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
         collapsed ? "flex-col items-center justify-center gap-1.5" : "items-center gap-2 px-3"
       )}>
         {collapsed ? (
-          <>
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-md shadow-blue-900/30">
-              <Scale className="h-3.5 w-3.5 text-white" />
-            </div>
-            <button
-              onClick={toggleCollapsed}
-              title="Expandir sidebar"
-              className="flex h-5 w-5 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
-            >
-              <ChevronRight className="h-3 w-3" />
-            </button>
-          </>
+          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-md shadow-blue-900/30">
+            <Scale className="h-3.5 w-3.5 text-white" />
+          </div>
         ) : (
           <>
             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -158,9 +149,9 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
             <button
               onClick={toggleCollapsed}
               title="Recolher sidebar"
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
+              className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-sm border border-white/20 text-slate-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-colors"
             >
-              <ChevronLeft className="h-3 w-3" />
+              <ChevronLeft className="size-3" />
             </button>
           </>
         )}
@@ -168,6 +159,17 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
 
       {/* Nav principal */}
       <nav className="flex-1 overflow-y-auto py-3 flex flex-col gap-0.5">
+        {collapsed && (
+          <div className="flex justify-center mb-1">
+            <button
+              onClick={toggleCollapsed}
+              title="Expandir sidebar"
+              className="flex h-[18px] w-[18px] items-center justify-center rounded-sm border border-white/20 text-slate-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-colors"
+            >
+              <ChevronRight className="size-3" />
+            </button>
+          </div>
+        )}
         {!collapsed && (
           <div className="px-2 py-1.5">
             <p className="px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1">
