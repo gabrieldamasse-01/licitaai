@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Scale, Loader2, TrendingUp, Shield, Zap } from "lucide-react"
+import { Scale, Loader2, TrendingUp, Shield, Zap, Eye, EyeOff } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 const loginSchema = z.object({
@@ -46,9 +46,27 @@ export function LoginForm({
   const passwordRef = useRef<HTMLInputElement | null>(null)
   const autofillCount = useRef(0)
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const { ref: emailRegRef, ...emailRegRest } = register("email")
   const { ref: passwordRegRef, ...passwordRegRest } = register("password")
+
+  async function handlePostLogin() {
+    // Verifica se o usuário tem 2FA ativado
+    const r = await fetch("/api/auth/check-2fa")
+    const { twoFactorEnabled } = await r.json() as { twoFactorEnabled: boolean }
+    if (twoFactorEnabled) {
+      const otpRes = await fetch("/api/auth/send-otp", { method: "POST" })
+      const otpJson = await otpRes.json() as { ok?: boolean; error?: string; detail?: string }
+      if (!otpJson.ok) {
+        setError("root", { message: `Erro ao enviar código 2FA: ${otpJson.detail ?? otpJson.error}` })
+        return
+      }
+      router.push("/auth/verify-2fa")
+    } else {
+      router.push("/dashboard")
+    }
+  }
 
   const onSubmit = async (data: LoginData) => {
     const supabase = createClient()
@@ -60,7 +78,7 @@ export function LoginForm({
       setError("root", { message: "E-mail ou senha incorretos. Tente novamente." })
       return
     }
-    router.push("/dashboard")
+    await handlePostLogin()
   }
 
   // Submissão direta lendo os valores do DOM (necessário pois autofill não
@@ -77,7 +95,7 @@ export function LoginForm({
       setError("root", { message: "E-mail ou senha incorretos. Tente novamente." })
       return
     }
-    router.push("/dashboard")
+    await handlePostLogin()
   }
 
   // Detecta autofill via evento animationstart disparado pelo CSS abaixo
@@ -209,14 +227,25 @@ export function LoginForm({
               <Label htmlFor="password" className="text-sm font-medium text-slate-700">
                 Senha
               </Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                ref={(el) => { passwordRegRef(el); passwordRef.current = el }}
-                {...passwordRegRest}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 pr-12"
+                  ref={(el) => { passwordRegRef(el); passwordRef.current = el }}
+                  {...passwordRegRest}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
               <div className="flex justify-end">
                 <Link
                   href="/auth/forgot-password"

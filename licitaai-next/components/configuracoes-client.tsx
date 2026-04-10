@@ -12,6 +12,7 @@ import {
   Mail,
   RefreshCw,
   Crown,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +32,8 @@ import {
   salvarCnaes,
   salvarPreferencias,
   enviarResetSenha,
+  excluirConta,
+  toggle2FA,
 } from '@/app/actions/configuracoes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -99,7 +102,7 @@ function Section({
 
 function PerfilSection({ company }: { company: Company }) {
   const [state, action, pending] = useActionState(salvarPerfil, null)
-  const [cnpj, setCnpj] = useState(company?.cnpj ?? '')
+  const [cnpj, setCnpj] = useState(formatCNPJ(company?.cnpj ?? ''))
 
   useEffect(() => {
     if (!state) return
@@ -367,8 +370,16 @@ function PreferenciasSection({ prefs }: { prefs: Prefs }) {
 
 // ─── 4. Segurança ────────────────────────────────────────────────────────────
 
-function SegurancaSection({ userEmail }: { userEmail: string }) {
+function SegurancaSection({
+  userEmail,
+  twoFactorEnabled,
+}: {
+  userEmail: string
+  twoFactorEnabled: boolean
+}) {
   const [isPending, startTransition] = useTransition()
+  const [is2FA, setIs2FA] = useState(twoFactorEnabled)
+  const [toggling2FA, setToggling2FA] = useState(false)
 
   function handleReset() {
     startTransition(async () => {
@@ -379,6 +390,18 @@ function SegurancaSection({ userEmail }: { userEmail: string }) {
         toast.error(result.erro)
       }
     })
+  }
+
+  async function handleToggle2FA(enabled: boolean) {
+    setToggling2FA(true)
+    const result = await toggle2FA(enabled)
+    if ('ok' in result) {
+      setIs2FA(enabled)
+      toast.success(enabled ? 'Verificação em duas etapas ativada!' : 'Verificação em duas etapas desativada.')
+    } else {
+      toast.error(result.erro)
+    }
+    setToggling2FA(false)
   }
 
   return (
@@ -410,6 +433,21 @@ function SegurancaSection({ userEmail }: { userEmail: string }) {
             <RefreshCw className="h-4 w-4 mr-1.5" />
             {isPending ? 'Enviando…' : 'Alterar senha'}
           </Button>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
+          <div>
+            <p className="text-sm font-medium text-white">Verificação em duas etapas (2FA)</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Ao fazer login, um código será enviado para o seu e-mail.
+            </p>
+          </div>
+          <Switch
+            checked={is2FA}
+            onCheckedChange={handleToggle2FA}
+            disabled={toggling2FA}
+            aria-label="Ativar verificação em duas etapas"
+          />
         </div>
       </div>
     </Section>
@@ -483,6 +521,89 @@ function PlanoSection({ plano, planoExpiraEm }: Plano) {
   )
 }
 
+// ─── 6. Excluir Conta ────────────────────────────────────────────────────────
+
+function ExcluirContaSection() {
+  const [confirmando, setConfirmando] = useState(false)
+  const [texto, setTexto] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  function handleExcluir() {
+    if (texto !== 'EXCLUIR') {
+      toast.error('Digite EXCLUIR para confirmar')
+      return
+    }
+    startTransition(async () => {
+      const result = await excluirConta()
+      if (result && 'erro' in result) {
+        toast.error(result.erro)
+      }
+      // Se ok, o servidor faz redirect para /auth/login
+    })
+  }
+
+  return (
+    <div className="rounded-xl border border-red-900/50 bg-red-950/20 p-6 space-y-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-900/30">
+          <Trash2 className="h-4 w-4 text-red-400" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-red-300">Excluir Conta</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão removidos.
+          </p>
+        </div>
+      </div>
+
+      <div className="border-t border-red-900/30 pt-4">
+        {!confirmando ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmando(true)}
+            className="border-red-800 text-red-400 hover:bg-red-950 hover:text-red-300"
+          >
+            <Trash2 className="h-4 w-4 mr-1.5" />
+            Excluir minha conta
+          </Button>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-300">
+              Para confirmar, digite <span className="font-bold text-red-400">EXCLUIR</span> no campo abaixo:
+            </p>
+            <Input
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              placeholder="EXCLUIR"
+              className="bg-slate-800 border-red-800 text-white placeholder:text-slate-500 max-w-xs"
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleExcluir}
+                disabled={isPending || texto !== 'EXCLUIR'}
+              >
+                {isPending ? 'Excluindo…' : 'Confirmar exclusão'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setConfirmando(false); setTexto('') }}
+                disabled={isPending}
+                className="text-slate-400 hover:text-white"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Export principal ─────────────────────────────────────────────────────────
 
 export function ConfiguracoesClient({
@@ -491,12 +612,14 @@ export function ConfiguracoesClient({
   userEmail,
   plano,
   planoExpiraEm,
+  twoFactorEnabled = false,
 }: {
   company: Company
   prefs: Prefs
   userEmail: string
   plano: string
   planoExpiraEm: string | null
+  twoFactorEnabled?: boolean
 }) {
   return (
     <div className="space-y-4">
@@ -504,7 +627,8 @@ export function ConfiguracoesClient({
       <PerfilSection company={company} />
       <CnaesSection initialCnaes={company?.cnae ?? []} />
       <PreferenciasSection prefs={prefs} />
-      <SegurancaSection userEmail={userEmail} />
+      <SegurancaSection userEmail={userEmail} twoFactorEnabled={twoFactorEnabled} />
+      <ExcluirContaSection />
     </div>
   )
 }

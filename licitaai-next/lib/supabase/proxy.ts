@@ -47,16 +47,32 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  const pathname = request.nextUrl.pathname;
+
   if (
-    request.nextUrl.pathname !== "/" &&
+    pathname !== "/" &&
     !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
-    !request.nextUrl.pathname.startsWith("/api/")
+    !pathname.startsWith("/login") &&
+    !pathname.startsWith("/auth") &&
+    !pathname.startsWith("/api/")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
+  }
+
+  // 2FA: se há cookie pendente e usuário está autenticado, forçar verificação
+  const pending2fa = request.cookies.get("2fa_pending")?.value === "1";
+  if (
+    user &&
+    pending2fa &&
+    !pathname.startsWith("/auth/verify-2fa") &&
+    !pathname.startsWith("/api/auth/") &&
+    !pathname.startsWith("/auth/login")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/verify-2fa";
     return NextResponse.redirect(url);
   }
 

@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Scale, Loader2, TrendingUp, Shield, Zap } from "lucide-react"
+import { Scale, Loader2, TrendingUp, Shield, Zap, Eye, EyeOff } from "lucide-react"
 
 const signUpSchema = z
   .object({
@@ -36,6 +37,9 @@ export function SignUpForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showRepeat, setShowRepeat] = useState(false)
+
   const {
     register,
     handleSubmit,
@@ -156,13 +160,24 @@ export function SignUpForm({
               <Label htmlFor="password" className="text-sm font-medium text-slate-700">
                 Senha
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Mínimo de 8 caracteres"
-                className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                {...register("password")}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mínimo de 8 caracteres"
+                  className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 pr-12"
+                  {...register("password")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-xs text-red-500">{errors.password.message}</p>
               )}
@@ -172,13 +187,24 @@ export function SignUpForm({
               <Label htmlFor="repeat-password" className="text-sm font-medium text-slate-700">
                 Confirmar senha
               </Label>
-              <Input
-                id="repeat-password"
-                type="password"
-                placeholder="Confirme sua senha"
-                className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                {...register("repeatPassword")}
-              />
+              <div className="relative">
+                <Input
+                  id="repeat-password"
+                  type={showRepeat ? "text" : "password"}
+                  placeholder="Confirme sua senha"
+                  className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 pr-12"
+                  {...register("repeatPassword")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowRepeat((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showRepeat ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showRepeat ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
               {errors.repeatPassword && (
                 <p className="text-xs text-red-500">{errors.repeatPassword.message}</p>
               )}

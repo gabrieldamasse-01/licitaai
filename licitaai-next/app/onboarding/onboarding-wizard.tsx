@@ -150,7 +150,7 @@ function Step1({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="razao_social">
+        <Label htmlFor="razao_social" className="text-slate-700">
           Razão Social <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -160,11 +160,12 @@ function Step1({
           placeholder="Empresa LTDA"
           required
           autoFocus
+          className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="cnpj">
+        <Label htmlFor="cnpj" className="text-slate-700">
           CNPJ <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -173,19 +174,20 @@ function Step1({
           onChange={(e) => onChange({ cnpj: formatCNPJ(e.target.value) })}
           placeholder="00.000.000/0000-00"
           required
+          className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="porte">Porte da Empresa</Label>
+        <Label htmlFor="porte" className="text-slate-700">Porte da Empresa</Label>
         <Select
           value={data.porte}
           onValueChange={(v) => onChange({ porte: v as EmpresaData["porte"] })}
         >
-          <SelectTrigger id="porte">
+          <SelectTrigger id="porte" className="bg-white text-slate-900 border-slate-200">
             <SelectValue placeholder="Selecione o porte" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white text-slate-900 border-slate-200">
             <SelectItem value="MEI">MEI — Microempreendedor Individual</SelectItem>
             <SelectItem value="ME">ME — Microempresa</SelectItem>
             <SelectItem value="EPP">EPP — Pequeno Porte</SelectItem>
@@ -197,22 +199,24 @@ function Step1({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="email_contato">E-mail de Contato</Label>
+          <Label htmlFor="email_contato" className="text-slate-700">E-mail de Contato</Label>
           <Input
             id="email_contato"
             type="email"
             value={data.email_contato}
             onChange={(e) => onChange({ email_contato: e.target.value })}
             placeholder="contato@empresa.com"
+            className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="contato">Telefone</Label>
+          <Label htmlFor="contato" className="text-slate-700">Telefone</Label>
           <Input
             id="contato"
             value={data.contato}
             onChange={(e) => onChange({ contato: e.target.value })}
             placeholder="(11) 99999-9999"
+            className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
           />
         </div>
       </div>
@@ -309,7 +313,7 @@ function Step2({
               }
             }}
             placeholder="Ex: 4120-4/00 — Construção de edifícios"
-            className="flex-1"
+            className="flex-1 bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
           />
           <Button type="button" variant="outline" size="icon" onClick={() => adicionar()}>
             <Plus className="h-4 w-4" />
@@ -466,7 +470,7 @@ export function OnboardingWizard() {
 
   return (
     <div className="w-full max-w-lg">
-      <div className="rounded-2xl bg-white shadow-2xl shadow-black/20 p-6 md:p-8">
+      <div className="rounded-2xl bg-white shadow-2xl shadow-black/20 p-6 md:p-8 text-slate-900">
         <ProgressBar step={step} />
 
         {step === 1 && (

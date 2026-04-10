@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 
 // ─── Perfil ───────────────────────────────────────────────────────────────────
@@ -123,6 +124,75 @@ export async function enviarResetSenha(): Promise<{ ok: true } | { erro: string 
 
   if (error) return { erro: error.message }
   return { ok: true }
+}
+
+// ─── Toggle 2FA ───────────────────────────────────────────────────────────────
+
+export async function toggle2FA(
+  enabled: boolean,
+): Promise<{ ok: true } | { erro: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { erro: 'Não autenticado' }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from('user_preferences')
+    .upsert(
+      { user_id: user.id, two_factor_enabled: enabled, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    )
+
+  if (error) return { erro: error.message }
+  revalidatePath('/configuracoes')
+  return { ok: true }
+}
+
+// ─── Excluir conta ────────────────────────────────────────────────────────────
+
+export async function excluirConta(): Promise<{ ok: true } | { erro: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { erro: 'Não autenticado' }
+
+  const service = createServiceClient()
+
+  // 1. Buscar companies do usuário para excluir arquivos de storage
+  const { data: companies } = await supabase
+    .from('companies')
+    .select('id')
+    .eq('user_id', user.id)
+
+  // 2. Excluir arquivos do Storage (pasta do usuário)
+  const { data: storageFiles } = await service.storage
+    .from('documentos')
+    .list(user.id, { limit: 1000 })
+
+  if (storageFiles && storageFiles.length > 0) {
+    const paths = storageFiles.map((f) => `${user.id}/${f.name}`)
+    await service.storage.from('documentos').remove(paths)
+  }
+
+  // 3. Excluir dados relacionados via cascade (companies → documents → matches)
+  if (companies && companies.length > 0) {
+    const ids = companies.map((c) => c.id)
+    await service.from('documents').delete().in('company_id', ids)
+    await service.from('matches').delete().in('company_id', ids)
+    await service.from('companies').delete().in('id', ids)
+  }
+
+  // 4. Excluir preferências e notificações
+  await service.from('user_preferences').delete().eq('user_id', user.id)
+  await service.from('notifications').delete().eq('user_id', user.id)
+
+  // 5. Fazer logout antes de deletar o usuário auth
+  await supabase.auth.signOut()
+
+  // 6. Deletar o usuário do auth (requer service role)
+  const { error: deleteError } = await service.auth.admin.deleteUser(user.id)
+  if (deleteError) return { erro: 'Erro ao excluir conta: ' + deleteError.message }
+
+  redirect('/auth/login')
 }
 
 // ─── Manter compatibilidade com código anterior ───────────────────────────────
