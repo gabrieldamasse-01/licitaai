@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-import { fetchEffectiLicitacoes, type NormalizedLicitacao } from "@/lib/effecti"
-import { calcularScore as calcScore, scoreLabel as getScoreLabel, extrairKeywords as extractKeywords } from "@/lib/scoring"
+import { calcularScore as calcScore, scoreLabel as getScoreLabel } from "@/lib/scoring"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,7 +14,19 @@ export type Empresa = {
   cnae: string[]
 }
 
-export type Oportunidade = NormalizedLicitacao & {
+export type Oportunidade = {
+  id: string
+  source_id: string | null
+  orgao: string | null
+  objeto: string | null
+  valor_estimado: number | null
+  modalidade: string | null
+  uf: string | null
+  data_encerramento: string | null
+  data_publicacao: string | null
+  source_url: string | null
+  portal: string | null
+  status: string | null
   score: number
   scoreLabel: string
   motivo: string
@@ -121,13 +132,17 @@ export async function buscarChecklistDocumentos(empresaId: string): Promise<{
 export async function buscarOportunidades(empresaId: string): Promise<{
   oportunidades: Oportunidade[]
   analisadas: number
+  docsVencidos: boolean
+  docsVencendo: boolean
   error?: string
 }> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { oportunidades: [], analisadas: 0, error: "Não autenticado" }
+  if (!user) {
+    return { oportunidades: [], analisadas: 0, docsVencidos: false, docsVencendo: false, error: "Não autenticado" }
+  }
 
   const { data: empresa } = await supabase
     .from("companies")
@@ -136,46 +151,66 @@ export async function buscarOportunidades(empresaId: string): Promise<{
     .eq("user_id", user.id)
     .single()
 
-  if (!empresa) return { oportunidades: [], analisadas: 0, error: "Empresa não encontrada" }
+  if (!empresa) {
+    return { oportunidades: [], analisadas: 0, docsVencidos: false, docsVencendo: false, error: "Empresa não encontrada" }
+  }
 
-  // Janela de 5 dias (máximo permitido pela Effecti)
-  const hoje = new Date()
-  const end = `${hoje.toISOString().split("T")[0]}T23:59:59`
-  const inicio = new Date(hoje.getTime() - 4 * 24 * 60 * 60 * 1000)
-  const begin = `${inicio.toISOString().split("T")[0]}T00:00:00`
+  // Verificar status dos documentos da empresa
+  const { itens: checklistItens } = await buscarChecklistDocumentos(empresaId)
+  const docsVencidos = checklistItens.some((i) => i.status === "vencido" || i.status === "faltando")
+  const docsVencendo = checklistItens.some((i) => i.status === "vencendo")
 
-  const palavrasChave = extractKeywords(empresa)
+  // Licitações dos últimos 5 dias sincronizadas no Supabase
+  const inicio = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000)
 
-  const result = await fetchEffectiLicitacoes({ begin, end, pagina: 0, palavrasChave })
-  if (result.error) return { oportunidades: [], analisadas: 0, error: result.error }
+  const { data: licitacoes, error } = await supabase
+    .from("licitacoes")
+    .select("id, source_id, orgao, objeto, valor_estimado, modalidade, uf, data_encerramento, data_publicacao, source_url, portal, status")
+    .gte("updated_at", inicio.toISOString())
+    .eq("status", "ativa")
+    .not("objeto", "is", null)
+    .order("updated_at", { ascending: false })
+    .limit(500)
 
-  const analisadas = result.licitacoes.length
+  if (error) {
+    return { oportunidades: [], analisadas: 0, docsVencidos, docsVencendo, error: error.message }
+  }
 
-  const oportunidades: Oportunidade[] = result.licitacoes
+  const analisadas = licitacoes?.length ?? 0
+
+  const oportunidades: Oportunidade[] = (licitacoes ?? [])
     .map((lic) => {
-      const { score, motivo } = calcScore(empresa, lic)
-      return { ...lic, score, scoreLabel: getScoreLabel(score), motivo }
+      const { score, scoreLabel, motivo } = calcScore(empresa, {
+        objeto: lic.objeto ?? "",
+        modalidade: lic.modalidade ?? "",
+      })
+      return {
+        id: lic.id,
+        source_id: lic.source_id,
+        orgao: lic.orgao,
+        objeto: lic.objeto,
+        valor_estimado: lic.valor_estimado,
+        modalidade: lic.modalidade,
+        uf: lic.uf,
+        data_encerramento: lic.data_encerramento,
+        data_publicacao: lic.data_publicacao,
+        source_url: lic.source_url,
+        portal: lic.portal,
+        status: lic.status,
+        score,
+        scoreLabel,
+        motivo,
+      }
     })
     .filter((o) => o.score >= 60)
     .sort((a, b) => b.score - a.score)
 
-  return { oportunidades, analisadas }
-}
-
-// Converte "DD/MM/YYYY HH:MM:SS" ou "DD/MM/YYYY" para ISO 8601
-function parseDateEffecti(dateStr: string | undefined): string | null {
-  if (!dateStr) return null
-  const parts = dateStr.split(" ")
-  const dateParts = parts[0].split("/")
-  if (dateParts.length !== 3) return null
-  const [day, month, year] = dateParts
-  const time = parts[1] ?? "00:00:00"
-  return `${year}-${month}-${day}T${time}`
+  return { oportunidades, analisadas, docsVencidos, docsVencendo }
 }
 
 export async function salvarOportunidade(
   empresaId: string,
-  licitacao: NormalizedLicitacao,
+  licitacaoId: string,
   score: number
 ): Promise<{ success?: boolean; error?: string }> {
   const supabase = await createClient()
@@ -194,51 +229,35 @@ export async function salvarOportunidade(
 
   if (!empresaOwnership) return { error: "Empresa não autorizada" }
 
-  // 1. Upsert na tabela licitacoes pelo source_id (ID numérico da Effecti)
-  const { data: licRow, error: licError } = await supabase
-    .from("licitacoes")
-    .upsert(
-      {
-        source_id: String(licitacao.idLicitacao),
-        orgao: licitacao.orgao,
-        objeto: licitacao.objetoSemTags || licitacao.objeto,
-        valor_estimado: licitacao.valorTotalEstimado || null,
-        modalidade: licitacao.modalidade,
-        uf: licitacao.uf?.substring(0, 2) || null,
-        data_encerramento: parseDateEffecti(licitacao.dataFinalProposta),
-        source_url: licitacao.url || null,
-        status: "ativa",
-      },
-      { onConflict: "source_id" }
-    )
-    .select("id")
-    .single()
-
-  if (licError || !licRow) {
-    return { error: "Erro ao registrar licitação: " + (licError?.message ?? "sem retorno") }
-  }
-
-  // 2. Upsert do match com o UUID real da licitação
+  // Upsert do match com o UUID da licitação
   const { error: matchError } = await supabase.from("matches").upsert(
     {
       company_id: empresaId,
-      licitacao_id: licRow.id,
+      licitacao_id: licitacaoId,
       relevancia_score: score,
-      status: "pendente",
+      status: "novo",
     },
     { onConflict: "company_id,licitacao_id" }
   )
 
   if (matchError) return { error: "Erro ao salvar match: " + matchError.message }
 
-  // Notificação in-app
-  await supabase.from("notifications").insert({
-    user_id: user.id,
-    tipo: "oportunidade_salva",
-    titulo: "Oportunidade salva!",
-    mensagem: `${licitacao.orgao} — ${(licitacao.objetoSemTags || licitacao.objeto).slice(0, 120)}`,
-    link: "/oportunidades",
-  })
+  // Busca objeto da licitação para a notificação
+  const { data: lic } = await supabase
+    .from("licitacoes")
+    .select("orgao, objeto")
+    .eq("id", licitacaoId)
+    .single()
+
+  if (lic) {
+    await supabase.from("notifications").insert({
+      user_id: user.id,
+      tipo: "oportunidade_salva",
+      titulo: "Oportunidade salva!",
+      mensagem: `${lic.orgao} — ${(lic.objeto ?? "").slice(0, 120)}`,
+      link: "/oportunidades",
+    })
+  }
 
   revalidatePath("/oportunidades")
   return { success: true }
