@@ -169,3 +169,36 @@ export async function salvarLicitacao(lic: Licitacao) {
   revalidatePath("/licitacoes")
   return { success: true }
 }
+
+export async function salvarMatchDetalhe(
+  licitacaoId: string,
+  empresaId: string
+): Promise<{ success?: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Não autenticado" }
+
+  const { data: empresa } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("id", empresaId)
+    .eq("user_id", user.id)
+    .single()
+
+  if (!empresa) return { error: "Empresa não autorizada" }
+
+  const { error: matchError } = await supabase.from("matches").upsert(
+    {
+      company_id: empresaId,
+      licitacao_id: licitacaoId,
+      relevancia_score: 0,
+      status: "pendente",
+    },
+    { onConflict: "company_id,licitacao_id" }
+  )
+
+  if (matchError) return { error: "Erro ao salvar: " + matchError.message }
+
+  revalidatePath(`/licitacoes/${licitacaoId}`)
+  return { success: true }
+}
