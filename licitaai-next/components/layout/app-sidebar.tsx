@@ -135,7 +135,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
             <button
               onClick={toggleCollapsed}
               title="Expandir sidebar"
-              className="flex h-5 w-10 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
+              className="flex h-5 w-5 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
             >
               <ChevronRight className="h-3 w-3" />
             </button>
@@ -158,9 +158,9 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
             <button
               onClick={toggleCollapsed}
               title="Recolher sidebar"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
+              <ChevronLeft className="h-3 w-3" />
             </button>
           </>
         )}

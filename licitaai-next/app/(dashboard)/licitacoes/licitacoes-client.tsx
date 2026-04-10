@@ -350,8 +350,8 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
   const [dataFim, setDataFim] = useState("")
   const [paginaAtual, setPaginaAtual] = useState(0)
   const [texto, setTexto] = useState("")
-  const [ufsSel, setUfsSel] = useState<Set<string>>(new Set())
-  const [modsSel, setModsSel] = useState<Set<string>>(new Set())
+  const [ufsSel, setUfsSel] = useState<Set<string>>(new Set(UFS))
+  const [modsSel, setModsSel] = useState<Set<string>>(new Set(MODALIDADES))
   const [filtrosOpen, setFiltrosOpen] = useState(false)
   const [detalhe, setDetalhe] = useState<Licitacao | null>(null)
   const [detalheOpen, setDetalheOpen] = useState(false)
@@ -361,7 +361,7 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
   function buscar(pagina = 0) {
     startTransition(async () => {
       const uf = ufsSel.size === 1 ? [...ufsSel][0] : undefined
-      const modalidades = modsSel.size > 0 ? [...modsSel] : undefined
+      const modalidades = modsSel.size > 0 && modsSel.size < MODALIDADES.length ? [...modsSel] : undefined
       const result = await fetchLicitacoes({
         pagina,
         dataInicio: dataInicio || undefined,
@@ -402,8 +402,8 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
   }
 
   function limparFiltros() {
-    setUfsSel(new Set())
-    setModsSel(new Set())
+    setUfsSel(new Set(UFS))
+    setModsSel(new Set(MODALIDADES))
     setTexto("")
     setDataInicio("")
     setDataFim("")
@@ -412,7 +412,9 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
   const totalPaginas = dados.pagination?.total_paginas ?? 0
   const totalRegistros = dados.pagination?.total_registros ?? 0
   const totalBanco = dados.total_banco ?? 0
-  const filtrosAtivos = ufsSel.size + modsSel.size + (texto ? 1 : 0) + (dataInicio ? 1 : 0) + (dataFim ? 1 : 0)
+  const ufsAtivas = ufsSel.size > 0 && ufsSel.size < UFS.length ? 1 : 0
+  const modsAtivas = modsSel.size > 0 && modsSel.size < MODALIDADES.length ? 1 : 0
+  const filtrosAtivos = ufsAtivas + modsAtivas + (texto ? 1 : 0) + (dataInicio ? 1 : 0) + (dataFim ? 1 : 0)
 
   // Painel de filtros (reutilizado em desktop + Sheet mobile)
   const painelFiltros = (
@@ -476,28 +478,33 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Estado</p>
           <button
             onClick={() => setUfsSel(ufsSel.size === UFS.length ? new Set() : new Set(UFS))}
-            className="text-[10px] text-[#2E86C1] hover:underline"
+            className="text-xs px-2 py-0.5 rounded text-blue-400 hover:text-blue-300 hover:bg-blue-950/40 transition-colors"
           >
-            {ufsSel.size === UFS.length ? "Desmarcar Tudo" : "Selecionar Tudo"}
+            {ufsSel.size === UFS.length ? "Desmarcar todos" : "Selecionar todos"}
           </button>
         </div>
-        <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1">
-          {UFS.map((uf) => (
-            <button
-              key={uf}
-              onClick={() => toggleUF(uf)}
-              className={cn(
-                "rounded px-1.5 py-0.5 text-[11px] font-medium border transition-colors",
-                ufsSel.has(uf)
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-slate-800 text-slate-400 border-slate-600 hover:border-blue-500 hover:text-blue-400"
-              )}
-            >
-              {uf}
-            </button>
-          ))}
+        <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-1">
+          <div className="flex flex-wrap gap-1">
+            {UFS.map((uf) => (
+              <button
+                key={uf}
+                onClick={() => toggleUF(uf)}
+                className={cn(
+                  "rounded px-1.5 py-0.5 text-[11px] font-medium border transition-colors",
+                  ufsSel.has(uf)
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-slate-800 text-slate-400 border-slate-600 hover:border-blue-500 hover:text-blue-400"
+                )}
+              >
+                {uf}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Separador */}
+      <div className="border-t border-slate-700" />
 
       {/* Modalidade */}
       <div className="space-y-2">
@@ -505,26 +512,28 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Modalidade</p>
           <button
             onClick={() => setModsSel(modsSel.size === MODALIDADES.length ? new Set() : new Set(MODALIDADES))}
-            className="text-[10px] text-[#2E86C1] hover:underline"
+            className="text-xs px-2 py-0.5 rounded text-blue-400 hover:text-blue-300 hover:bg-blue-950/40 transition-colors"
           >
-            {modsSel.size === MODALIDADES.length ? "Desmarcar Tudo" : "Selecionar Tudo"}
+            {modsSel.size === MODALIDADES.length ? "Desmarcar todos" : "Selecionar todos"}
           </button>
         </div>
-        <div className="space-y-2.5 max-h-44 overflow-y-auto pr-1">
-          {MODALIDADES.map((m) => (
-            <div
-              key={m}
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => toggleMod(m)}
-            >
-              <Checkbox
-                checked={modsSel.has(m)}
-                onCheckedChange={() => toggleMod(m)}
-                className="data-[state=checked]:bg-[#1A5276] data-[state=checked]:border-[#1A5276]"
-              />
-              <span className="text-sm text-slate-300 select-none">{m}</span>
-            </div>
-          ))}
+        <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-1">
+          <div className="space-y-2.5">
+            {MODALIDADES.map((m) => (
+              <div
+                key={m}
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => toggleMod(m)}
+              >
+                <Checkbox
+                  checked={modsSel.has(m)}
+                  onCheckedChange={() => toggleMod(m)}
+                  className="data-[state=checked]:bg-[#1A5276] data-[state=checked]:border-[#1A5276]"
+                />
+                <span className="text-sm text-slate-300 select-none">{m}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
