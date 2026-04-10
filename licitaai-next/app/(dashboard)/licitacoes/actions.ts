@@ -86,7 +86,7 @@ export async function fetchLicitacoes({
       .from("licitacoes")
       .select("*", { count: "exact" })
       .eq("status", "ativa")
-      .order("created_at", { ascending: false })
+      .order("data_publicacao", { ascending: false })
 
     if (dataInicio) query = query.gte("data_publicacao", dataInicio)
     if (dataFim)    query = query.lte("data_publicacao", dataFim)

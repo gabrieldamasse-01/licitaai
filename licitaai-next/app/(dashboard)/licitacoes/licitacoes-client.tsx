@@ -72,6 +72,8 @@ function getModalidadeClass(modalidade: string): string {
 }
 
 function getPortalClass(portal: string): string {
+  if (portal === "Supabase") return "bg-teal-950/60 text-teal-300 border-teal-800/50"
+  if (portal === "Effecti") return "bg-indigo-950/60 text-indigo-300 border-indigo-800/50"
   if (portal.includes("PNCP")) return "bg-emerald-950/60 text-emerald-300 border-emerald-800/50"
   if (portal.includes("ComprasNet")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (portal.includes("Compras Públicas")) return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
@@ -202,7 +204,7 @@ function DetalheConteudo({
             { label: "Processo", value: lic.processo },
             { label: "Publicação", value: formatDate(lic.dataPublicacao) },
             { label: "Abertura", value: formatDate(lic.dataInicialProposta) },
-            { label: "Encerramento", value: formatDate(lic.dataFinalProposta) },
+            { label: "Prazo para Submissão", value: formatDate(lic.dataFinalProposta) },
             { label: "Valor Estimado", value: formatCurrency(lic.valorTotalEstimado) },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg bg-slate-800 border border-slate-700 px-3 py-2.5">

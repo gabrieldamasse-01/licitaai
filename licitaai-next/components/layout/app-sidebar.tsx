@@ -132,7 +132,7 @@ export function AppSidebar({ email = "", onNavigate }: { email?: string; onNavig
       {/* Versão + badge beta */}
       <div className="px-5 py-2 shrink-0 flex items-center gap-2">
         <p className="text-[10px] text-slate-600 font-medium tracking-wide">
-          v1.0 · Integração PNCP
+          v1.0
         </p>
         <span className="rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-400">
           Beta
