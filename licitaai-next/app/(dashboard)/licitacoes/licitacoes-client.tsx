@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useMemo } from "react"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import {
   Search, SlidersHorizontal, ExternalLink, Loader2, X,
@@ -129,9 +129,6 @@ function LicitacaoCard({
             {lic.portal.replace("Portal Nacional de Contratações Públicas - ", "")}
           </Badge>
         )}
-        <Badge variant="outline" className="text-[11px] px-2 py-0.5 bg-emerald-950/60 text-emerald-300 border-emerald-800/50">
-          {lic.portal || "PNCP"}
-        </Badge>
       </div>
 
       {/* Objeto */}
@@ -141,7 +138,7 @@ function LicitacaoCard({
 
       {/* Órgão */}
       <p className="text-xs text-slate-400 truncate">
-        {lic.orgao || lic.unidadeGestora || "—"}
+        {lic.orgao || "—"}
       </p>
 
       {/* Rodapé */}
@@ -201,14 +198,12 @@ function DetalheConteudo({
         {/* Grid de campos */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: "Órgão", value: lic.orgao || lic.unidadeGestora },
+            { label: "Órgão", value: lic.orgao },
             { label: "Processo", value: lic.processo },
             { label: "Publicação", value: formatDate(lic.dataPublicacao) },
             { label: "Abertura", value: formatDate(lic.dataInicialProposta) },
             { label: "Encerramento", value: formatDate(lic.dataFinalProposta) },
             { label: "Valor Estimado", value: formatCurrency(lic.valorTotalEstimado) },
-            { label: "SRP", value: lic.srpDescricao || "—" },
-            { label: "CAPAG", value: lic.rankingCapag || "—" },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg bg-slate-800 border border-slate-700 px-3 py-2.5">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
@@ -216,22 +211,6 @@ function DetalheConteudo({
             </div>
           ))}
         </div>
-
-        {/* Palavras encontradas */}
-        {(lic.palavraEncontrada?.length ?? 0) > 0 && (
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
-              Palavras encontradas
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {lic.palavraEncontrada.map((p) => (
-                <Badge key={p} variant="outline" className="text-xs bg-blue-900/50 text-blue-400 border-blue-800/50">
-                  {p}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Anexos */}
         {(lic.anexos?.length ?? 0) > 0 && (
@@ -363,18 +342,10 @@ function Paginacao({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function LicitacoesClient({
-  dadosIniciais,
-  dataInicioDefault,
-  dataFimDefault,
-}: {
-  dadosIniciais: FetchResult
-  dataInicioDefault: string
-  dataFimDefault: string
-}) {
+export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult }) {
   const [dados, setDados] = useState<FetchResult>(dadosIniciais)
-  const [dataInicio, setDataInicio] = useState(dataInicioDefault)
-  const [dataFim, setDataFim] = useState(dataFimDefault)
+  const [dataInicio, setDataInicio] = useState("")
+  const [dataFim, setDataFim] = useState("")
   const [paginaAtual, setPaginaAtual] = useState(0)
   const [texto, setTexto] = useState("")
   const [ufsSel, setUfsSel] = useState<Set<string>>(new Set())
@@ -385,26 +356,18 @@ export function LicitacoesClient({
   const [isPending, startTransition] = useTransition()
   const [isSaving, startSaveTransition] = useTransition()
 
-  const licitacoesFiltradas = useMemo(() => {
-    let r = dados.licitacoes ?? []
-    if (ufsSel.size > 0) r = r.filter((l) => ufsSel.has(l.uf))
-    if (modsSel.size > 0) r = r.filter((l) => modsSel.has(l.modalidade))
-    if (texto.trim()) {
-      const q = texto.toLowerCase()
-      r = r.filter(
-        (l) =>
-          l.objetoSemTags?.toLowerCase().includes(q) ||
-          l.orgao?.toLowerCase().includes(q)
-      )
-    }
-    return r
-  }, [dados.licitacoes, ufsSel, modsSel, texto])
-
   function buscar(pagina = 0) {
     startTransition(async () => {
       const uf = ufsSel.size === 1 ? [...ufsSel][0] : undefined
       const modalidades = modsSel.size > 0 ? [...modsSel] : undefined
-      const result = await fetchLicitacoes({ dataInicio, dataFim, pagina, uf, modalidades })
+      const result = await fetchLicitacoes({
+        pagina,
+        dataInicio: dataInicio || undefined,
+        dataFim: dataFim || undefined,
+        uf,
+        modalidades,
+        busca: texto || undefined,
+      })
       setDados(result)
       setPaginaAtual(pagina)
       if (result.error) toast.error(result.error)
@@ -440,16 +403,19 @@ export function LicitacoesClient({
     setUfsSel(new Set())
     setModsSel(new Set())
     setTexto("")
+    setDataInicio("")
+    setDataFim("")
   }
 
   const totalPaginas = dados.pagination?.total_paginas ?? 0
   const totalRegistros = dados.pagination?.total_registros ?? 0
-  const filtrosAtivos = ufsSel.size + modsSel.size + (texto ? 1 : 0)
+  const totalBanco = dados.total_banco ?? 0
+  const filtrosAtivos = ufsSel.size + modsSel.size + (texto ? 1 : 0) + (dataInicio ? 1 : 0) + (dataFim ? 1 : 0)
 
   // Painel de filtros (reutilizado em desktop + Sheet mobile)
   const painelFiltros = (
     <div className="space-y-6">
-      {/* Busca */}
+      {/* Busca por texto */}
       <div className="space-y-2">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Busca</p>
         <div className="relative">
@@ -458,6 +424,7 @@ export function LicitacoesClient({
             placeholder="Objeto ou órgão..."
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && buscar(0)}
             className="pl-8 h-9 text-sm bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
@@ -466,7 +433,7 @@ export function LicitacoesClient({
       {/* Período */}
       <div className="space-y-2">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          Período <span className="normal-case font-normal text-slate-400">(máx. 5 dias)</span>
+          Período <span className="normal-case font-normal text-slate-400">(publicação)</span>
         </p>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
@@ -583,12 +550,19 @@ export function LicitacoesClient({
       {/* Cabeçalho */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Licitações</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-white">Licitações</h1>
+            {totalBanco > 0 && (
+              <Badge className="text-xs bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-700">
+                {totalBanco.toLocaleString("pt-BR")} no banco
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-slate-400 mt-1">
             {isPending
               ? "Buscando licitações..."
               : totalRegistros > 0
-              ? `${totalRegistros.toLocaleString("pt-BR")} no período • ${licitacoesFiltradas.length} exibidas`
+              ? `${totalRegistros.toLocaleString("pt-BR")} encontradas${filtrosAtivos > 0 ? " com filtros" : ""}`
               : "Nenhuma licitação encontrada"}
           </p>
         </div>
@@ -655,35 +629,31 @@ export function LicitacoesClient({
           )}
 
           {/* Estado vazio */}
-          {!isPending && !dados.error && licitacoesFiltradas.length === 0 && (
+          {!isPending && !dados.error && dados.licitacoes.length === 0 && (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
               <Scale className="h-10 w-10 text-slate-600 mb-3" />
               <p className="text-sm font-medium text-slate-400">
                 {filtrosAtivos > 0
                   ? "Nenhuma licitação corresponde aos filtros"
-                  : "Nenhuma licitação encontrada neste período"}
+                  : "Nenhuma licitação encontrada"}
               </p>
-              {filtrosAtivos > 0 ? (
+              {filtrosAtivos > 0 && (
                 <button
                   onClick={limparFiltros}
                   className="mt-3 text-xs text-blue-400 hover:underline"
                 >
                   Limpar filtros
                 </button>
-              ) : (
-                <p className="text-xs text-slate-500 mt-1">
-                  Ajuste o período e clique em Buscar
-                </p>
               )}
             </div>
           )}
 
           {/* Cards */}
-          {!isPending && licitacoesFiltradas.length > 0 && (
+          {!isPending && dados.licitacoes.length > 0 && (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {licitacoesFiltradas.map((lic) => (
+              {dados.licitacoes.map((lic) => (
                 <LicitacaoCard
-                  key={lic.idLicitacao}
+                  key={`${lic.idLicitacao}-${lic.processo}`}
                   lic={lic}
                   onVerDetalhes={() => {
                     setDetalhe(lic)
