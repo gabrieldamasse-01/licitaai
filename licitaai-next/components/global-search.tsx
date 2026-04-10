@@ -12,9 +12,35 @@ import {
   Users,
   FolderOpen,
   Gavel,
+  Clock,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
+
+// ─── Histórico de buscas ─────────────────────────────────────────────────────
+
+const HISTORY_MAX = 5
+
+function getHistoryKey(userId: string) {
+  return `search-history-${userId}`
+}
+
+function loadHistory(userId: string): string[] {
+  try {
+    const raw = localStorage.getItem(getHistoryKey(userId))
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch {
+    return []
+  }
+}
+
+function saveToHistory(userId: string, term: string) {
+  const trimmed = term.trim()
+  if (!trimmed) return
+  const prev = loadHistory(userId).filter((h) => h !== trimmed)
+  const next = [trimmed, ...prev].slice(0, HISTORY_MAX)
+  localStorage.setItem(getHistoryKey(userId), JSON.stringify(next))
+}
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -48,9 +74,18 @@ export function GlobalSearch() {
   const [groups, setGroups] = useState<ResultGroup[]>([])
   const [loading, setLoading] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
+
+  // Carrega userId uma vez ao montar
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id)
+    })
+  }, [])
 
   // Lista plana para navegação por teclado
   const flatItems = groups.flatMap((g) => g.items)
@@ -67,15 +102,16 @@ export function GlobalSearch() {
     return () => document.removeEventListener("keydown", onKey)
   }, [])
 
-  // Focus e reset ao abrir
+  // Focus, reset e carrega histórico ao abrir
   useEffect(() => {
     if (open) {
       setQuery("")
       setGroups([])
       setActiveIndex(-1)
+      if (userId) setRecentSearches(loadHistory(userId))
       setTimeout(() => inputRef.current?.focus(), 40)
     }
-  }, [open])
+  }, [open, userId])
 
   // Busca nas tabelas via Supabase client
   const buscar = useCallback(async (q: string) => {
@@ -192,13 +228,16 @@ export function GlobalSearch() {
       setActiveIndex((i) => Math.max(i - 1, -1))
     } else if (e.key === "Enter" && activeIndex >= 0) {
       const item = flatItems[activeIndex]
-      if (item) navigate(item.href)
+      if (item) navigate(item.href, query)
     } else if (e.key === "Escape") {
       setOpen(false)
     }
   }
 
-  function navigate(href: string) {
+  function navigate(href: string, fromQuery?: string) {
+    if (userId && fromQuery?.trim()) {
+      saveToHistory(userId, fromQuery)
+    }
     router.push(href)
     setOpen(false)
   }
@@ -273,6 +312,28 @@ export function GlobalSearch() {
                   </div>
                 )}
 
+                {/* Buscas recentes (sem query) */}
+                {!loading && !query && recentSearches.length > 0 && (
+                  <div className="px-2 mb-1">
+                    <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                      Buscas recentes
+                    </p>
+                    {recentSearches.map((term) => (
+                      <button
+                        key={term}
+                        onClick={() => {
+                          setQuery(term)
+                          setActiveIndex(-1)
+                        }}
+                        className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-400 hover:bg-white/[0.05] hover:text-white transition-colors"
+                      >
+                        <Clock className="h-4 w-4 text-slate-600 shrink-0" />
+                        <span className="truncate">{term}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Atalhos rápidos (sem query) */}
                 {!loading && !query && (
                   <div className="px-2">
@@ -321,7 +382,7 @@ export function GlobalSearch() {
                         return (
                           <button
                             key={item.id}
-                            onClick={() => navigate(item.href)}
+                            onClick={() => navigate(item.href, query)}
                             className={cn(
                               "w-full flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors text-left",
                               ativo
