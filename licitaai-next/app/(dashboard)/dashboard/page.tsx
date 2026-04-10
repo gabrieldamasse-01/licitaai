@@ -267,7 +267,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Gráfico */}
-      <div className="rounded-xl border border-slate-700 bg-slate-800 p-6 shadow-sm">
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm">
         <div className="mb-5">
           <h2 className="text-base font-semibold text-white">Licitações por Mês</h2>
           <p className="text-xs text-slate-500 mt-0.5">Últimos 6 meses · dados ilustrativos</p>

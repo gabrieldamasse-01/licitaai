@@ -22,25 +22,31 @@ const dados = [
 export function GraficoLicitacoes() {
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={dados} barSize={32} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+      <BarChart
+        data={dados}
+        barSize={32}
+        margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+        style={{ background: "transparent" }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
         <XAxis
           dataKey="mes"
-          tick={{ fontSize: 12, fill: "#94a3b8" }}
+          tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 12, fill: "#94a3b8" }}
+          tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip
-          cursor={{ fill: "#f1f5f9" }}
+          cursor={{ fill: "rgba(255,255,255,0.05)" }}
           contentStyle={{
+            backgroundColor: "rgba(15,15,30,0.9)",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "8px",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.05)",
+            color: "white",
             fontSize: "13px",
           }}
           formatter={(value) => [value, "Licitações"]}
