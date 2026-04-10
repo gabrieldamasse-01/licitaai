@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import {
   Building2, Target, Loader2, ExternalLink, BookmarkPlus,
-  ChevronRight, Check, AlertCircle, Sparkles,
+  ChevronRight, Check, AlertCircle, Sparkles, AlertTriangle,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,7 +32,7 @@ import { ChecklistHabilitacao } from "./checklist"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatCurrency(valor: number): string {
+function formatCurrency(valor: number | null): string {
   if (!valor) return "Não informado"
   return valor.toLocaleString("pt-BR", {
     style: "currency",
@@ -41,23 +41,16 @@ function formatCurrency(valor: number): string {
   })
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string | null): string {
   if (!dateStr) return "—"
-  // "DD/MM/YYYY HH:MM:SS" → "DD/MM/YYYY"
-  return dateStr.split(" ")[0]
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  return d.toLocaleDateString("pt-BR")
 }
 
-function getModalidadeClass(modalidade: string): string {
-  if (modalidade?.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
-  if (modalidade === "Dispensa") return "bg-amber-950/60 text-amber-300 border-amber-800/50"
-  if (modalidade === "Concorrência") return "bg-violet-950/60 text-violet-300 border-violet-800/50"
-  if (modalidade === "Inexigibilidade") return "bg-rose-950/60 text-rose-300 border-rose-800/50"
-  if (modalidade === "Credenciamento") return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
-  return "bg-slate-800 text-slate-300 border-slate-700"
-}
-
-function getModalidadeClassDark(modalidade: string): string {
-  if (modalidade?.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
+function getModalidadeClass(modalidade: string | null): string {
+  if (!modalidade) return "bg-slate-800 text-slate-300 border-slate-700"
+  if (modalidade.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (modalidade === "Dispensa") return "bg-amber-950/60 text-amber-300 border-amber-800/50"
   if (modalidade === "Concorrência") return "bg-violet-950/60 text-violet-300 border-violet-800/50"
   if (modalidade === "Inexigibilidade") return "bg-rose-950/60 text-rose-300 border-rose-800/50"
@@ -67,18 +60,13 @@ function getModalidadeClassDark(modalidade: string): string {
 
 // ─── Score badge ──────────────────────────────────────────────────────────────
 
-function ScoreBadge({ score, label, dark = false }: { score: number; label: string; dark?: boolean }) {
-  const cls = dark
-    ? score >= 80
+function ScoreBadge({ score, label }: { score: number; label: string }) {
+  const cls =
+    score >= 80
       ? "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
       : score >= 60
         ? "bg-amber-950/60 text-amber-400 border-amber-800/50"
         : "bg-slate-800 text-slate-400 border-slate-700"
-    : score >= 80
-      ? "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
-      : score >= 60
-        ? "bg-amber-950/60 text-amber-400 border-amber-800/50"
-        : "bg-slate-700 text-slate-400 border-slate-600"
 
   return (
     <span
@@ -135,19 +123,23 @@ function OportunidadeCard({
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         <ScoreBadge score={op.score} label={op.scoreLabel} />
-        <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-700 px-2 py-0.5 text-xs text-slate-300">
-          {op.uf}
-        </span>
-        <span
-          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${getModalidadeClass(op.modalidade ?? "")}`}
-        >
-          {op.modalidade}
-        </span>
+        {op.uf && (
+          <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-700 px-2 py-0.5 text-xs text-slate-300">
+            {op.uf}
+          </span>
+        )}
+        {op.modalidade && (
+          <span
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${getModalidadeClass(op.modalidade)}`}
+          >
+            {op.modalidade}
+          </span>
+        )}
       </div>
 
       {/* Objeto */}
       <p className="text-sm font-medium text-slate-100 line-clamp-2 leading-snug">
-        {op.objetoSemTags || op.objeto}
+        {op.objeto}
       </p>
 
       {/* Órgão */}
@@ -159,12 +151,12 @@ function OportunidadeCard({
       {/* Valor + data */}
       <div className="flex items-center justify-between text-xs text-slate-400">
         <span className="font-medium text-slate-200">
-          {formatCurrency(op.valorTotalEstimado)}
+          {formatCurrency(op.valor_estimado)}
         </span>
         <span>
           Enc.{" "}
           <span className="font-medium text-amber-400">
-            {formatDate(op.dataFinalProposta)}
+            {formatDate(op.data_encerramento)}
           </span>
         </span>
       </div>
@@ -225,26 +217,35 @@ function DetalheSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto backdrop-blur-[12px] border-r" style={{ background: "rgba(15,23,42,0.92)", borderColor: "rgba(96,165,250,0.12)" }}>
+      <SheetContent
+        className="w-full sm:max-w-2xl overflow-y-auto backdrop-blur-[12px] border-r"
+        style={{ background: "rgba(15,23,42,0.92)", borderColor: "rgba(96,165,250,0.12)" }}
+      >
         <SheetHeader>
           <SheetTitle className="text-white">Detalhes da Oportunidade</SheetTitle>
         </SheetHeader>
 
         <div className="mt-6 space-y-5">
-          {/* Badges de score */}
+          {/* Badges */}
           <div className="flex flex-wrap gap-2">
-            <ScoreBadge score={op.score} label={op.scoreLabel} dark />
-            <Badge variant="outline" className="border-slate-700 text-slate-300 bg-transparent">
-              {op.uf}
-            </Badge>
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${getModalidadeClassDark(op.modalidade)}`}
-            >
-              {op.modalidade}
-            </span>
-            <Badge variant="outline" className="border-slate-700 text-slate-400 bg-transparent">
-              {op.portal}
-            </Badge>
+            <ScoreBadge score={op.score} label={op.scoreLabel} />
+            {op.uf && (
+              <Badge variant="outline" className="border-slate-700 text-slate-300 bg-transparent">
+                {op.uf}
+              </Badge>
+            )}
+            {op.modalidade && (
+              <span
+                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${getModalidadeClass(op.modalidade)}`}
+              >
+                {op.modalidade}
+              </span>
+            )}
+            {op.portal && (
+              <Badge variant="outline" className="border-slate-700 text-slate-400 bg-transparent">
+                {op.portal}
+              </Badge>
+            )}
           </div>
 
           {/* Motivo */}
@@ -258,109 +259,47 @@ function DetalheSheet({
             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
               Objeto
             </p>
-            <p className="text-sm leading-relaxed text-slate-100">
-              {op.objetoSemTags || op.objeto}
-            </p>
+            <p className="text-sm leading-relaxed text-slate-100">{op.objeto}</p>
           </div>
 
           <Separator className="bg-slate-800" />
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {[
-              { label: "Órgão", value: op.orgao },
-              { label: "Unidade Gestora", value: op.unidadeGestora },
-              { label: "Processo", value: op.processo },
-              { label: "UASG", value: op.uasg || "—" },
-              { label: "CNPJ do Órgão", value: op.cnpj || "—" },
-              { label: "Ranking CAPAG", value: op.rankingCapag || "—" },
-              { label: "SRP", value: op.srpDescricao || "—" },
-              {
-                label: "Valor Estimado",
-                value: formatCurrency(op.valorTotalEstimado),
-                highlight: true,
-              },
+              { label: "Órgão", value: op.orgao ?? "—" },
+              { label: "Modalidade", value: op.modalidade ?? "—" },
+              { label: "UF", value: op.uf ?? "—" },
+              { label: "Portal", value: op.portal ?? "—" },
+              { label: "Valor Estimado", value: formatCurrency(op.valor_estimado), highlight: true },
             ].map(({ label, value, highlight }) => (
               <div key={label}>
                 <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
                   {label}
                 </p>
-                <p
-                  className={`text-sm ${highlight ? "font-semibold text-white" : "text-slate-200"}`}
-                >
-                  {String(value)}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <Separator className="bg-slate-800" />
-
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            {[
-              { label: "Publicação", value: formatDate(op.dataPublicacao) },
-              { label: "Captura", value: formatDate(op.dataCaptura) },
-              { label: "Início das propostas", value: formatDate(op.dataInicialProposta) },
-              {
-                label: "Encerramento",
-                value: formatDate(op.dataFinalProposta),
-                highlight: true,
-              },
-            ].map(({ label, value, highlight }) => (
-              <div key={label}>
-                <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  {label}
-                </p>
-                <p
-                  className={`text-sm ${highlight ? "font-semibold text-red-400" : "text-slate-200"}`}
-                >
+                <p className={`text-sm ${highlight ? "font-semibold text-white" : "text-slate-200"}`}>
                   {value}
                 </p>
               </div>
             ))}
           </div>
 
-          {(op.palavraEncontrada?.length ?? 0) > 0 && (
-            <>
-              <Separator className="bg-slate-800" />
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  Palavras-chave encontradas
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {op.palavraEncontrada.map((p, i) => (
-                    <Badge key={i} variant="outline" className="text-xs border-slate-700 text-slate-300 bg-transparent">
-                      {p}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+          <Separator className="bg-slate-800" />
 
-          {(op.anexos?.length ?? 0) > 0 && (
-            <>
-              <Separator className="bg-slate-800" />
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  Anexos ({op.anexos.length})
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {[
+              { label: "Publicação", value: formatDate(op.data_publicacao) },
+              { label: "Encerramento", value: formatDate(op.data_encerramento), highlight: true },
+            ].map(({ label, value, highlight }) => (
+              <div key={label}>
+                <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  {label}
                 </p>
-                <div className="space-y-1.5">
-                  {op.anexos.map((a, i) => (
-                    <a
-                      key={i}
-                      href={a.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-xs text-blue-400 hover:bg-slate-700 hover:text-blue-300 transition-colors"
-                    >
-                      <ExternalLink className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{a.nome}</span>
-                    </a>
-                  ))}
-                </div>
+                <p className={`text-sm ${highlight ? "font-semibold text-red-400" : "text-slate-200"}`}>
+                  {value}
+                </p>
               </div>
-            </>
-          )}
+            ))}
+          </div>
 
           <Separator className="bg-slate-800" />
 
@@ -369,14 +308,14 @@ function DetalheSheet({
           <Separator className="bg-slate-800" />
 
           <div className="flex flex-wrap gap-2 pb-4">
-            {op.url && (
+            {op.source_url && (
               <Button
                 variant="outline"
                 size="sm"
                 className="border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white bg-transparent"
                 asChild
               >
-                <a href={op.url} target="_blank" rel="noopener noreferrer">
+                <a href={op.source_url} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-1.5 h-4 w-4" />
                   Ver no portal
                 </a>
@@ -386,20 +325,18 @@ function DetalheSheet({
               size="sm"
               disabled={salvo || salvando}
               onClick={onSalvar}
-              className={salvo ? "border-slate-700 text-slate-400 bg-transparent" : "bg-blue-600 hover:bg-blue-500 text-white"}
+              className={
+                salvo
+                  ? "border-slate-700 text-slate-400 bg-transparent"
+                  : "bg-blue-600 hover:bg-blue-500 text-white"
+              }
             >
               {salvo ? (
-                <>
-                  <Check className="mr-1.5 h-4 w-4" /> Oportunidade salva
-                </>
+                <><Check className="mr-1.5 h-4 w-4" /> Oportunidade salva</>
               ) : salvando ? (
-                <>
-                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Salvando...
-                </>
+                <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Salvando...</>
               ) : (
-                <>
-                  <BookmarkPlus className="mr-1.5 h-4 w-4" /> Salvar oportunidade
-                </>
+                <><BookmarkPlus className="mr-1.5 h-4 w-4" /> Salvar oportunidade</>
               )}
             </Button>
           </div>
@@ -415,11 +352,13 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
   const [empresaId, setEmpresaId] = useState("")
   const [oportunidades, setOportunidades] = useState<Oportunidade[]>([])
   const [analisadas, setAnalisadas] = useState(0)
+  const [docsVencidos, setDocsVencidos] = useState(false)
+  const [docsVencendo, setDocsVencendo] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [selecionada, setSelecionada] = useState<Oportunidade | null>(null)
-  const [salvados, setSalvados] = useState<Set<number>>(new Set())
-  const [salvandoId, setSalvandoId] = useState<number | null>(null)
+  const [salvados, setSalvados] = useState<Set<string>>(new Set())
+  const [salvandoId, setSalvandoId] = useState<string | null>(null)
   const [jaAcessado, setJaAcessado] = useState(false)
 
   const empresaSelecionada = empresas.find((e) => e.id === empresaId)
@@ -428,6 +367,8 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
     setEmpresaId(id)
     setOportunidades([])
     setAnalisadas(0)
+    setDocsVencidos(false)
+    setDocsVencendo(false)
     setJaAcessado(true)
     startTransition(async () => {
       const result = await buscarOportunidades(id)
@@ -436,19 +377,21 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
       } else {
         setOportunidades(result.oportunidades)
         setAnalisadas(result.analisadas)
+        setDocsVencidos(result.docsVencidos)
+        setDocsVencendo(result.docsVencendo)
       }
     })
   }
 
   async function handleSalvar(op: Oportunidade) {
     if (!empresaId) return
-    setSalvandoId(op.idLicitacao)
-    const result = await salvarOportunidade(empresaId, op, op.score)
+    setSalvandoId(op.id)
+    const result = await salvarOportunidade(empresaId, op.id, op.score)
     setSalvandoId(null)
     if (result.error) {
       toast.error(result.error)
     } else {
-      setSalvados((prev) => new Set([...prev, op.idLicitacao]))
+      setSalvados((prev) => new Set([...prev, op.id]))
       toast.success("Oportunidade salva com sucesso!")
     }
   }
@@ -512,6 +455,28 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
         )}
       </div>
 
+      {/* ── Aviso de documentos ── */}
+      {!isPending && jaAcessado && (docsVencidos || docsVencendo) && (
+        <div
+          className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+            docsVencidos
+              ? "bg-red-950/50 border-red-800/50 text-red-300"
+              : "bg-amber-950/50 border-amber-800/50 text-amber-300"
+          }`}
+        >
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>
+            {docsVencidos
+              ? "Esta empresa possui documentos vencidos ou faltando — regularize antes de participar de licitações."
+              : "Esta empresa possui documentos vencendo em breve — verifique a aba Documentos."}
+            {" "}
+            <a href="/documentos" className="font-semibold underline hover:opacity-80">
+              Ver documentos
+            </a>
+          </span>
+        </div>
+      )}
+
       {/* ── Loading skeletons ── */}
       {isPending && (
         <div>
@@ -542,20 +507,17 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
                   {empresaSelecionada?.razao_social}
                 </span>
                 {analisadas > 0 && (
-                  <span className="text-slate-400">
-                    {" "}
-                    · {analisadas} licitações analisadas
-                  </span>
+                  <span className="text-slate-400"> · {analisadas} licitações analisadas</span>
                 )}
               </p>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {oportunidades.map((op) => (
                   <OportunidadeCard
-                    key={op.idLicitacao}
+                    key={op.id}
                     op={op}
-                    salvo={salvados.has(op.idLicitacao)}
-                    salvando={salvandoId === op.idLicitacao}
+                    salvo={salvados.has(op.id)}
+                    salvando={salvandoId === op.id}
                     onVerDetalhes={() => handleVerDetalhes(op)}
                     onSalvar={() => handleSalvar(op)}
                   />
@@ -584,7 +546,7 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
         </>
       )}
 
-      {/* ── Initial empty state (no empresa selected) ── */}
+      {/* ── Initial empty state ── */}
       {!isPending && !jaAcessado && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
           <Target className="mb-3 h-10 w-10 text-slate-600" />
@@ -592,7 +554,7 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
             Selecione uma empresa para ver oportunidades
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            O sistema buscará licitações dos últimos 5 dias e calculará a
+            O sistema buscará licitações sincronizadas dos últimos 5 dias e calculará a
             relevância por CNAE e perfil
           </p>
         </div>
@@ -604,8 +566,8 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
         empresaId={empresaId}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
-        salvo={selecionada ? salvados.has(selecionada.idLicitacao) : false}
-        salvando={selecionada ? salvandoId === selecionada.idLicitacao : false}
+        salvo={selecionada ? salvados.has(selecionada.id) : false}
+        salvando={selecionada ? salvandoId === selecionada.id : false}
         onSalvar={() => selecionada && handleSalvar(selecionada)}
       />
     </>
