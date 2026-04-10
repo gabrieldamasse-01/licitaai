@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { toast } from "sonner"
 import {
   Search, SlidersHorizontal, ExternalLink, Loader2, X,
-  AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale,
+  AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale, Clock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
@@ -21,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { createClient } from "@/lib/supabase/client"
 import {
   type Licitacao,
   type FetchResult,
@@ -45,6 +46,8 @@ const MODALIDADES = [
   "Tomada de Preços",
   "Convite",
 ]
+
+const HISTORY_MAX = 5
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -358,7 +361,43 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
   const [isPending, startTransition] = useTransition()
   const [isSaving, startSaveTransition] = useTransition()
 
-  function buscar(pagina = 0) {
+  // ─── Histórico de busca ───────────────────────────────────────────────────
+  const [userId, setUserId] = useState<string | null>(null)
+  const [historico, setHistorico] = useState<string[]>([])
+  const [showHistorico, setShowHistorico] = useState(false)
+
+  useEffect(() => {
+    const client = createClient()
+    client.auth.getUser().then(({ data }) => {
+      const id = data.user?.id ?? null
+      setUserId(id)
+      if (id) {
+        try {
+          const stored = localStorage.getItem(`licitacoes-search-history-${id}`)
+          if (stored) setHistorico(JSON.parse(stored))
+        } catch { /* ignore */ }
+      }
+    })
+  }, [])
+
+  function salvarHistorico(termo: string) {
+    if (!termo.trim() || !userId) return
+    const atualizado = [termo, ...historico.filter((h) => h !== termo)].slice(0, HISTORY_MAX)
+    setHistorico(atualizado)
+    localStorage.setItem(`licitacoes-search-history-${userId}`, JSON.stringify(atualizado))
+  }
+
+  function removerHistorico(termo: string) {
+    const atualizado = historico.filter((h) => h !== termo)
+    setHistorico(atualizado)
+    if (userId) localStorage.setItem(`licitacoes-search-history-${userId}`, JSON.stringify(atualizado))
+  }
+
+  // ─── Buscar ───────────────────────────────────────────────────────────────
+  function buscar(pagina = 0, buscaOverride?: string) {
+    const buscaTerm = buscaOverride ?? texto
+    if (buscaTerm.trim()) salvarHistorico(buscaTerm.trim())
+    setShowHistorico(false)
     startTransition(async () => {
       const uf = ufsSel.size === 1 ? [...ufsSel][0] : undefined
       const modalidades = modsSel.size > 0 && modsSel.size < MODALIDADES.length ? [...modsSel] : undefined
@@ -368,7 +407,7 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
         dataFim: dataFim || undefined,
         uf,
         modalidades,
-        busca: texto || undefined,
+        busca: buscaTerm || undefined,
       })
       setDados(result)
       setPaginaAtual(pagina)
@@ -423,14 +462,52 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
       <div className="space-y-2">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Busca</p>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 z-10" />
           <Input
             placeholder="Objeto ou órgão..."
             value={texto}
-            onChange={(e) => setTexto(e.target.value)}
+            onChange={(e) => {
+              setTexto(e.target.value)
+              setShowHistorico(!e.target.value)
+            }}
+            onFocus={() => { if (!texto) setShowHistorico(true) }}
+            onBlur={() => setTimeout(() => setShowHistorico(false), 150)}
             onKeyDown={(e) => e.key === "Enter" && buscar(0)}
             className="pl-8 h-9 text-sm bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
+          {/* Dropdown histórico */}
+          {showHistorico && historico.length > 0 && !texto && (
+            <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border border-slate-600 bg-slate-800 shadow-xl overflow-hidden">
+              {historico.map((h) => (
+                <div
+                  key={h}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 transition-colors group"
+                >
+                  <Clock className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                  <span
+                    className="flex-1 text-sm text-slate-300 truncate cursor-pointer"
+                    onMouseDown={(e) => {
+                      e.preventDefault()
+                      setTexto(h)
+                      setShowHistorico(false)
+                      buscar(0, h)
+                    }}
+                  >
+                    {h}
+                  </span>
+                  <button
+                    onMouseDown={(e) => {
+                      e.preventDefault()
+                      removerHistorico(h)
+                    }}
+                    className="p-0.5 text-slate-600 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -484,13 +561,13 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
           </button>
         </div>
         <div className="max-h-[160px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 pr-1">
-          <div className="flex flex-wrap gap-1">
+          <div className="grid grid-cols-5 gap-1">
             {UFS.map((uf) => (
               <button
                 key={uf}
                 onClick={() => toggleUF(uf)}
                 className={cn(
-                  "flex items-center justify-center w-8 h-8 text-xs font-medium rounded-md border transition-colors",
+                  "flex items-center justify-center w-7 h-7 text-[10px] font-medium rounded-md border transition-colors",
                   ufsSel.has(uf)
                     ? "bg-blue-600 text-white border-blue-600"
                     : "bg-slate-800 text-slate-400 border-slate-600 hover:border-blue-500 hover:text-blue-400"
