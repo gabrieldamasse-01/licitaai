@@ -128,6 +128,30 @@ export async function resolverFeedback(
   return {}
 }
 
+export async function salvarPortalConfig(
+  portal: string,
+  ativo: boolean,
+): Promise<{ error?: string }> {
+  const adminOk = await isAdmin()
+  if (!adminOk) return { error: "Acesso negado." }
+
+  if (!["effecti", "pncp"].includes(portal)) {
+    return { error: "Portal inválido." }
+  }
+
+  const admin = createServiceClient()
+
+  const { error } = await admin
+    .from("portal_config")
+    .update({ ativo, updated_at: new Date().toISOString() })
+    .eq("portal", portal)
+
+  if (error) return { error: "Erro ao salvar configuração." }
+
+  revalidatePath("/admin")
+  return {}
+}
+
 export async function enviarEmailAdmin(
   userEmail: string,
   assunto: string,

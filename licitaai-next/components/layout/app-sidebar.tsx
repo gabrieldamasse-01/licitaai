@@ -16,6 +16,7 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
+  Shield,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -88,7 +89,7 @@ function getInitial(email: string): string {
   return getFirstName(email).charAt(0).toUpperCase()
 }
 
-export function AppSidebar({ email = "", onNavigate }: { email?: string; onNavigate?: () => void }) {
+export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?: string; isAdmin?: boolean; onNavigate?: () => void }) {
   const router = useRouter()
   const firstName = getFirstName(email)
   const initial = getInitial(email)
@@ -180,6 +181,17 @@ export function AppSidebar({ email = "", onNavigate }: { email?: string; onNavig
         {secondaryNav.map((item) => (
           <NavItem key={item.href} {...item} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
+
+        {isAdmin && (
+          <NavItem
+            href="/admin"
+            label="Admin"
+            icon={Shield}
+            iconColor="text-red-400"
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+        )}
       </nav>
 
       {/* Versão + badge beta */}

@@ -14,6 +14,7 @@ import {
   Mail,
   UserPlus,
   Eye,
+  Database,
 } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -42,6 +43,7 @@ import {
   toggleAdmin,
   resolverFeedback,
   enviarEmailAdmin,
+  salvarPortalConfig,
 } from "./actions"
 
 const MASTER_EMAIL = "gabriel.damasse@mgnext.com"
@@ -131,6 +133,10 @@ type AdminClientProps = {
     ativo: boolean
     created_at: string
   }>
+  portalConfig: {
+    effecti: boolean
+    pncp: boolean
+  }
 }
 
 // ─── Componente de Métrica ────────────────────────────────────────────────────
@@ -336,6 +342,7 @@ export default function AdminClient({
   feedbacks,
   licitacoes,
   time,
+  portalConfig,
 }: AdminClientProps) {
   const router = useRouter()
 
@@ -378,6 +385,24 @@ export default function AdminClient({
 
   function handleTabChange(value: string) {
     router.push(`/admin?tab=${value}`, { scroll: false })
+  }
+
+  // Portais de dados
+  const [portais, setPortais] = useState({ effecti: portalConfig.effecti, pncp: portalConfig.pncp })
+  const [, startPortalTransition] = useTransition()
+  function handleTogglePortal(portal: "effecti" | "pncp") {
+    const novoValor = !portais[portal]
+    setPortais((prev) => ({ ...prev, [portal]: novoValor }))
+    startPortalTransition(async () => {
+      const result = await salvarPortalConfig(portal, novoValor)
+      if (result.error) {
+        toast.error(result.error)
+        // Reverter em caso de erro
+        setPortais((prev) => ({ ...prev, [portal]: !novoValor }))
+      } else {
+        toast.success(`Portal ${portal === "effecti" ? "Effecti" : "PNCP"} ${novoValor ? "ativado" : "desativado"}.`)
+      }
+    })
   }
 
   // Impersonar cliente
@@ -481,6 +506,7 @@ export default function AdminClient({
             { value: "feedbacks", label: "Feedbacks" },
             { value: "licitacoes", label: "Licitações" },
             { value: "time", label: "Time" },
+            { value: "portais", label: "Portais de Dados" },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -866,6 +892,61 @@ export default function AdminClient({
                 )}
               </TableBody>
             </Table>
+          </div>
+        </TabsContent>
+        {/* ── Portais de Dados ─────────────────────────────────────────────── */}
+        <TabsContent value="portais" className="mt-6 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Portais de Dados</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Controle quais portais estão ativos para importação de licitações.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {/* Effecti */}
+            <div
+              className="flex items-center justify-between rounded-xl px-5 py-4 backdrop-blur-[4px]"
+              style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15 border border-emerald-500/20">
+                  <Database className="h-4 w-4 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Effecti → Supabase</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Importação via API Effecti (PNCP). Padrão do sistema.
+                  </p>
+                </div>
+              </div>
+              <AdminToggle
+                checked={portais.effecti}
+                onChange={() => handleTogglePortal("effecti")}
+              />
+            </div>
+
+            {/* PNCP */}
+            <div
+              className="flex items-center justify-between rounded-xl px-5 py-4 backdrop-blur-[4px]"
+              style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/15 border border-blue-500/20">
+                  <Database className="h-4 w-4 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">PNCP → Supabase</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Importação direta via API oficial do PNCP. Somente admins podem ativar.
+                  </p>
+                </div>
+              </div>
+              <AdminToggle
+                checked={portais.pncp}
+                onChange={() => handleTogglePortal("pncp")}
+              />
+            </div>
           </div>
         </TabsContent>
       </Tabs>

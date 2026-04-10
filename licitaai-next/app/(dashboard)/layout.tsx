@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import { isAdmin } from "@/lib/is-admin"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
 import { BottomNav } from "@/components/layout/bottom-nav"
@@ -23,8 +24,11 @@ export default async function DashboardLayout({
     redirect("/auth/login")
   }
 
-  // Verifica impersonação ANTES do check de empresa (admin pode não ter empresa)
-  const { impersonatingUserId, impersonatedEmail } = await getImpersonationContext()
+  // Verifica permissão admin e impersonação em paralelo
+  const [adminOk, { impersonatingUserId, impersonatedEmail }] = await Promise.all([
+    isAdmin(),
+    getImpersonationContext(),
+  ])
 
   // Redirecionar para onboarding se não tiver empresa cadastrada
   // (pula o check quando impersonando — admin acessa o dashboard do cliente)
@@ -47,7 +51,7 @@ export default async function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-slate-900">
       {/* Sidebar desktop */}
       <div className="hidden md:flex md:shrink-0">
-        <AppSidebar email={user.email ?? ""} />
+        <AppSidebar email={user.email ?? ""} isAdmin={adminOk} />
       </div>
 
       {/* Área principal */}

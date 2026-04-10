@@ -28,6 +28,7 @@ export default async function AdminPage({
     { data: companies },
     { data: userPrefs },
     { data: matchesRaw },
+    { data: portalConfigRaw },
   ] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
     admin.from("companies").select("*", { count: "exact", head: true }),
@@ -46,6 +47,7 @@ export default async function AdminPage({
       .select("id, relevancia_score, created_at, companies!inner(razao_social), licitacoes!inner(objeto, orgao)")
       .order("created_at", { ascending: false })
       .limit(50),
+    admin.from("portal_config").select("portal, ativo"),
   ])
 
   const authUsers = authData?.users ?? []
@@ -118,6 +120,11 @@ export default async function AdminPage({
     totalAdmins: time.filter((m) => m.ativo).length,
   }
 
+  const portalConfig = {
+    effecti: (portalConfigRaw ?? []).find((p) => p.portal === "effecti")?.ativo ?? true,
+    pncp: (portalConfigRaw ?? []).find((p) => p.portal === "pncp")?.ativo ?? false,
+  }
+
   return (
     <AdminClient
       initialTab={initialTab}
@@ -126,6 +133,7 @@ export default async function AdminPage({
       feedbacks={feedbacks}
       licitacoes={licitacoes}
       time={time}
+      portalConfig={portalConfig}
     />
   )
 }
