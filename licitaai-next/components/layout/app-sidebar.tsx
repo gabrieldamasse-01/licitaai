@@ -123,42 +123,47 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
       )}
     >
       {/* Logo + toggle */}
-      <div className="relative flex h-16 items-center shrink-0 border-b border-white/[0.06]">
+      <div className={cn(
+        "flex h-16 shrink-0 border-b border-white/[0.06]",
+        collapsed ? "flex-col items-center justify-center gap-1.5" : "items-center gap-2 px-3"
+      )}>
         {collapsed ? (
-          <div className="flex w-full justify-center">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-900/40">
-              <Scale className="h-4 w-4 text-white" />
+          <>
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-md shadow-blue-900/30">
+              <Scale className="h-3.5 w-3.5 text-white" />
             </div>
-          </div>
+            <button
+              onClick={toggleCollapsed}
+              title="Expandir sidebar"
+              className="flex h-5 w-10 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
+            >
+              <ChevronRight className="h-3 w-3" />
+            </button>
+          </>
         ) : (
-          <div className="flex items-center gap-3 px-5 flex-1 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-900/40">
-              <Scale className="h-4 w-4 text-white" />
+          <>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-900/40">
+                <Scale className="h-4 w-4 text-white" />
+              </div>
+              <div className="leading-tight min-w-0">
+                <p className="text-[15px] font-bold text-white tracking-tight">
+                  Licita<span className="text-blue-400">AI</span>
+                </p>
+                <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider font-medium">
+                  Plataforma de Licitações
+                </p>
+              </div>
             </div>
-            <div className="leading-tight min-w-0">
-              <p className="text-[15px] font-bold text-white tracking-tight">
-                Licita<span className="text-blue-400">AI</span>
-              </p>
-              <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider font-medium">
-                Plataforma de Licitações
-              </p>
-            </div>
-          </div>
+            <button
+              onClick={toggleCollapsed}
+              title="Recolher sidebar"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-800 border border-white/[0.10] text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-700 transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          </>
         )}
-
-        {/* Botão toggle */}
-        <button
-          onClick={toggleCollapsed}
-          title={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
-          className={cn(
-            "absolute -right-3 top-1/2 -translate-y-1/2 z-10",
-            "flex h-6 w-6 items-center justify-center rounded-full",
-            "bg-[#0A1628] border border-white/[0.12] text-slate-400",
-            "hover:text-white hover:border-white/30 transition-colors shadow-md"
-          )}
-        >
-          {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-        </button>
       </div>
 
       {/* Nav principal */}

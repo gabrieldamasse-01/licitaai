@@ -474,16 +474,14 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Estado</p>
-          {ufsSel.size > 0 && (
-            <button
-              onClick={() => setUfsSel(new Set())}
-              className="text-[10px] text-[#2E86C1] hover:underline"
-            >
-              Limpar ({ufsSel.size})
-            </button>
-          )}
+          <button
+            onClick={() => setUfsSel(ufsSel.size === UFS.length ? new Set() : new Set(UFS))}
+            className="text-[10px] text-[#2E86C1] hover:underline"
+          >
+            {ufsSel.size === UFS.length ? "Desmarcar Tudo" : "Selecionar Tudo"}
+          </button>
         </div>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1">
           {UFS.map((uf) => (
             <button
               key={uf}
@@ -505,16 +503,14 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Modalidade</p>
-          {modsSel.size > 0 && (
-            <button
-              onClick={() => setModsSel(new Set())}
-              className="text-[10px] text-[#2E86C1] hover:underline"
-            >
-              Limpar
-            </button>
-          )}
+          <button
+            onClick={() => setModsSel(modsSel.size === MODALIDADES.length ? new Set() : new Set(MODALIDADES))}
+            className="text-[10px] text-[#2E86C1] hover:underline"
+          >
+            {modsSel.size === MODALIDADES.length ? "Desmarcar Tudo" : "Selecionar Tudo"}
+          </button>
         </div>
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 max-h-44 overflow-y-auto pr-1">
           {MODALIDADES.map((m) => (
             <div
               key={m}
