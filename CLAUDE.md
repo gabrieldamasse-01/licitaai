@@ -221,3 +221,16 @@ N8N_WEBHOOK_URL=
 - **Modalidades**: Pregão Eletrônico, Concorrência, Dispensa, Inexigibilidade, RDC
 - **Documentos**: CND Federal/Estadual/Municipal, FGTS, CNDT, Contrato Social, Procuração
 - **Fluxo**: Cadastro → Onboarding (empresa + CNAEs) → Dashboard → Oportunidades → Salvar → Analisar edital
+
+## Agente Fiscal QA — Execução Automática
+
+Após TODA tarefa que envolva criação ou edição de código (feat, fix, chore com mudanças em .ts ou .tsx):
+
+1. Invocar automaticamente o agente fiscal: /agent fiscal-qa
+2. O agente roda antes do commit final
+3. Só fazer deploy após o agente confirmar build limpo
+
+Exceções (não rodar o fiscal):
+- Tarefas só de documentação (alterações apenas em .md)
+- Alterações apenas em arquivos SQL de migration
+- Tarefas de configuração sem código TypeScript
