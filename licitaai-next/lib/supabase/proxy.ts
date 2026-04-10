@@ -62,14 +62,23 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 2FA: se há cookie pendente e usuário está autenticado, forçar verificação
   const pending2fa = request.cookies.get("2fa_pending")?.value === "1";
+  const verified2fa = request.cookies.get("2fa_verified")?.value === "1";
+
+  // Se o usuário JÁ completou o 2FA e está tentando acessar /auth/verify-2fa → evita loop
+  if (pathname.startsWith("/auth/verify-2fa") && user && verified2fa) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // 2FA pendente e ainda não verificado: força verificação (exceto nas rotas de auth/api)
   if (
     user &&
     pending2fa &&
-    !pathname.startsWith("/auth/verify-2fa") &&
-    !pathname.startsWith("/api/auth/") &&
-    !pathname.startsWith("/auth/login")
+    !verified2fa &&
+    !pathname.startsWith("/auth/") &&
+    !pathname.startsWith("/api/auth/")
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/verify-2fa";
