@@ -56,7 +56,7 @@ export function SignUpForm({
       email: data.email,
       password: data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/onboarding`,
       },
     })
     if (error) {
