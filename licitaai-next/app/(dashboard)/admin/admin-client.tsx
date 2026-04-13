@@ -15,6 +15,7 @@ import {
   UserPlus,
   Eye,
   Database,
+  Trash2,
 } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -44,6 +45,8 @@ import {
   resolverFeedback,
   enviarEmailAdmin,
   salvarPortalConfig,
+  adicionarColaborador,
+  removerColaborador,
 } from "./actions"
 
 const MASTER_EMAIL = "gabriel.damasse@mgnext.com"
@@ -387,6 +390,47 @@ export default function AdminClient({
     router.push(`/admin?tab=${value}`, { scroll: false })
   }
 
+  // Colaboradores
+  const [colaboradores, setColaboradores] = useState(time.map((m) => ({ id: m.id, email: m.email, created_at: m.created_at })))
+  const [novoColabEmail, setNovoColabEmail] = useState("")
+  const [colabSheetOpen, setColabSheetOpen] = useState(false)
+  const [, startColabTransition] = useTransition()
+
+  function handleAdicionarColab() {
+    if (!novoColabEmail.trim()) {
+      toast.error("Informe o email do colaborador.")
+      return
+    }
+    startColabTransition(async () => {
+      const result = await adicionarColaborador(novoColabEmail.trim())
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success("Colaborador adicionado com sucesso!")
+        setColaboradores((prev) => [
+          { id: crypto.randomUUID(), email: novoColabEmail.trim(), created_at: new Date().toISOString() },
+          ...prev,
+        ])
+        setNovoColabEmail("")
+        setColabSheetOpen(false)
+        router.refresh()
+      }
+    })
+  }
+
+  function handleRemoverColab(email: string) {
+    if (email === MASTER_EMAIL) return
+    startColabTransition(async () => {
+      const result = await removerColaborador(email)
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success("Colaborador removido.")
+        setColaboradores((prev) => prev.filter((c) => c.email !== email))
+      }
+    })
+  }
+
   // Portais de dados
   const [portais, setPortais] = useState({ effecti: portalConfig.effecti, pncp: portalConfig.pncp })
   const [, startPortalTransition] = useTransition()
@@ -506,6 +550,7 @@ export default function AdminClient({
             { value: "feedbacks", label: "Feedbacks" },
             { value: "licitacoes", label: "Licitações" },
             { value: "time", label: "Time" },
+            { value: "colaboradores", label: "Colaboradores" },
             { value: "portais", label: "Portais de Dados" },
           ].map((tab) => (
             <TabsTrigger
@@ -894,6 +939,121 @@ export default function AdminClient({
             </Table>
           </div>
         </TabsContent>
+        {/* ── Colaboradores ────────────────────────────────────────────────── */}
+        <TabsContent value="colaboradores" className="mt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-white">Colaboradores</h2>
+                <Badge
+                  variant="outline"
+                  className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs tabular-nums"
+                >
+                  {colaboradores.length}
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Usuários com acesso ao painel admin
+              </p>
+            </div>
+            <Sheet open={colabSheetOpen} onOpenChange={setColabSheetOpen}>
+              <SheetTrigger asChild>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5">
+                  <UserPlus className="h-4 w-4" />
+                  Adicionar colaborador
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="bg-slate-900 border-slate-700 text-white w-full sm:max-w-md">
+                <SheetHeader>
+                  <SheetTitle className="text-white">Adicionar colaborador</SheetTitle>
+                  <p className="text-sm text-slate-400">
+                    O usuário precisa ter uma conta ativa na plataforma.
+                  </p>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-300">
+                      Email <span className="text-red-400">*</span>
+                    </Label>
+                    <Input
+                      type="email"
+                      value={novoColabEmail}
+                      onChange={(e) => setNovoColabEmail(e.target.value)}
+                      placeholder="email@exemplo.com"
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus-visible:ring-blue-500/50"
+                      onKeyDown={(e) => e.key === "Enter" && handleAdicionarColab()}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleAdicionarColab}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-700/50 hover:bg-transparent">
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Email</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Adicionado em</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {colaboradores.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-slate-500 py-8">
+                      Nenhum colaborador cadastrado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  colaboradores.map((colab) => {
+                    const isMaster = colab.email === MASTER_EMAIL
+                    return (
+                      <TableRow
+                        key={colab.id}
+                        className="border-slate-700/30 hover:bg-white/[0.02] transition-colors"
+                      >
+                        <TableCell className="text-slate-300 font-mono text-xs">
+                          <div className="flex items-center gap-2">
+                            {colab.email}
+                            {isMaster && (
+                              <Badge className="bg-red-500/20 text-red-300 border-red-500/30 text-[9px] font-semibold uppercase tracking-wider h-4 px-1">
+                                Master
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-slate-500 tabular-nums text-sm">
+                          {formatDate(colab.created_at)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {!isMaster && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10"
+                              onClick={() => handleRemoverColab(colab.email)}
+                              title="Remover colaborador"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
         {/* ── Portais de Dados ─────────────────────────────────────────────── */}
         <TabsContent value="portais" className="mt-6 space-y-4">
           <div>

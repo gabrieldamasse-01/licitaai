@@ -152,6 +152,98 @@ export async function salvarPortalConfig(
   return {}
 }
 
+export async function listarAdmins(): Promise<{
+  data?: Array<{ id: string; email: string; created_at: string }>
+  error?: string
+}> {
+  const adminOk = await isAdmin()
+  if (!adminOk) return { error: "Acesso negado." }
+
+  const admin = createServiceClient()
+  const { data, error } = await admin
+    .from("admin_users")
+    .select("id, email, created_at")
+    .order("created_at", { ascending: false })
+
+  if (error) return { error: "Erro ao listar colaboradores." }
+  return { data: data ?? [] }
+}
+
+export async function adicionarColaborador(
+  email: string,
+): Promise<{ success?: true; error?: string }> {
+  const adminOk = await isAdmin()
+  if (!adminOk) return { error: "Acesso negado." }
+
+  if (!email.trim()) return { error: "Email é obrigatório." }
+
+  const admin = createServiceClient()
+
+  // Buscar usuário por email em auth.users
+  const { data: authData, error: listError } = await admin.auth.admin.listUsers({
+    perPage: 1000,
+  })
+  if (listError) return { error: "Erro ao buscar usuários." }
+
+  const targetUser = authData.users.find(
+    (u) => u.email?.toLowerCase() === email.toLowerCase(),
+  )
+  if (!targetUser) return { error: "Usuário não encontrado na plataforma." }
+
+  // Verificar se já existe
+  const { data: existing } = await admin
+    .from("admin_users")
+    .select("id, ativo")
+    .eq("user_id", targetUser.id)
+    .maybeSingle()
+
+  if (existing) {
+    if (existing.ativo) return { error: "Este usuário já é colaborador ativo." }
+    const { error: updateError } = await admin
+      .from("admin_users")
+      .update({ ativo: true })
+      .eq("id", existing.id)
+    if (updateError) return { error: "Erro ao reativar colaborador." }
+    revalidatePath("/admin")
+    return { success: true }
+  }
+
+  const { error: insertError } = await admin.from("admin_users").insert({
+    user_id: targetUser.id,
+    email: targetUser.email ?? email,
+    nome: targetUser.email?.split("@")[0] ?? email,
+    ativo: true,
+  })
+
+  if (insertError) return { error: "Erro ao adicionar colaborador." }
+
+  revalidatePath("/admin")
+  return { success: true }
+}
+
+export async function removerColaborador(
+  email: string,
+): Promise<{ error?: string }> {
+  const adminOk = await isAdmin()
+  if (!adminOk) return { error: "Acesso negado." }
+
+  if (email === MASTER_EMAIL) {
+    return { error: "Não é possível remover o administrador master." }
+  }
+
+  const admin = createServiceClient()
+  const { error } = await admin
+    .from("admin_users")
+    .delete()
+    .eq("email", email)
+    .neq("email", MASTER_EMAIL)
+
+  if (error) return { error: "Erro ao remover colaborador." }
+
+  revalidatePath("/admin")
+  return {}
+}
+
 export async function enviarEmailAdmin(
   userEmail: string,
   assunto: string,
