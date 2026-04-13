@@ -567,7 +567,7 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
                 key={uf}
                 onClick={() => toggleUF(uf)}
                 className={cn(
-                  "flex items-center justify-center w-7 h-7 text-[10px] font-medium rounded-md border transition-colors",
+                  "flex items-center justify-center w-8 h-8 text-[11px] font-medium rounded-md border transition-colors",
                   ufsSel.has(uf)
                     ? "bg-blue-600 text-white border-blue-600"
                     : "bg-slate-800 text-slate-400 border-slate-600 hover:border-blue-500 hover:text-blue-400"

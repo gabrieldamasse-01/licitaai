@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import {
   Plus, Search, FileText, CalendarClock,
-  Upload, X, Image as ImageIcon, ExternalLink, Sparkles, Loader2,
+  Upload, X, Image as ImageIcon, ExternalLink, Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -66,6 +66,9 @@ const TIPOS_PERMITIDOS = ["application/pdf", "image/jpeg", "image/png", "image/w
 const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
 
 function getStatusInfo(doc: Document): StatusInfo {
+  if (!doc.arquivo_url) {
+    return { label: "Pendente", className: "bg-amber-950/50 text-amber-400 border-amber-800/50" }
+  }
   if (doc.status === "vencido") {
     return { label: "Expirado", className: "bg-red-950/50 text-red-400 border-red-800/50" }
   }
@@ -107,9 +110,9 @@ function isPdf(path: string): boolean {
 
 function IaBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/40 bg-violet-950/30 px-2 py-0.5 text-[10px] font-medium text-violet-300">
-      <Sparkles className="h-2.5 w-2.5" />
-      Preenchido por IA
+    <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-950/30 px-2 py-0.5 text-[10px] font-medium text-blue-300">
+      <FileText className="h-2.5 w-2.5" />
+      Extraído do PDF
     </span>
   )
 }
@@ -176,57 +179,51 @@ export function DocumentosClient({
     return null
   }
 
-  async function analisarComIA(file: File) {
+  function extrairDatasDoTexto(texto: string): { data_emissao: string | null; data_validade: string | null } {
+    // Busca todas as datas no formato DD/MM/YYYY ou DD/MM/YY
+    const regex = /\b(\d{2})\/(\d{2})\/(\d{2,4})\b/g
+    const matches: Date[] = []
+    let m: RegExpExecArray | null
+    while ((m = regex.exec(texto)) !== null) {
+      const day = parseInt(m[1], 10)
+      const month = parseInt(m[2], 10) - 1
+      let year = parseInt(m[3], 10)
+      if (year < 100) year += year < 50 ? 2000 : 1900
+      const d = new Date(year, month, day)
+      if (!isNaN(d.getTime()) && month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+        matches.push(d)
+      }
+    }
+    if (matches.length === 0) return { data_emissao: null, data_validade: null }
+    matches.sort((a, b) => a.getTime() - b.getTime())
+    const toISO = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+    if (matches.length === 1) return { data_emissao: toISO(matches[0]), data_validade: null }
+    return { data_emissao: toISO(matches[0]), data_validade: toISO(matches[matches.length - 1]) }
+  }
+
+  async function analisarPDF(file: File) {
+    if (file.type !== "application/pdf") return
     setIaAnalisando(true)
     setIaPreenchido(new Set())
     try {
-      const fd = new FormData()
-      fd.append("arquivo", file)
-      const res = await fetch("/api/analisar-documento", { method: "POST", body: fd })
-      if (!res.ok) {
-        console.error("[analisarComIA] status:", res.status, await res.text().catch(() => ""))
-        toast.warning("Análise automática falhou — preencha manualmente")
-        return
-      }
-
-      const json = await res.json() as {
-        success?: boolean
-        data?: {
-          nome_documento: string | null
-          data_emissao: string | null
-          data_validade: string | null
-          orgao_emissor: string | null
-        }
-      }
-      if (!json.success || !json.data) return
-
-      const { data } = json
+      const texto = await new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = (e) => resolve(e.target?.result as string ?? "")
+        reader.onerror = () => resolve("")
+        reader.readAsText(file, "latin1")
+      })
+      const { data_emissao, data_validade } = extrairDatasDoTexto(texto)
+      if (!data_emissao && !data_validade) return
       const preenchidos = new Set<string>()
-
       setForm((f) => {
         const updates: Partial<DocumentoFormData> = {}
-        if (data.data_emissao) {
-          updates.data_emissao = data.data_emissao
-          preenchidos.add("data_emissao")
-        }
-        if (data.data_validade) {
-          updates.data_validade = data.data_validade
-          preenchidos.add("data_validade")
-        }
-        if (data.nome_documento && !f.nome_arquivo) {
-          updates.nome_arquivo = data.nome_documento
-          preenchidos.add("nome_arquivo")
-        }
+        if (data_emissao) { updates.data_emissao = data_emissao; preenchidos.add("data_emissao") }
+        if (data_validade) { updates.data_validade = data_validade; preenchidos.add("data_validade") }
         return { ...f, ...updates }
       })
-
       setIaPreenchido(preenchidos)
-      if (preenchidos.size > 0) {
-        toast.success("Campos preenchidos pela IA — revise antes de salvar")
-      }
-    } catch (err) {
-      console.error("[analisarComIA] erro:", err)
-      toast.warning("Não foi possível analisar o documento — preencha manualmente")
+    } catch {
+      // Falha silenciosa — usuário preenche manualmente
     } finally {
       setIaAnalisando(false)
     }
@@ -238,7 +235,7 @@ export function DocumentosClient({
     setArquivo(file)
     setArquivoErro(false)
     setForm((f) => ({ ...f, nome_arquivo: f.nome_arquivo || file.name }))
-    analisarComIA(file)
+    analisarPDF(file)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleDragOver(e: React.DragEvent) {
@@ -407,7 +404,7 @@ export function DocumentosClient({
                         ) : (
                           <div className="flex items-center gap-2">
                             <span className="text-slate-500 truncate text-sm">{doc.nome_arquivo}</span>
-                            <Badge variant="outline" className="text-xs text-slate-500 border-slate-600 shrink-0">
+                            <Badge variant="outline" className="text-xs text-amber-400 border-amber-800/50 bg-amber-950/50 shrink-0">
                               Sem arquivo
                             </Badge>
                           </div>
@@ -474,7 +471,7 @@ export function DocumentosClient({
                   ) : (
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-slate-400 truncate">{doc.nome_arquivo}</p>
-                      <Badge variant="outline" className="text-xs text-slate-500 border-slate-600 shrink-0">
+                      <Badge variant="outline" className="text-xs text-amber-400 border-amber-800/50 bg-amber-950/50 shrink-0">
                         Sem arquivo
                       </Badge>
                     </div>
@@ -644,9 +641,9 @@ export function DocumentosClient({
 
               {/* Status de análise IA */}
               {iaAnalisando && (
-                <div className="flex items-center gap-2 rounded-lg border border-violet-500/30 bg-violet-950/20 px-3 py-2">
-                  <Loader2 className="h-3.5 w-3.5 text-violet-400 animate-spin shrink-0" />
-                  <span className="text-xs text-violet-300">Analisando documento com IA...</span>
+                <div className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-950/20 px-3 py-2">
+                  <Loader2 className="h-3.5 w-3.5 text-blue-400 animate-spin shrink-0" />
+                  <span className="text-xs text-blue-300">Lendo datas do PDF...</span>
                 </div>
               )}
             </div>
@@ -723,7 +720,7 @@ export function DocumentosClient({
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
                 disabled={isLoading}
               >
-                {iaAnalisando ? "Analisando..." : isUploading ? "Enviando..." : isPending ? "Salvando..." : "Cadastrar"}
+                {isUploading ? "Enviando..." : isPending ? "Salvando..." : "Cadastrar"}
               </Button>
             </div>
           </form>
