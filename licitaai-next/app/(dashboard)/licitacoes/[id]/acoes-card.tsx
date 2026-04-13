@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
-import { ExternalLink, Bookmark, Loader2, Building2 } from "lucide-react"
+import { ExternalLink, Bookmark, Loader2, Building2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { salvarMatchDetalhe } from "../actions"
+import { salvarMatchDetalhe, analisarEdital } from "../actions"
 
 type Empresa = { id: string; razao_social: string }
 
@@ -23,6 +23,7 @@ interface AcoesCardProps {
   status: string
   empresas: Empresa[]
   jaSalvasPorEmpresa: Set<string>
+  onAnalise?: (analise: string, fromCache: boolean) => void
 }
 
 export function AcoesCard({
@@ -31,14 +32,32 @@ export function AcoesCard({
   status,
   empresas,
   jaSalvasPorEmpresa,
+  onAnalise,
 }: AcoesCardProps) {
   const [empresaId, setEmpresaId] = useState<string>(
     empresas.length === 1 ? empresas[0].id : ""
   )
   const [salvas, setSalvas] = useState<Set<string>>(jaSalvasPorEmpresa)
   const [isPending, startTransition] = useTransition()
+  const [isAnalyzing, startAnalyzeTransition] = useTransition()
 
   const ativa = status === "ativa"
+
+  function handleAnalisar() {
+    startAnalyzeTransition(async () => {
+      const result = await analisarEdital(licitacaoId)
+      if ("error" in result) {
+        toast.error(result.error)
+      } else {
+        onAnalise?.(result.analise, result.fromCache)
+        if (result.fromCache) {
+          toast.info("Análise carregada do cache.")
+        } else {
+          toast.success("Análise gerada com sucesso!")
+        }
+      }
+    })
+  }
 
   function handleSalvar() {
     if (!empresaId) {
@@ -91,6 +110,25 @@ export function AcoesCard({
           <ExternalLink className="h-4 w-4" />
           Ver Edital Original
         </a>
+      </Button>
+
+      {/* Analisar com IA */}
+      <Button
+        className="w-full gap-2 bg-violet-700 hover:bg-violet-600 text-white"
+        onClick={handleAnalisar}
+        disabled={isAnalyzing}
+      >
+        {isAnalyzing ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Analisando edital...
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4" />
+            Analisar com IA
+          </>
+        )}
       </Button>
 
       <div className="border-t border-slate-700 pt-4 space-y-3">

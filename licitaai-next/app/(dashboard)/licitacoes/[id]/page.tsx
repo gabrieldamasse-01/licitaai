@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/server"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AcoesCard } from "./acoes-card"
+import { AnaliseIaSection } from "./analise-ia-section"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -263,16 +263,13 @@ export default async function LicitacaoDetalhePage({
           </div>
         </div>
 
-        {/* Coluna direita — ações */}
-        <div className="lg:col-span-1">
-          <AcoesCard
-            licitacaoId={id}
-            sourceUrl={lic.source_url}
-            status={lic.status ?? "ativa"}
-            empresas={empresas ?? []}
-            jaSalvasPorEmpresa={jaSalvasPorEmpresa}
-          />
-        </div>
+        <AnaliseIaSection
+          licitacaoId={id}
+          sourceUrl={lic.source_url}
+          status={lic.status ?? "ativa"}
+          empresas={empresas ?? []}
+          jaSalvasPorEmpresa={jaSalvasPorEmpresa}
+        />
       </div>
     </div>
   )
