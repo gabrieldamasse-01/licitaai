@@ -6,6 +6,9 @@ import {
   Plus, Search, FileText, CalendarClock,
   Upload, X, Image as ImageIcon, ExternalLink, Loader2,
 } from "lucide-react"
+import * as pdfjsLib from "pdfjs-dist"
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -147,6 +150,9 @@ export function DocumentosClient({
   const [iaAnalisando, setIaAnalisando] = useState(false)
   const [iaPreenchido, setIaPreenchido] = useState<Set<string>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingInline, setUploadingInline] = useState<string | null>(null)
+  const inlineInputRef = useRef<HTMLInputElement>(null)
+  const inlineDocIdRef = useRef<string | null>(null)
 
   const filtrados = useMemo(() => {
     const q = busca.toLowerCase()
@@ -206,12 +212,14 @@ export function DocumentosClient({
     setIaAnalisando(true)
     setIaPreenchido(new Set())
     try {
-      const texto = await new Promise<string>((resolve) => {
-        const reader = new FileReader()
-        reader.onload = (e) => resolve(e.target?.result as string ?? "")
-        reader.onerror = () => resolve("")
-        reader.readAsText(file, "latin1")
-      })
+      const arrayBuffer = await file.arrayBuffer()
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      let texto = ""
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i)
+        const content = await page.getTextContent()
+        texto += content.items.map((item) => ("str" in item ? item.str : "")).join(" ") + " "
+      }
       const { data_emissao, data_validade } = extrairDatasDoTexto(texto)
       if (!data_emissao && !data_validade) return
       const preenchidos = new Set<string>()
@@ -253,6 +261,51 @@ export function DocumentosClient({
     setIsDragOver(false)
     const file = e.dataTransfer.files[0]
     if (file) handleFileSelect(file)
+  }
+
+  function abrirUploadInline(docId: string) {
+    inlineDocIdRef.current = docId
+    inlineInputRef.current?.click()
+  }
+
+  async function handleInlineFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file || !inlineDocIdRef.current) return
+    const err = validarArquivo(file)
+    if (err) { toast.error(err); return }
+    const docId = inlineDocIdRef.current
+    setUploadingInline(docId)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { toast.error("Não autenticado"); return }
+
+      // buscar company_id do documento
+      const doc = documents.find((d) => d.id === docId)
+      if (!doc) return
+      const ext = file.name.split(".").pop() ?? "bin"
+      const path = `${user.id}/${doc.company_id}/${Date.now()}.${ext}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("documentos")
+        .upload(path, file, { contentType: file.type })
+
+      if (uploadError) { toast.error("Erro no upload: " + uploadError.message); return }
+
+      const { error: updateError } = await supabase
+        .from("documents")
+        .update({ arquivo_url: uploadData.path, nome_arquivo: file.name, status: "pendente" })
+        .eq("id", docId)
+
+      if (updateError) { toast.error("Erro ao salvar referência do arquivo"); return }
+
+      toast.success("Arquivo anexado com sucesso!")
+      // Revalidar via router
+      window.location.reload()
+    } finally {
+      setUploadingInline(null)
+    }
   }
 
   async function handleAbrirArquivo(path: string) {
@@ -325,6 +378,15 @@ export function DocumentosClient({
 
   return (
     <div className="space-y-4">
+      {/* Input oculto para upload inline */}
+      <input
+        ref={inlineInputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.webp"
+        className="hidden"
+        onChange={handleInlineFileSelected}
+      />
+
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-sm flex-1">
@@ -387,26 +449,47 @@ export function DocumentosClient({
                       <TableCell className="text-slate-400">
                         {getRazaoSocial(doc.companies)}
                       </TableCell>
-                      <TableCell className="max-w-[220px]">
+                      <TableCell className="max-w-[240px]">
                         {temArquivo ? (
-                          <button
-                            onClick={() => handleAbrirArquivo(doc.arquivo_url!)}
-                            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors w-full text-left"
-                            title={doc.nome_arquivo}
-                          >
-                            {ehPdf
-                              ? <FileText className="h-3.5 w-3.5 shrink-0" />
-                              : <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-                            }
-                            <span className="truncate text-sm">{doc.nome_arquivo}</span>
-                            <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleAbrirArquivo(doc.arquivo_url!)}
+                              className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors text-left min-w-0"
+                              title={doc.nome_arquivo}
+                            >
+                              {ehPdf
+                                ? <FileText className="h-3.5 w-3.5 shrink-0" />
+                                : <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                              }
+                              <span className="truncate text-sm">{doc.nome_arquivo}</span>
+                              <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                            </button>
+                            <button
+                              onClick={() => abrirUploadInline(doc.id)}
+                              disabled={uploadingInline === doc.id}
+                              title="Substituir arquivo"
+                              className="ml-1 shrink-0 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
+                            >
+                              {uploadingInline === doc.id
+                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                : <Upload className="h-3.5 w-3.5" />
+                              }
+                            </button>
+                          </div>
                         ) : (
                           <div className="flex items-center gap-2">
                             <span className="text-slate-500 truncate text-sm">{doc.nome_arquivo}</span>
-                            <Badge variant="outline" className="text-xs text-amber-400 border-amber-800/50 bg-amber-950/50 shrink-0">
-                              Sem arquivo
-                            </Badge>
+                            <button
+                              onClick={() => abrirUploadInline(doc.id)}
+                              disabled={uploadingInline === doc.id}
+                              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-amber-950/50 text-amber-400 border border-amber-800/50 hover:bg-amber-900/60 transition-colors shrink-0 disabled:opacity-50"
+                            >
+                              {uploadingInline === doc.id
+                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                : <Upload className="h-3 w-3" />
+                              }
+                              Anexar
+                            </button>
                           </div>
                         )}
                       </TableCell>
@@ -456,24 +539,45 @@ export function DocumentosClient({
                     </Badge>
                   </div>
                   {temArquivo ? (
-                    <button
-                      onClick={() => handleAbrirArquivo(doc.arquivo_url!)}
-                      className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm transition-colors"
-                      title={doc.nome_arquivo}
-                    >
-                      {ehPdf
-                        ? <FileText className="h-3.5 w-3.5 shrink-0" />
-                        : <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-                      }
-                      <span className="truncate">{doc.nome_arquivo}</span>
-                      <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleAbrirArquivo(doc.arquivo_url!)}
+                        className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm transition-colors min-w-0"
+                        title={doc.nome_arquivo}
+                      >
+                        {ehPdf
+                          ? <FileText className="h-3.5 w-3.5 shrink-0" />
+                          : <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                        }
+                        <span className="truncate">{doc.nome_arquivo}</span>
+                        <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                      </button>
+                      <button
+                        onClick={() => abrirUploadInline(doc.id)}
+                        disabled={uploadingInline === doc.id}
+                        title="Substituir arquivo"
+                        className="shrink-0 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
+                      >
+                        {uploadingInline === doc.id
+                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : <Upload className="h-3.5 w-3.5" />
+                        }
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-slate-400 truncate">{doc.nome_arquivo}</p>
-                      <Badge variant="outline" className="text-xs text-amber-400 border-amber-800/50 bg-amber-950/50 shrink-0">
-                        Sem arquivo
-                      </Badge>
+                      <button
+                        onClick={() => abrirUploadInline(doc.id)}
+                        disabled={uploadingInline === doc.id}
+                        className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-amber-950/50 text-amber-400 border border-amber-800/50 hover:bg-amber-900/60 transition-colors shrink-0 disabled:opacity-50"
+                      >
+                        {uploadingInline === doc.id
+                          ? <Loader2 className="h-3 w-3 animate-spin" />
+                          : <Upload className="h-3 w-3" />
+                        }
+                        Anexar
+                      </button>
                     </div>
                   )}
                   <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 border-t border-slate-700">
