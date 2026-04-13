@@ -5,10 +5,12 @@ import { toast } from "sonner"
 import {
   Search, SlidersHorizontal, ExternalLink, Loader2, X,
   AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale, Clock,
+  ArrowUpRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -243,25 +245,35 @@ function DetalheConteudo({
       </div>
 
       {/* Ações fixas no rodapé */}
-      <div className="flex gap-3 pt-4 border-t border-slate-700 mt-4">
-        <Button asChild className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-2">
-          <a href={lic.url} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="h-4 w-4" />
-            Acessar Edital
-          </a>
-        </Button>
-        <Button
-          variant="outline"
-          className="flex-1 gap-2 border-slate-600 text-slate-200 hover:bg-slate-700"
-          onClick={() => onSalvar(lic)}
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <><Loader2 className="h-4 w-4 animate-spin" />Salvando...</>
-          ) : (
-            <><Bookmark className="h-4 w-4" />Salvar</>
-          )}
-        </Button>
+      <div className="space-y-2 pt-4 border-t border-slate-700 mt-4">
+        {lic.dbId && (
+          <Button asChild className="w-full gap-2 bg-violet-700 hover:bg-violet-600 text-white">
+            <Link href={`/licitacoes/${lic.dbId}`}>
+              <ArrowUpRight className="h-4 w-4" />
+              Ver página completa + Analisar com IA
+            </Link>
+          </Button>
+        )}
+        <div className="flex gap-3">
+          <Button asChild className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-2">
+            <a href={lic.url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4" />
+              Acessar Edital
+            </a>
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1 gap-2 border-slate-600 text-slate-200 hover:bg-slate-700"
+            onClick={() => onSalvar(lic)}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <><Loader2 className="h-4 w-4 animate-spin" />Salvando...</>
+            ) : (
+              <><Bookmark className="h-4 w-4" />Salvar</>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )

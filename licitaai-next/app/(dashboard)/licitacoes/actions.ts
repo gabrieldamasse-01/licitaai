@@ -6,6 +6,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import Anthropic from "@anthropic-ai/sdk"
 
 export type Licitacao = {
+  dbId: string          // UUID do banco (para link /licitacoes/[id])
   idLicitacao: number
   orgao: string
   unidadeGestora: string
@@ -104,6 +105,7 @@ export async function fetchLicitacoes({
 
     const total = count ?? 0
     const licitacoes: Licitacao[] = data.map((row) => ({
+      dbId:               row.id ?? "",
       idLicitacao:        parseInt(row.source_id ?? "0", 10) || 0,
       orgao:              row.orgao ?? "",
       unidadeGestora:     "",
