@@ -6,9 +6,6 @@ import {
   Plus, Search, FileText, CalendarClock,
   Upload, X, Image as ImageIcon, ExternalLink, Loader2,
 } from "lucide-react"
-import * as pdfjsLib from "pdfjs-dist"
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -212,21 +209,38 @@ export function DocumentosClient({
     setIaAnalisando(true)
     setIaPreenchido(new Set())
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfjsLib = await import("pdfjs-dist" as any)
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.6.205/pdf.worker.min.mjs"
+
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       let texto = ""
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i)
         const content = await page.getTextContent()
-        texto += content.items.map((item) => ("str" in item ? item.str : "")).join(" ") + " "
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        texto += content.items.map((item: any) => item.str ?? "").join(" ") + " "
       }
-      const { data_emissao, data_validade } = extrairDatasDoTexto(texto)
-      if (!data_emissao && !data_validade) return
+
+      const datas = texto.match(/\d{2}\/\d{2}\/\d{4}/g) ?? []
+      if (datas.length === 0) return
+
+      const toISO = (s: string) => {
+        const [d, m, y] = s.split("/")
+        return `${y}-${m}-${d}`
+      }
+
       const preenchidos = new Set<string>()
       setForm((f) => {
         const updates: Partial<DocumentoFormData> = {}
-        if (data_emissao) { updates.data_emissao = data_emissao; preenchidos.add("data_emissao") }
-        if (data_validade) { updates.data_validade = data_validade; preenchidos.add("data_validade") }
+        updates.data_emissao = toISO(datas[0])
+        preenchidos.add("data_emissao")
+        if (datas.length >= 2) {
+          updates.data_validade = toISO(datas[datas.length - 1])
+          preenchidos.add("data_validade")
+        }
         return { ...f, ...updates }
       })
       setIaPreenchido(preenchidos)
@@ -293,15 +307,25 @@ export function DocumentosClient({
 
       if (uploadError) { toast.error("Erro no upload: " + uploadError.message); return }
 
+      // Recalcular status baseado na data_validade existente do documento
+      function calcularStatusInline(data_validade: string | null): string {
+        if (!data_validade) return "pendente"
+        const validade = new Date(data_validade + "T00:00:00")
+        const hoje = new Date()
+        hoje.setHours(0, 0, 0, 0)
+        if (validade < hoje) return "vencido"
+        return "ativo"
+      }
+      const novoStatus = calcularStatusInline(doc.data_validade)
+
       const { error: updateError } = await supabase
         .from("documents")
-        .update({ arquivo_url: uploadData.path, nome_arquivo: file.name, status: "pendente" })
+        .update({ arquivo_url: uploadData.path, nome_arquivo: file.name, status: novoStatus })
         .eq("id", docId)
 
       if (updateError) { toast.error("Erro ao salvar referência do arquivo"); return }
 
       toast.success("Arquivo anexado com sucesso!")
-      // Revalidar via router
       window.location.reload()
     } finally {
       setUploadingInline(null)
