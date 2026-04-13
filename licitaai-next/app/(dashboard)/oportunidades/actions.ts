@@ -235,7 +235,7 @@ export async function salvarOportunidade(
       company_id: empresaId,
       licitacao_id: licitacaoId,
       relevancia_score: score,
-      status: "novo",
+      status: "pendente",
     },
     { onConflict: "company_id,licitacao_id" }
   )
