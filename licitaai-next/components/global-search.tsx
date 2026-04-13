@@ -358,7 +358,7 @@ export function GlobalSearch() {
                   <div className="py-10 text-center px-4">
                     <p className="text-sm text-slate-500">
                       Nenhum resultado para{" "}
-                      <span className="text-slate-300">"{query}"</span>
+                      <span className="text-slate-300">&quot;{query}&quot;</span>
                     </p>
                   </div>
                 )}

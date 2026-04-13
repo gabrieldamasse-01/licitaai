@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, LogIn, ShieldAlert } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface DashboardErrorProps {
   error: Error;

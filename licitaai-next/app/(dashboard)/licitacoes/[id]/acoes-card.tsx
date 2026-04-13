@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { ExternalLink, Bookmark, Loader2, Building2 } from "lucide-react"
@@ -100,9 +101,9 @@ export function AcoesCard({
         {empresas.length === 0 ? (
           <p className="text-xs text-slate-500">
             Nenhuma empresa cadastrada.{" "}
-            <a href="/clientes" className="text-blue-400 hover:underline">
+            <Link href="/clientes" className="text-blue-400 hover:underline">
               Cadastre uma empresa
-            </a>{" "}
+            </Link>{" "}
             para salvar esta oportunidade.
           </p>
         ) : (

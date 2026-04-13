@@ -3,18 +3,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Home, RefreshCw, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AlertCircle, Home, RefreshCw } from "lucide-react";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
 }
 
-export default function GlobalError({
-  error,
-  reset,
-}: GlobalErrorProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
     <html>
       <body>

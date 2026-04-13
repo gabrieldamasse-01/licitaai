@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-import { calcularScore as calcScore, scoreLabel as getScoreLabel } from "@/lib/scoring"
+import { calcularScore as calcScore } from "@/lib/scoring"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -182,28 +182,6 @@ export function DocumentosClient({
     return null
   }
 
-  function extrairDatasDoTexto(texto: string): { data_emissao: string | null; data_validade: string | null } {
-    // Busca todas as datas no formato DD/MM/YYYY ou DD/MM/YY
-    const regex = /\b(\d{2})\/(\d{2})\/(\d{2,4})\b/g
-    const matches: Date[] = []
-    let m: RegExpExecArray | null
-    while ((m = regex.exec(texto)) !== null) {
-      const day = parseInt(m[1], 10)
-      const month = parseInt(m[2], 10) - 1
-      let year = parseInt(m[3], 10)
-      if (year < 100) year += year < 50 ? 2000 : 1900
-      const d = new Date(year, month, day)
-      if (!isNaN(d.getTime()) && month >= 0 && month <= 11 && day >= 1 && day <= 31) {
-        matches.push(d)
-      }
-    }
-    if (matches.length === 0) return { data_emissao: null, data_validade: null }
-    matches.sort((a, b) => a.getTime() - b.getTime())
-    const toISO = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
-    if (matches.length === 1) return { data_emissao: toISO(matches[0]), data_validade: null }
-    return { data_emissao: toISO(matches[0]), data_validade: toISO(matches[matches.length - 1]) }
-  }
-
   async function analisarPDF(file: File) {
     if (file.type !== "application/pdf") return
     setIaAnalisando(true)
@@ -261,7 +239,7 @@ export function DocumentosClient({
     setArquivoErro(false)
     setForm((f) => ({ ...f, nome_arquivo: f.nome_arquivo || file.name }))
     analisarPDF(file)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault()

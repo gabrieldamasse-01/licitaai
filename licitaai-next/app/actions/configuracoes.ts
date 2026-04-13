@@ -222,5 +222,3 @@ export async function salvarEmailContato(
   return { ok: true }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export { redirect }

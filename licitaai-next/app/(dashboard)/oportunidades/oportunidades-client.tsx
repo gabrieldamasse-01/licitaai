@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import {
@@ -415,9 +416,9 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
             <AlertCircle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
             <p className="text-sm text-amber-300">
               Nenhuma empresa cadastrada.{" "}
-              <a href="/clientes" className="font-semibold underline hover:text-amber-200">
+              <Link href="/clientes" className="font-semibold underline hover:text-amber-200">
                 Cadastre uma empresa
-              </a>{" "}
+              </Link>{" "}
               para ver oportunidades.
             </p>
           </div>
@@ -532,9 +533,9 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
               </p>
               <p className="mt-1 text-xs text-slate-500">
                 Tente atualizar o CNAE ou o perfil da empresa em{" "}
-                <a href="/clientes" className="text-blue-400 underline">
+                <Link href="/clientes" className="text-blue-400 underline">
                   Clientes
-                </a>
+                </Link>
               </p>
               {analisadas > 0 && (
                 <p className="mt-2 text-xs text-slate-500">

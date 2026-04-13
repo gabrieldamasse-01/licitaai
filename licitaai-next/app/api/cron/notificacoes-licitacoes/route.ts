@@ -18,11 +18,6 @@ interface Empresa {
   email_contato: string | null
 }
 
-interface UserInfo {
-  id: string
-  email: string | null
-}
-
 interface Licitacao {
   id: string
   source_id: string | null
