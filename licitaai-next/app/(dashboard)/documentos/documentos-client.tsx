@@ -212,7 +212,7 @@ export function DocumentosClient({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pdfjsLib = await import("pdfjs-dist" as any)
       pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.6.205/pdf.worker.min.mjs"
+        "https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs"
 
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
