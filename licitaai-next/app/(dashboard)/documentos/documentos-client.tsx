@@ -232,10 +232,13 @@ export function DocumentosClient({
         return `${y}-${m}-${d}`
       }
 
+      const primeiraData = datas[0]
+      if (!primeiraData) return
+
       const preenchidos = new Set<string>()
       setForm((f) => {
         const updates: Partial<DocumentoFormData> = {}
-        updates.data_emissao = toISO(datas[0])
+        updates.data_emissao = toISO(primeiraData)
         preenchidos.add("data_emissao")
         if (datas.length >= 2) {
           updates.data_validade = toISO(datas[datas.length - 1])
