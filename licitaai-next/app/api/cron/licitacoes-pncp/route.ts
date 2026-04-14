@@ -3,14 +3,15 @@ import { createServiceClient } from "@/lib/supabase/service"
 
 // Cron de sincronização PNCP → Supabase — executa 3x/dia via Vercel Cron
 // Schedule: 0 7,13,19 * * * (UTC) — equivale a 4h, 10h, 16h BRT
-// Janela: últimos 30 dias
+// Janela: últimos 7 dias
 // Aceita GET (Vercel Cron) e POST (chamada manual) com Authorization: Bearer <CRON_SECRET>
+// Nota: API PNCP aceita tamanhoPagina entre 10 e 50
 
 export const maxDuration = 300 // 5 min
 
 const PNCP_BASE = "https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao"
-const TAMANHO_PAGINA = 500
-const MAX_PAGINAS = 10 // proteção — 10 × 500 = 5.000 licitações por modalidade
+const TAMANHO_PAGINA = 50  // máximo permitido pela API PNCP
+const MAX_PAGINAS = 20     // 20 × 50 = 1.000 licitações por modalidade por execução
 
 // Modalidades padrão do PNCP
 const MODALIDADES = [6, 8, 9, 4, 5, 12] // Pregão Eletr., Dispensa, Inexig., Concorr. Eletr., Concorr. Presencial, Credenciamento
