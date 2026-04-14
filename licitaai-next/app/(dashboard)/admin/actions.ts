@@ -1,10 +1,25 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { isAdmin } from "@/lib/is-admin"
 import { resend, FROM_EMAIL } from "@/lib/resend"
+
+function escHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
+
+const adicionarAdminSchema = z.object({
+  email: z.string().email("Email inválido"),
+  nome: z.string().max(100).optional(),
+  cargo: z.string().max(100).optional(),
+})
 
 const MASTER_EMAIL = "gabriel.damasse@mgnext.com"
 
@@ -15,6 +30,9 @@ export async function adicionarAdmin(formData: {
 }): Promise<{ success?: true; error?: string }> {
   const adminOk = await isAdmin()
   if (!adminOk) return { error: "Acesso negado." }
+
+  const parsed = adicionarAdminSchema.safeParse(formData)
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." }
 
   const supabase = await createClient()
   const {
@@ -175,6 +193,10 @@ export async function adicionarColaborador(
   const adminOk = await isAdmin()
   if (!adminOk) return { error: "Acesso negado." }
 
+  const schema = z.object({ email: z.string().email(), nome: z.string().max(100).optional(), cargo: z.string().max(100).optional() })
+  const parsed = schema.safeParse({ email })
+  if (!parsed.success) return { error: "Dados inválidos" }
+
   if (!email.trim()) return { error: "Email é obrigatório." }
 
   const admin = createServiceClient()
@@ -256,13 +278,16 @@ export async function enviarEmailAdmin(
     return { error: "Preencha todos os campos obrigatórios." }
   }
 
+  const safeAssunto = escHtml(assunto)
+  const safeMensagem = escHtml(mensagem)
+
   const html = `
     <!DOCTYPE html>
     <html lang="pt-BR">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${assunto}</title>
+        <title>${safeAssunto}</title>
       </head>
       <body style="margin:0;padding:0;background-color:#0f172a;font-family:'Segoe UI',Arial,sans-serif;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f172a;padding:40px 0;">
@@ -281,8 +306,8 @@ export async function enviarEmailAdmin(
                 <!-- Body -->
                 <tr>
                   <td style="padding:40px;">
-                    <h2 style="margin:0 0 16px;color:#f1f5f9;font-size:20px;font-weight:600;">${assunto}</h2>
-                    <div style="color:#cbd5e1;font-size:15px;line-height:1.6;white-space:pre-wrap;">${mensagem}</div>
+                    <h2 style="margin:0 0 16px;color:#f1f5f9;font-size:20px;font-weight:600;">${safeAssunto}</h2>
+                    <div style="color:#cbd5e1;font-size:15px;line-height:1.6;white-space:pre-wrap;">${safeMensagem}</div>
                   </td>
                 </tr>
                 <!-- Footer -->
