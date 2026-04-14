@@ -10,7 +10,7 @@ export const maxDuration = 300 // 5 min
 
 const PNCP_BASE = "https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao"
 const TAMANHO_PAGINA = 500
-const MAX_PAGINAS = 20 // proteção — 20 × 500 = 10.000 licitações por execução
+const MAX_PAGINAS = 10 // proteção — 10 × 500 = 5.000 licitações por modalidade
 
 // Modalidades padrão do PNCP
 const MODALIDADES = [6, 8, 9, 4, 5, 12] // Pregão Eletr., Dispensa, Inexig., Concorr. Eletr., Concorr. Presencial, Credenciamento
@@ -93,8 +93,8 @@ async function executar(req: NextRequest): Promise<NextResponse> {
   const supabase = createServiceClient()
   const agora = new Date()
 
-  // Janela: 30 dias para trás
-  const inicio = new Date(agora.getTime() - 30 * 24 * 60 * 60 * 1000)
+  // Janela: 7 dias para trás (equilíbrio entre cobertura e tempo de resposta da API)
+  const inicio = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000)
   const dataInicial = toApiDate(inicio.toISOString().slice(0, 10))
   const dataFinal = toApiDate(agora.toISOString().slice(0, 10))
 
@@ -113,7 +113,7 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 
     while (pagina <= totalPaginas && pagina <= MAX_PAGINAS) {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 30000)
+      const timeout = setTimeout(() => controller.abort(), 55000)
 
       let page: PncpPage
       try {
