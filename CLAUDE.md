@@ -222,6 +222,14 @@ N8N_WEBHOOK_URL=
 - **Documentos**: CND Federal/Estadual/Municipal, FGTS, CNDT, Contrato Social, Procuração
 - **Fluxo**: Cadastro → Onboarding (empresa + CNAEs) → Dashboard → Oportunidades → Salvar → Analisar edital
 
+## Integrações Pendentes
+
+### Stripe — PENDENTE (André)
+
+As variáveis `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` e `STRIPE_PRO_PRICE_ID` ainda **não estão configuradas** em produção. Aguardando André configurar a conta Stripe e fornecer as chaves. **Não alterar o código de pagamento** até confirmação dele.
+
+---
+
 ## Agente Fiscal QA — Execução Automática
 
 Após TODA tarefa que envolva criação ou edição de código (feat, fix, chore com mudanças em .ts ou .tsx):
