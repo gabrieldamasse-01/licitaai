@@ -106,15 +106,21 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 
   console.log(`[cron/licitacoes-pncp] Iniciando — janela: ${dataInicial} → ${dataFinal}`)
 
-  // ─── Percorre cada modalidade, página a página ────────────────────────────
+  // ─── Função que processa uma modalidade completa (todas as páginas) ──────
 
-  for (const codigoModalidade of MODALIDADES) {
+  async function processarModalidade(codigoModalidade: number): Promise<{
+    buscadas: number; inseridas: number; ignoradas: number; erros: string[]
+  }> {
     let pagina = 1
     let totalPaginas = 1
+    let modBuscadas = 0
+    let modInseridas = 0
+    let modIgnoradas = 0
+    const modErros: string[] = []
 
     while (pagina <= totalPaginas && pagina <= MAX_PAGINAS) {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 55000)
+      const timeout = setTimeout(() => controller.abort(), 50000)
 
       let page: PncpPage
       try {
@@ -122,23 +128,20 @@ async function executar(req: NextRequest): Promise<NextResponse> {
       } catch (err) {
         clearTimeout(timeout)
         const msg = err instanceof Error ? err.message : String(err)
-        erros.push(`modalidade=${codigoModalidade} pag=${pagina}: ${msg}`)
-        console.error(`[cron/licitacoes-pncp] Erro na requisição:`, msg)
+        modErros.push(`modalidade=${codigoModalidade} pag=${pagina}: ${msg}`)
         break
       }
       clearTimeout(timeout)
 
       if (!page.data || page.data.length === 0) break
 
-      // Atualiza total de páginas na primeira resposta de cada modalidade
       if (pagina === 1) {
         totalPaginas = Math.min(page.totalPaginas ?? 1, MAX_PAGINAS)
-        console.log(`[cron/licitacoes-pncp] modalidade=${codigoModalidade} totalPaginas=${totalPaginas} totalRegistros=${page.totalRegistros}`)
+        console.log(`[cron/licitacoes-pncp] mod=${codigoModalidade} totalPaginas=${totalPaginas} totalRegistros=${page.totalRegistros}`)
       }
 
-      buscadas += page.data.length
+      modBuscadas += page.data.length
 
-      // Mapeia para colunas da tabela licitacoes
       const rows = page.data.map((item) => ({
         source_id:         item.numeroControlePNCP,
         portal:            "PNCP",
@@ -157,7 +160,6 @@ async function executar(req: NextRequest): Promise<NextResponse> {
         updated_at:        agora.toISOString(),
       }))
 
-      // Deduplica por source_id dentro do lote (evita erro de upsert)
       const seen = new Set<string>()
       const deduped = rows.filter((r) => {
         if (!r.source_id || seen.has(r.source_id)) return false
@@ -167,7 +169,6 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 
       if (deduped.length === 0) { pagina++; continue }
 
-      // Conta existentes para distinguir inseridas vs ignoradas
       const sourceIds = deduped.map((r) => r.source_id)
       const { count: existentes } = await supabase
         .from("licitacoes")
@@ -182,16 +183,28 @@ async function executar(req: NextRequest): Promise<NextResponse> {
         .upsert(deduped, { onConflict: "source_id" })
 
       if (upsertError) {
-        erros.push(`upsert modalidade=${codigoModalidade} pag=${pagina}: ${upsertError.message}`)
-        console.error(`[cron/licitacoes-pncp] Erro no upsert:`, upsertError.message)
+        modErros.push(`upsert mod=${codigoModalidade} pag=${pagina}: ${upsertError.message}`)
       } else {
-        inseridas += qtdNovas
-        ignoradas += qtdExistentes
+        modInseridas += qtdNovas
+        modIgnoradas += qtdExistentes
         console.log(`[cron/licitacoes-pncp] mod=${codigoModalidade} pag=${pagina}/${totalPaginas} +${qtdNovas} novas ~${qtdExistentes} existentes`)
       }
 
       pagina++
     }
+
+    return { buscadas: modBuscadas, inseridas: modInseridas, ignoradas: modIgnoradas, erros: modErros }
+  }
+
+  // ─── Processa todas as modalidades em paralelo ────────────────────────────
+
+  const resultados = await Promise.all(MODALIDADES.map(processarModalidade))
+
+  for (const r of resultados) {
+    buscadas += r.buscadas
+    inseridas += r.inseridas
+    ignoradas += r.ignoradas
+    erros.push(...r.erros)
   }
 
   // ─── Resumo e log ─────────────────────────────────────────────────────────
