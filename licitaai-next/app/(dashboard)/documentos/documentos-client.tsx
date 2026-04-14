@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import {
   Plus, Search, FileText, CalendarClock,
-  Upload, X, Image as ImageIcon, ExternalLink, Loader2,
+  Upload, X, Image as ImageIcon, ExternalLink, Loader2, ClipboardList,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
 import { criarDocumento, getSignedUrl, type DocumentoFormData } from "./actions"
+import { ChecklistHabilitacao } from "@/app/(dashboard)/oportunidades/checklist"
 
 type Document = {
   id: string
@@ -136,6 +137,8 @@ export function DocumentosClient({
   documentTypes: DocumentType[]
 }) {
   const [busca, setBusca] = useState("")
+  const [checklistEmpresaId, setChecklistEmpresaId] = useState("")
+  const [checklistOpen, setChecklistOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [form, setForm] = useState<DocumentoFormData>(emptyForm)
   const [isPending, startTransition] = useTransition()
@@ -408,6 +411,41 @@ export function DocumentosClient({
           Novo Documento
         </Button>
       </div>
+
+      {/* Habilitação */}
+      {companies.length > 0 && (
+        <div className="rounded-xl border border-slate-700 bg-slate-800/50">
+          <button
+            className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+            onClick={() => setChecklistOpen((v) => !v)}
+          >
+            <div className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-slate-400" />
+              Checklist de Habilitação
+            </div>
+            <span className="text-xs text-slate-500">{checklistOpen ? "Fechar" : "Ver"}</span>
+          </button>
+          {checklistOpen && (
+            <div className="px-5 pb-5 space-y-4 border-t border-slate-700">
+              <div className="pt-4">
+                <Select value={checklistEmpresaId} onValueChange={setChecklistEmpresaId}>
+                  <SelectTrigger className="w-full sm:w-72 bg-slate-800 border-slate-600 text-white">
+                    <SelectValue placeholder="Selecione a empresa..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    {companies.map((c) => (
+                      <SelectItem key={c.id} value={c.id} className="text-white focus:bg-slate-700">
+                        {c.razao_social}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <ChecklistHabilitacao empresaId={checklistEmpresaId} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Empty state */}
       {filtrados.length === 0 ? (
