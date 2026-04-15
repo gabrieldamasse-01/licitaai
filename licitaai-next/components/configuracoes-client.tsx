@@ -69,6 +69,13 @@ function formatCNPJ(value: string) {
     .replace(/(\d{4})(\d)/, '$1-$2')
 }
 
+function formatarTelefone(valor: string): string {
+  const nums = valor.replace(/\D/g, '').slice(0, 11)
+  if (nums.length <= 2) return nums
+  if (nums.length <= 7) return `(${nums.slice(0, 2)}) ${nums.slice(2)}`
+  return `(${nums.slice(0, 2)}) ${nums.slice(2, 7)}-${nums.slice(7)}`
+}
+
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 
 function Section({
@@ -103,6 +110,7 @@ function Section({
 function PerfilSection({ company }: { company: Company }) {
   const [state, action, pending] = useActionState(salvarPerfil, null)
   const [cnpj, setCnpj] = useState(formatCNPJ(company?.cnpj ?? ''))
+  const [telefone, setTelefone] = useState(formatarTelefone(company?.contato ?? ''))
 
   useEffect(() => {
     if (!state) return
@@ -161,7 +169,8 @@ function PerfilSection({ company }: { company: Company }) {
             <Input
               id="contato"
               name="contato"
-              defaultValue={company?.contato ?? ''}
+              value={telefone}
+              onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
               placeholder="(11) 99999-9999"
               className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
             />
