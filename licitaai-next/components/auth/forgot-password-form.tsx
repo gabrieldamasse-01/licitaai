@@ -43,8 +43,7 @@ export function ForgotPasswordForm({
       if (error) throw error
       setSuccess(true)
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Ocorreu um erro"
-      setError(traduzirErro(msg))
+      setError(traduzirErro(error))
     } finally {
       setIsLoading(false)
     }
@@ -53,7 +52,7 @@ export function ForgotPasswordForm({
   return (
     <div className={cn("min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-slate-50", className)} {...props}>
       <Suspense fallback={null}>
-        <LinkExpiradoDetector onDetected={() => setError("Link expirado. Solicite um novo link de redefinição de senha.")} />
+        <LinkExpiradoDetector onDetected={() => setError("Link expirado. Solicite um novo.")} />
       </Suspense>
       <div className="w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
 

@@ -76,7 +76,7 @@ export function LoginForm({
       password: data.password,
     })
     if (error) {
-      setError("root", { message: traduzirErro(error.message) })
+      setError("root", { message: traduzirErro(error) })
       return
     }
     await handlePostLogin()
@@ -93,7 +93,7 @@ export function LoginForm({
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setIsAutoSubmitting(false)
     if (error) {
-      setError("root", { message: traduzirErro(error.message) })
+      setError("root", { message: traduzirErro(error) })
       return
     }
     await handlePostLogin()

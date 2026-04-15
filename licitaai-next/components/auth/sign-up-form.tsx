@@ -61,7 +61,7 @@ export function SignUpForm({
       },
     })
     if (error) {
-      setError("root", { message: traduzirErro(error.message) })
+      setError("root", { message: traduzirErro(error) })
       return
     }
     router.push("/auth/sign-up-success")

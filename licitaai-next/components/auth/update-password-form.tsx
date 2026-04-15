@@ -63,8 +63,7 @@ export function UpdatePasswordForm({
       if (error) throw error
       router.push("/dashboard")
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Ocorreu um erro"
-      setError(traduzirErro(msg))
+      setError(traduzirErro(error))
     } finally {
       setIsLoading(false)
     }
