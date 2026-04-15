@@ -16,6 +16,25 @@ const OnboardingSchema = z.object({
 
 export type OnboardingData = z.infer<typeof OnboardingSchema>
 
+export async function verificarCNPJExistente(
+  cnpj: string,
+): Promise<{ existe: boolean } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: "Não autenticado" }
+
+  const cnpjDigits = cnpj.replace(/\D/g, "")
+  const { count, error } = await supabase
+    .from("companies")
+    .select("id", { count: "exact", head: true })
+    .eq("cnpj", cnpjDigits)
+
+  if (error) return { error: "Erro ao verificar CNPJ" }
+  return { existe: (count ?? 0) > 0 }
+}
+
 export async function criarEmpresaOnboarding(
   data: OnboardingData,
 ): Promise<{ error: string } | { success: true }> {

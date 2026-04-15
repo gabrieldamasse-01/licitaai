@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { criarEmpresaOnboarding } from "./actions"
+import { criarEmpresaOnboarding, verificarCNPJExistente } from "./actions"
 
 // ─── Dados ────────────────────────────────────────────────────────────────────
 
@@ -58,6 +58,25 @@ function formatCNPJ(value: string) {
     .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
     .replace(/\.(\d{3})(\d)/, ".$1/$2")
     .replace(/(\d{4})(\d)/, "$1-$2")
+}
+
+function validarCNPJ(cnpj: string): boolean {
+  const digits = cnpj.replace(/\D/g, "")
+  if (digits.length !== 14) return false
+  if (/^(\d)\1+$/.test(digits)) return false
+
+  const calc = (len: number) => {
+    let sum = 0
+    let pos = len - 7
+    for (let i = len; i >= 1; i--) {
+      sum += parseInt(digits[len - i]) * pos--
+      if (pos < 2) pos = 9
+    }
+    const result = sum % 11 < 2 ? 0 : 11 - (sum % 11)
+    return result === parseInt(digits[len])
+  }
+
+  return calc(12) && calc(13)
 }
 
 // ─── Progress bar ─────────────────────────────────────────────────────────────
@@ -127,11 +146,21 @@ function Step1({
   onChange: (d: Partial<EmpresaData>) => void
   onNext: () => void
 }) {
-  function handleSubmit(e: React.FormEvent) {
+  const [checking, setChecking] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!data.razao_social.trim()) return toast.error("Informe a razão social")
-    if (!/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(data.cnpj))
-      return toast.error("CNPJ inválido (formato: 00.000.000/0000-00)")
+    if (!data.cnpj.trim()) return toast.error("Informe o CNPJ")
+    if (!validarCNPJ(data.cnpj)) return toast.error("CNPJ inválido")
+
+    setChecking(true)
+    const result = await verificarCNPJExistente(data.cnpj)
+    setChecking(false)
+
+    if ("error" in result) return toast.error(result.error)
+    if (result.existe) return toast.error("CNPJ já cadastrado")
+
     onNext()
   }
 
@@ -142,7 +171,7 @@ function Step1({
           <Building2 className="h-7 w-7 text-blue-600" />
         </div>
         <h1 className="text-xl font-bold text-slate-900 text-center">
-          Vamos começar! Conta-nos sobre sua empresa.
+          Vamos começar! Conte-nos sobre sua empresa.
         </h1>
         <p className="text-sm text-slate-500 text-center">
           Essas informações nos ajudam a encontrar as melhores oportunidades para você.
@@ -221,9 +250,9 @@ function Step1({
         </div>
       </div>
 
-      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 mt-2">
-        Continuar
-        <ArrowRight className="h-4 w-4 ml-2" />
+      <Button type="submit" disabled={checking} className="w-full bg-blue-600 hover:bg-blue-700 mt-2">
+        {checking ? "Verificando…" : "Continuar"}
+        {!checking && <ArrowRight className="h-4 w-4 ml-2" />}
       </Button>
     </form>
   )
