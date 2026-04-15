@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Scale, Loader2 } from "lucide-react"
 
@@ -17,7 +17,36 @@ export function UpdatePasswordForm({
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionChecked, setSessionChecked] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        router.replace("/auth/forgot-password?erro=link-expirado")
+      } else {
+        setSessionChecked(true)
+      }
+    })
+  }, [router])
+
+  function traduzirErro(msg: string): string {
+    const m = msg.toLowerCase()
+    if (m.includes("auth session missing")) {
+      return "Sessão expirada. Solicite um novo link de redefinição de senha."
+    }
+    if (m.includes("email rate limit exceeded") || m.includes("rate limit")) {
+      return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente."
+    }
+    if (m.includes("same password")) {
+      return "A nova senha não pode ser igual à senha atual."
+    }
+    if (m.includes("weak password") || m.includes("password should be")) {
+      return "Senha muito fraca. Use pelo menos 8 caracteres com letras e números."
+    }
+    return "Ocorreu um erro ao salvar a senha. Tente novamente."
+  }
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,16 +59,19 @@ export function UpdatePasswordForm({
       if (error) throw error
       router.push("/dashboard")
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Ocorreu um erro")
+      const msg = error instanceof Error ? error.message : "Ocorreu um erro"
+      setError(traduzirErro(msg))
     } finally {
       setIsLoading(false)
     }
   }
 
+  if (!sessionChecked) return null
+
   return (
     <div className={cn("min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-slate-50", className)} {...props}>
       <div className="w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
-        
+
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-3 inline-flex">

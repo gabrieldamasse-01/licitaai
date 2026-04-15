@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Scale, Loader2, CheckCircle2 } from "lucide-react"
 
 export function ForgotPasswordForm({
@@ -17,6 +18,27 @@ export function ForgotPasswordForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get("erro") === "link-expirado") {
+      setError("Link expirado. Solicite um novo link de redefinição de senha.")
+    }
+  }, [searchParams])
+
+  function traduzirErro(msg: string): string {
+    const m = msg.toLowerCase()
+    if (m.includes("auth session missing")) {
+      return "Sessão expirada. Tente novamente ou solicite um novo link."
+    }
+    if (m.includes("email rate limit exceeded") || m.includes("rate limit")) {
+      return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente."
+    }
+    if (m.includes("user not found") || m.includes("invalid email")) {
+      return "E-mail não encontrado. Verifique e tente novamente."
+    }
+    return "Ocorreu um erro ao enviar o e-mail. Tente novamente."
+  }
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,7 +53,8 @@ export function ForgotPasswordForm({
       if (error) throw error
       setSuccess(true)
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Ocorreu um erro")
+      const msg = error instanceof Error ? error.message : "Ocorreu um erro"
+      setError(traduzirErro(msg))
     } finally {
       setIsLoading(false)
     }
@@ -40,7 +63,7 @@ export function ForgotPasswordForm({
   return (
     <div className={cn("min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-slate-50", className)} {...props}>
       <div className="w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
-        
+
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-3 inline-flex">

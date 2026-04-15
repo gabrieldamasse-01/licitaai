@@ -63,8 +63,14 @@ export default async function AdminPage({
     authUsers.map((u) => [u.id, u.email ?? ""]),
   )
 
-  // Montar lista de clientes
+  // Conjunto de e-mails dos administradores (para excluir da lista de clientes)
+  const adminEmails = new Set(
+    (adminUsers ?? []).map((a: Record<string, unknown>) => (a.email as string ?? "").toLowerCase())
+  )
+
+  // Montar lista de clientes — excluindo administradores
   const clientes = authUsers
+    .filter((u) => !adminEmails.has((u.email ?? "").toLowerCase()))
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .map((u) => ({
       id: u.id,

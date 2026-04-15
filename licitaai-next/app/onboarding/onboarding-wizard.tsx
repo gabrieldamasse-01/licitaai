@@ -79,6 +79,19 @@ function validarCNPJ(cnpj: string): boolean {
   return calc(12) && calc(13)
 }
 
+function formatTelefone(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11)
+  if (digits.length === 0) return ""
+  if (digits.length <= 2) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
+
+function validarEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
 // ─── Progress bar ─────────────────────────────────────────────────────────────
 
 function ProgressBar({ step }: { step: number }) {
@@ -147,19 +160,57 @@ function Step1({
   onNext: () => void
 }) {
   const [checking, setChecking] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  function setFieldError(field: string, msg: string) {
+    setErrors((prev) => ({ ...prev, [field]: msg }))
+  }
+
+  function clearFieldError(field: string) {
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!data.razao_social.trim()) return toast.error("Informe a razão social")
-    if (!data.cnpj.trim()) return toast.error("Informe o CNPJ")
-    if (!validarCNPJ(data.cnpj)) return toast.error("CNPJ inválido")
 
+    const newErrors: Record<string, string> = {}
+
+    if (!data.razao_social.trim()) {
+      newErrors.razao_social = "Informe a Razão Social"
+    }
+
+    if (!data.cnpj.trim()) {
+      newErrors.cnpj = "Informe o CNPJ"
+    } else if (!validarCNPJ(data.cnpj)) {
+      newErrors.cnpj = "CNPJ inválido"
+    }
+
+    if (data.email_contato && !validarEmail(data.email_contato)) {
+      newErrors.email_contato = "E-mail inválido"
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setErrors({})
     setChecking(true)
     const result = await verificarCNPJExistente(data.cnpj)
     setChecking(false)
 
-    if ("error" in result) return toast.error(result.error)
-    if (result.existe) return toast.error("CNPJ já cadastrado")
+    if ("error" in result) {
+      setFieldError("cnpj", result.error as string)
+      return
+    }
+    if (result.existe) {
+      setFieldError("cnpj", "CNPJ já cadastrado")
+      return
+    }
 
     onNext()
   }
@@ -185,12 +236,17 @@ function Step1({
         <Input
           id="razao_social"
           value={data.razao_social}
-          onChange={(e) => onChange({ razao_social: e.target.value })}
+          onChange={(e) => {
+            onChange({ razao_social: e.target.value })
+            if (errors.razao_social) clearFieldError("razao_social")
+          }}
           placeholder="Empresa LTDA"
-          required
           autoFocus
-          className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
+          className={`bg-white text-slate-900 border-slate-200 placeholder:text-slate-400 ${errors.razao_social ? "border-red-400" : ""}`}
         />
+        {errors.razao_social && (
+          <p className="text-xs text-red-500">{errors.razao_social}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -200,11 +256,16 @@ function Step1({
         <Input
           id="cnpj"
           value={data.cnpj}
-          onChange={(e) => onChange({ cnpj: formatCNPJ(e.target.value) })}
+          onChange={(e) => {
+            onChange({ cnpj: formatCNPJ(e.target.value) })
+            if (errors.cnpj) clearFieldError("cnpj")
+          }}
           placeholder="00.000.000/0000-00"
-          required
-          className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
+          className={`bg-white text-slate-900 border-slate-200 placeholder:text-slate-400 ${errors.cnpj ? "border-red-400" : ""}`}
         />
+        {errors.cnpj && (
+          <p className="text-xs text-red-500">{errors.cnpj}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -231,19 +292,25 @@ function Step1({
           <Label htmlFor="email_contato" className="text-slate-700">E-mail de Contato</Label>
           <Input
             id="email_contato"
-            type="email"
+            type="text"
             value={data.email_contato}
-            onChange={(e) => onChange({ email_contato: e.target.value })}
+            onChange={(e) => {
+              onChange({ email_contato: e.target.value })
+              if (errors.email_contato) clearFieldError("email_contato")
+            }}
             placeholder="contato@empresa.com"
-            className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
+            className={`bg-white text-slate-900 border-slate-200 placeholder:text-slate-400 ${errors.email_contato ? "border-red-400" : ""}`}
           />
+          {errors.email_contato && (
+            <p className="text-xs text-red-500">{errors.email_contato}</p>
+          )}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="contato" className="text-slate-700">Telefone</Label>
           <Input
             id="contato"
             value={data.contato}
-            onChange={(e) => onChange({ contato: e.target.value })}
+            onChange={(e) => onChange({ contato: formatTelefone(e.target.value) })}
             placeholder="(11) 99999-9999"
             className="bg-white text-slate-900 border-slate-200 placeholder:text-slate-400"
           />
