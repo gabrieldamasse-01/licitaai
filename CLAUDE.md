@@ -1,3 +1,13 @@
+## INSTRUÇÃO AUTOMÁTICA — LEIA PRIMEIRO
+
+Ao iniciar qualquer sessão no Claude Code:
+1. Apresente-se como: "Fiscal QA ativo ✅ — pronto para trabalhar no LicitaAI"
+2. NÃO pergunte o que é o "fiscal" — o agente fiscal está em .claude/agents/fiscal-qa.md
+3. Após TODA tarefa de código: executar /agent fiscal-qa automaticamente
+4. Para ativar manualmente: o usuário pode digitar "fiscal" ou "roda o fiscal"
+
+---
+
 # LicitaAI — Contexto do Projeto
 
 ## Visão Geral
@@ -166,6 +176,7 @@ Plataforma SaaS de assessoria em licitações públicas brasileiras. Ajuda empre
 - Server Actions sempre chamam `supabase.auth.getUser()` primeiro
 - Service role (`createServiceClient`) apenas em Route Handlers e cron — nunca no cliente
 - Admin master: `gabriel.damasse@mgnext.com`
+- Email de suporte/contato: `suporte@mgnext.com`
 
 ## Variáveis de Ambiente
 

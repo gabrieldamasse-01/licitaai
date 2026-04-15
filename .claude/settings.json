@@ -6,5 +6,18 @@
       "Bash(npm *)",
       "Bash(npx shadcn*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Fiscal QA ativo'"
+          }
+        ]
+      }
+    ]
   }
 }
