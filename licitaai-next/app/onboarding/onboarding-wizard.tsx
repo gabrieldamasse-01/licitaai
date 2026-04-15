@@ -61,22 +61,29 @@ function formatCNPJ(value: string) {
 }
 
 function validarCNPJ(cnpj: string): boolean {
-  const digits = cnpj.replace(/\D/g, "")
-  if (digits.length !== 14) return false
-  if (/^(\d)\1+$/.test(digits)) return false
+  const c = cnpj.replace(/\D/g, "")
+  if (c.length !== 14) return false
+  if (/^(\d)\1+$/.test(c)) return false
 
-  const calc = (len: number) => {
-    let sum = 0
-    let pos = len - 7
-    for (let i = len; i >= 1; i--) {
-      sum += parseInt(digits[len - i]) * pos--
-      if (pos < 2) pos = 9
-    }
-    const result = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    return result === parseInt(digits[len])
+  let soma = 0
+  let peso = 5
+  for (let i = 0; i < 12; i++) {
+    soma += parseInt(c[i]) * peso
+    peso = peso === 2 ? 9 : peso - 1
   }
+  let r = soma % 11
+  const d1 = r < 2 ? 0 : 11 - r
+  if (d1 !== parseInt(c[12])) return false
 
-  return calc(12) && calc(13)
+  soma = 0
+  peso = 6
+  for (let i = 0; i < 13; i++) {
+    soma += parseInt(c[i]) * peso
+    peso = peso === 2 ? 9 : peso - 1
+  }
+  r = soma % 11
+  const d2 = r < 2 ? 0 : 11 - r
+  return d2 === parseInt(c[13])
 }
 
 function formatTelefone(value: string) {
