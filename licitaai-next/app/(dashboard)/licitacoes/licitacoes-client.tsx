@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import {
   Search, SlidersHorizontal, ExternalLink, Loader2, X,
   AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale, Clock,
-  ArrowUpRight,
+  ArrowUpRight, Tag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
@@ -359,7 +359,7 @@ function Paginacao({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult }) {
+export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIniciais: FetchResult; userKeywords?: string[] }) {
   const [dados, setDados] = useState<FetchResult>(dadosIniciais)
   const [dataInicio, setDataInicio] = useState("")
   const [dataFim, setDataFim] = useState("")
@@ -487,37 +487,66 @@ export function LicitacoesClient({ dadosIniciais }: { dadosIniciais: FetchResult
             onKeyDown={(e) => e.key === "Enter" && buscar(0)}
             className="pl-8 h-9 text-sm bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
-          {/* Dropdown histórico */}
-          {showHistorico && historico.length > 0 && !texto && (
+          {/* Dropdown histórico + palavras-chave */}
+          {showHistorico && (historico.length > 0 || userKeywords.length > 0) && !texto && (
             <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border border-slate-600 bg-slate-800 shadow-xl overflow-hidden">
-              {historico.map((h) => (
-                <div
-                  key={h}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 transition-colors group"
-                >
-                  <Clock className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                  <span
-                    className="flex-1 text-sm text-slate-300 truncate cursor-pointer"
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      setTexto(h)
-                      setShowHistorico(false)
-                      buscar(0, h)
-                    }}
-                  >
-                    {h}
-                  </span>
-                  <button
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      removerHistorico(h)
-                    }}
-                    className="p-0.5 text-slate-600 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
+              {historico.length > 0 && (
+                <>
+                  <div className="px-3 py-1.5 border-b border-slate-700">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Buscas recentes</span>
+                  </div>
+                  {historico.map((h) => (
+                    <div
+                      key={h}
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 transition-colors group"
+                    >
+                      <Clock className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                      <span
+                        className="flex-1 text-sm text-slate-300 truncate cursor-pointer"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          setTexto(h)
+                          setShowHistorico(false)
+                          buscar(0, h)
+                        }}
+                      >
+                        {h}
+                      </span>
+                      <button
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          removerHistorico(h)
+                        }}
+                        className="p-0.5 text-slate-600 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+              {userKeywords.length > 0 && (
+                <>
+                  <div className="px-3 py-1.5 border-t border-slate-700 border-b border-slate-700">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Suas palavras-chave</span>
+                  </div>
+                  {userKeywords.map((kw) => (
+                    <div
+                      key={kw}
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 transition-colors cursor-pointer"
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        setTexto(kw)
+                        setShowHistorico(false)
+                        buscar(0, kw)
+                      }}
+                    >
+                      <Tag className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                      <span className="flex-1 text-sm text-indigo-300 truncate">{kw}</span>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           )}
         </div>

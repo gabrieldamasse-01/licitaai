@@ -195,6 +195,30 @@ export async function excluirConta(): Promise<{ ok: true } | { erro: string }> {
   redirect('/auth/login')
 }
 
+// ─── Palavras-chave ───────────────────────────────────────────────────────────
+
+export async function salvarKeywords(
+  keywords: string[],
+): Promise<{ ok: true } | { erro: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { erro: 'Não autenticado' }
+
+  const lista = keywords.map((k) => k.trim().toLowerCase()).filter(Boolean).slice(0, 10)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from('user_preferences')
+    .upsert(
+      { user_id: user.id, keywords: lista, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    )
+
+  if (error) return { erro: error.message }
+  revalidatePath('/configuracoes')
+  return { ok: true }
+}
+
 // ─── Manter compatibilidade com código anterior ───────────────────────────────
 
 const EmailSchema = z.object({

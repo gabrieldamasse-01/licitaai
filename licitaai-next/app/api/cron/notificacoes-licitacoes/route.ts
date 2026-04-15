@@ -32,6 +32,7 @@ interface Licitacao {
 interface LicitacaoComScore extends Licitacao {
   score: number
   motivo: string
+  matchKeyword?: string
 }
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
@@ -76,6 +77,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     await registrarLog(supabase, inicio, 0, 0, 0)
     return NextResponse.json({ ok: true, licitacoes_novas: 0, users_notificados: 0, emails_enviados: 0 })
   }
+
+  // Buscar palavras-chave por user_id
+  const { data: prefsData } = await supabase
+    .from('user_preferences')
+    .select('user_id, keywords')
+
+  const mapaKeywords = new Map<string, string[]>(
+    (prefsData ?? []).map((p) => [
+      p.user_id as string,
+      Array.isArray(p.keywords) ? (p.keywords as string[]) : [],
+    ]),
+  )
 
   // Buscar todas as empresas com user_id
   const { data: empresas, error: errEmpresas } = await supabase
@@ -124,16 +137,27 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Para cada empresa do user, calcular score para cada licitação nova
     const licitacoesRelevantes: { empresa: Empresa; licitacoes: LicitacaoComScore[] }[] = []
 
+    const userKeywords = mapaKeywords.get(userId) ?? []
+
     for (const empresa of empresasDoUser) {
       const relevantes: LicitacaoComScore[] = []
 
       for (const lic of licitacoes as Licitacao[]) {
+        const objetoLower = (lic.objeto ?? '').toLowerCase()
+
+        // Verificar match por palavras-chave
+        const kwMatch = userKeywords.find((kw) => objetoLower.includes(kw.toLowerCase()))
+
+        // Verificar match por CNAE
         const { score, motivo } = calcularScore(
           { razao_social: empresa.razao_social, porte: empresa.porte, cnae: empresa.cnae ?? [] },
           { objeto: lic.objeto ?? '', modalidade: lic.modalidade ?? '' },
         )
+
         if (score >= 70) {
           relevantes.push({ ...lic, score, motivo })
+        } else if (kwMatch) {
+          relevantes.push({ ...lic, score, motivo: 'Match por palavra-chave', matchKeyword: kwMatch })
         }
       }
 
@@ -249,11 +273,16 @@ function gerarHtml(grupos: { empresa: Empresa; licitacoes: LicitacaoComScore[] }
             lic.score >= 85 ? '#eff6ff' :
             lic.score >= 75 ? '#fef3c7' : '#f9fafb'
 
+          const matchLabel = lic.matchKeyword
+            ? `<span style="display:inline-block;margin-top:4px;padding:1px 6px;border-radius:999px;font-size:11px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe">🏷 ${escHtml(lic.matchKeyword)}</span>`
+            : `<span style="display:inline-block;margin-top:4px;padding:1px 6px;border-radius:999px;font-size:11px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0">Match CNAE</span>`
+
           return `
             <tr>
               <td style="padding:12px 14px;border-bottom:1px solid #e5e7eb;font-size:14px;color:#111827;vertical-align:top">
                 <div style="font-weight:600;margin-bottom:2px">${escHtml(lic.objeto?.slice(0, 120) ?? '—')}${(lic.objeto?.length ?? 0) > 120 ? '…' : ''}</div>
                 <div style="font-size:12px;color:#6b7280">${escHtml(lic.orgao ?? '—')} ${lic.uf ? '· ' + escHtml(lic.uf) : ''}</div>
+                ${matchLabel}
               </td>
               <td style="padding:12px 14px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;white-space:nowrap;vertical-align:top">
                 ${formatarValor(lic.valor_estimado)}
@@ -279,7 +308,7 @@ function gerarHtml(grupos: { empresa: Empresa; licitacoes: LicitacaoComScore[] }
             ${escHtml(empresa.razao_social)}
           </h2>
           <p style="margin:0 0 16px;font-size:13px;color:#6b7280">
-            ${licitacoes.length} oportunidade${licitacoes.length > 1 ? 's' : ''} com score &ge; 70%
+            ${licitacoes.length} oportunidade${licitacoes.length > 1 ? 's' : ''} — por CNAE (score &ge; 70%) ou palavra-chave
           </p>
           <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-radius:6px;overflow:hidden;border:1px solid #e5e7eb">
             <thead>

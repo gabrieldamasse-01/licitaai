@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Crown,
   Trash2,
+  Tag,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +32,7 @@ import {
   salvarPerfil,
   salvarCnaes,
   salvarPreferencias,
+  salvarKeywords,
   enviarResetSenha,
   excluirConta,
   toggle2FA,
@@ -264,7 +266,98 @@ function CnaesSection({ initialCnaes }: { initialCnaes: string[] }) {
   )
 }
 
-// ─── 3. Preferências de Alerta ───────────────────────────────────────────────
+// ─── 3. Palavras-chave ────────────────────────────────────────────────────────
+
+const MAX_KEYWORDS = 10
+
+function KeywordsSection({ initialKeywords }: { initialKeywords: string[] }) {
+  const [keywords, setKeywords] = useState<string[]>(initialKeywords)
+  const [input, setInput] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  function adicionar() {
+    const val = input.trim().toLowerCase()
+    if (!val || keywords.includes(val) || keywords.length >= MAX_KEYWORDS) return
+    setKeywords((prev) => [...prev, val])
+    setInput('')
+  }
+
+  function remover(kw: string) {
+    setKeywords((prev) => prev.filter((k) => k !== kw))
+  }
+
+  function salvar() {
+    startTransition(async () => {
+      const result = await salvarKeywords(keywords)
+      if ('ok' in result) toast.success('Palavras-chave salvas!')
+      else toast.error(result.erro)
+    })
+  }
+
+  return (
+    <Section
+      icon={<Tag className="h-4 w-4 text-slate-500" />}
+      title="Palavras-chave de Busca"
+      description="Receba notificações de licitações que contenham estas palavras no objeto. Máximo 10."
+    >
+      <div className="space-y-4">
+        {keywords.length === 0 ? (
+          <p className="text-xs text-slate-400 italic">Nenhuma palavra-chave cadastrada.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {keywords.map((kw) => (
+              <Badge
+                key={kw}
+                variant="outline"
+                className="flex items-center gap-1.5 py-1 pl-2.5 pr-1.5 text-xs bg-indigo-950/40 text-indigo-300 border-indigo-800/50"
+              >
+                {kw}
+                <button
+                  type="button"
+                  onClick={() => remover(kw)}
+                  className="rounded-full p-0.5 hover:bg-slate-600 transition-colors"
+                  aria-label={`Remover ${kw}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionar())}
+            placeholder='Ex: pavimentação, obras, TI'
+            className="flex-1 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+            disabled={keywords.length >= MAX_KEYWORDS}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={adicionar}
+            disabled={keywords.length >= MAX_KEYWORDS}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {keywords.length >= MAX_KEYWORDS && (
+          <p className="text-xs text-amber-400">Limite de {MAX_KEYWORDS} palavras-chave atingido.</p>
+        )}
+
+        <Button size="sm" onClick={salvar} disabled={isPending}>
+          {isPending ? 'Salvando…' : 'Salvar Palavras-chave'}
+        </Button>
+      </div>
+    </Section>
+  )
+}
+
+// ─── 4. Preferências de Alerta ───────────────────────────────────────────────
 
 function PreferenciasSection({ prefs }: { prefs: Prefs }) {
   const [state, action, pending] = useActionState(salvarPreferencias, null)
@@ -622,6 +715,7 @@ export function ConfiguracoesClient({
   plano,
   planoExpiraEm,
   twoFactorEnabled = false,
+  keywords = [],
 }: {
   company: Company
   prefs: Prefs
@@ -629,12 +723,14 @@ export function ConfiguracoesClient({
   plano: string
   planoExpiraEm: string | null
   twoFactorEnabled?: boolean
+  keywords?: string[]
 }) {
   return (
     <div className="space-y-4">
       <PlanoSection plano={plano} planoExpiraEm={planoExpiraEm} />
       <PerfilSection company={company} />
       <CnaesSection initialCnaes={company?.cnae ?? []} />
+      <KeywordsSection initialKeywords={keywords} />
       <PreferenciasSection prefs={prefs} />
       <SegurancaSection userEmail={userEmail} twoFactorEnabled={twoFactorEnabled} />
       <ExcluirContaSection />
