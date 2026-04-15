@@ -6,9 +6,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Scale, Loader2, CheckCircle2 } from "lucide-react"
+
+function LinkExpiradoDetector({ onDetected }: { onDetected: () => void }) {
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    if (searchParams.get("erro") === "link-expirado") {
+      onDetected()
+    }
+  }, [searchParams, onDetected])
+  return null
+}
 
 export function ForgotPasswordForm({
   className,
@@ -18,13 +28,6 @@ export function ForgotPasswordForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    if (searchParams.get("erro") === "link-expirado") {
-      setError("Link expirado. Solicite um novo link de redefinição de senha.")
-    }
-  }, [searchParams])
 
   function traduzirErro(msg: string): string {
     const m = msg.toLowerCase()
@@ -62,6 +65,9 @@ export function ForgotPasswordForm({
 
   return (
     <div className={cn("min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-slate-50", className)} {...props}>
+      <Suspense fallback={null}>
+        <LinkExpiradoDetector onDetected={() => setError("Link expirado. Solicite um novo link de redefinição de senha.")} />
+      </Suspense>
       <div className="w-full max-w-md bg-white text-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
 
         {/* Logo */}
