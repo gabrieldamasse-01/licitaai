@@ -9,7 +9,7 @@ const OnboardingSchema = z.object({
     .string()
     .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, "CNPJ inválido (formato: 00.000.000/0000-00)"),
   porte: z.enum(["MEI", "ME", "EPP", "MEDIO", "GRANDE"]),
-  contato: z.string().optional(),
+  contato: z.string().optional().transform(v => v?.replace(/\D/g, "") ?? undefined),
   email_contato: z.string().email("E-mail inválido").or(z.literal("")).optional(),
   cnaes: z.array(z.string()).min(1, "Adicione ao menos um CNAE"),
 })

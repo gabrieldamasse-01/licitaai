@@ -86,13 +86,11 @@ function validarCNPJ(cnpj: string): boolean {
   return d2 === parseInt(c[13])
 }
 
-function formatTelefone(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 11)
-  if (digits.length === 0) return ""
-  if (digits.length <= 2) return `(${digits}`
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
-  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+function formatTelefone(value: string): string {
+  const nums = value.replace(/\D/g, "").slice(0, 11)
+  if (nums.length <= 2) return nums
+  if (nums.length <= 7) return `(${nums.slice(0, 2)}) ${nums.slice(2)}`
+  return `(${nums.slice(0, 2)}) ${nums.slice(2, 7)}-${nums.slice(7)}`
 }
 
 function validarEmail(email: string): boolean {
