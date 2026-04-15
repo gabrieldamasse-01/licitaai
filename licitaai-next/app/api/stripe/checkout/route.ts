@@ -20,7 +20,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const origin = req.headers.get('origin') ?? 'http://localhost:3000'
+  const ALLOWED_ORIGINS = ['https://licitaai-next.vercel.app', 'http://localhost:3000']
+  const rawOrigin = req.headers.get('origin') ?? 'http://localhost:3000'
+  const origin = ALLOWED_ORIGINS.includes(rawOrigin) ? rawOrigin : 'https://licitaai-next.vercel.app'
 
   try {
     const session = await createCheckoutSession({

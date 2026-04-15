@@ -59,7 +59,7 @@ export async function POST() {
     })
   } catch (err) {
     console.error("[send-otp] Gmail SMTP error:", err)
-    return NextResponse.json({ error: "Erro ao enviar e-mail", detail: String(err) }, { status: 500 })
+    return NextResponse.json({ error: "Erro ao enviar e-mail" }, { status: 500 })
   }
 
   const response = NextResponse.json({ ok: true })

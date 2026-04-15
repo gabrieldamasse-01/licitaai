@@ -1,11 +1,14 @@
 import { resend, FROM_EMAIL } from '@/lib/resend'
 import { NextResponse } from 'next/server'
+import { isAdmin } from '@/lib/is-admin'
 
 /**
  * API Route para enviar relatório de arquivos não utilizados
  * Uso: POST /api/admin/relatorio-nao-utilizados
  */
 export async function POST() {
+  const adminOk = await isAdmin()
+  if (!adminOk) return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
   const html = `
     <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px;">
       <h1 style="color: #1a56db; border-bottom: 2px solid #1a56db; padding-bottom: 8px;">

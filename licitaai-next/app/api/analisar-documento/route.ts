@@ -85,6 +85,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error("Erro ao analisar documento:", msg, err)
-    return NextResponse.json({ error: "Erro ao analisar documento", detail: msg }, { status: 500 })
+    return NextResponse.json({ error: "Erro ao analisar documento" }, { status: 500 })
   }
 }
