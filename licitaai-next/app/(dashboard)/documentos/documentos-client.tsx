@@ -329,7 +329,7 @@ export function DocumentosClient({
       if (uploadError) { toast.error("Erro no upload: " + uploadError.message); return }
 
       // Recalcular status baseado na data_validade existente do documento
-      function calcularStatusInline(data_validade: string | null): string {
+      function calcularStatusInline(data_validade: string | null): "ativo" | "vencido" | "pendente" {
         if (!data_validade) return "pendente"
         const validade = new Date(data_validade + "T00:00:00")
         const hoje = new Date()
@@ -337,7 +337,14 @@ export function DocumentosClient({
         if (validade < hoje) return "vencido"
         return "ativo"
       }
-      const novoStatus = calcularStatusInline(doc.data_validade)
+      // Re-buscar data_validade direto do banco para evitar divergência de estado local
+      const { data: docAtualizado } = await supabase
+        .from("documents")
+        .select("data_validade")
+        .eq("id", docId)
+        .single()
+      const dataValidadeParaCalculo = docAtualizado?.data_validade ?? doc.data_validade
+      const novoStatus = calcularStatusInline(dataValidadeParaCalculo)
 
       const { error: updateError } = await supabase
         .from("documents")
