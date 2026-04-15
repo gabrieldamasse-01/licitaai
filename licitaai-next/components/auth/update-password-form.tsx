@@ -17,18 +17,38 @@ export function UpdatePasswordForm({
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [sessionChecked, setSessionChecked] = useState(false)
+  const [sessionReady, setSessionReady] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.replace("/auth/forgot-password?erro=link-expirado")
-      } else {
-        setSessionChecked(true)
-      }
-    })
+    const hash = window.location.hash
+
+    if (hash.includes("access_token")) {
+      // Link de email com token no hash fragment — trocar por sessão
+      const params = new URLSearchParams(hash.substring(1))
+      const access_token = params.get("access_token") ?? ""
+      const refresh_token = params.get("refresh_token") ?? ""
+
+      supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
+        if (error) {
+          router.replace("/auth/forgot-password?erro=link-expirado")
+        } else {
+          // Limpar hash da URL sem recarregar a página
+          window.history.replaceState(null, "", window.location.pathname)
+          setSessionReady(true)
+        }
+      })
+    } else {
+      // Sem hash — verificar se já existe sessão ativa
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setSessionReady(true)
+        } else {
+          router.replace("/auth/forgot-password?erro=link-expirado")
+        }
+      })
+    }
   }, [router])
 
   function traduzirErro(msg: string): string {
@@ -66,7 +86,14 @@ export function UpdatePasswordForm({
     }
   }
 
-  if (!sessionChecked) return null
+  if (!sessionReady) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600 mb-3" />
+        <p className="text-sm text-slate-500">Verificando link...</p>
+      </div>
+    )
+  }
 
   return (
     <div className={cn("min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-slate-50", className)} {...props}>
