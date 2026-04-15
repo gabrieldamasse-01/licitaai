@@ -128,7 +128,7 @@ const emptyForm: DocumentoFormData = {
 }
 
 export function DocumentosClient({
-  documents,
+  documents: initialDocuments,
   companies,
   documentTypes,
 }: {
@@ -136,6 +136,7 @@ export function DocumentosClient({
   companies: Company[]
   documentTypes: DocumentType[]
 }) {
+  const [docs, setDocs] = useState<Document[]>(initialDocuments)
   const [busca, setBusca] = useState("")
   const [checklistEmpresaId, setChecklistEmpresaId] = useState("")
   const [checklistOpen, setChecklistOpen] = useState(false)
@@ -148,6 +149,7 @@ export function DocumentosClient({
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
   const [iaAnalisando, setIaAnalisando] = useState(false)
+  const [iaStatus, setIaStatus] = useState<"idle" | "encontrado" | "nao_encontrado">("idle")
   const [iaPreenchido, setIaPreenchido] = useState<Set<string>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadingInline, setUploadingInline] = useState<string | null>(null)
@@ -156,13 +158,13 @@ export function DocumentosClient({
 
   const filtrados = useMemo(() => {
     const q = busca.toLowerCase()
-    if (!q) return documents
-    return documents.filter(
+    if (!q) return docs
+    return docs.filter(
       (d) =>
         d.tipo.toLowerCase().includes(q) ||
         getRazaoSocial(d.companies).toLowerCase().includes(q)
     )
-  }, [documents, busca])
+  }, [docs, busca])
 
   function abrirNovo() {
     setForm(emptyForm)
@@ -171,6 +173,7 @@ export function DocumentosClient({
     setUploadProgress(0)
     setIaPreenchido(new Set())
     setIaAnalisando(false)
+    setIaStatus("idle")
     setSheetOpen(true)
   }
 
@@ -185,9 +188,38 @@ export function DocumentosClient({
     return null
   }
 
+  function extrairDatasDoTexto(texto: string): { emissao: string; validade: string } {
+    const padroes = [
+      /(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})/g,
+      /(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{2})/g,
+    ]
+
+    const datas: string[] = []
+    for (const padrao of padroes) {
+      const matches = [...texto.matchAll(padrao)]
+      for (const m of matches) {
+        const dia = m[1], mes = m[2]
+        let ano = m[3]
+        if (ano.length === 2) ano = parseInt(ano) > 50 ? "19" + ano : "20" + ano
+        const d = parseInt(dia), mo = parseInt(mes), a = parseInt(ano)
+        if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && a >= 2000 && a <= 2040) {
+          datas.push(`${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`)
+        }
+      }
+    }
+
+    const unicas = [...new Set(datas)].sort()
+    console.log("[PDF] Datas encontradas:", unicas)
+    return {
+      emissao: unicas[0] ?? "",
+      validade: unicas[unicas.length - 1] ?? "",
+    }
+  }
+
   async function analisarPDF(file: File) {
     if (file.type !== "application/pdf") return
     setIaAnalisando(true)
+    setIaStatus("idle")
     setIaPreenchido(new Set())
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,7 +228,11 @@ export function DocumentosClient({
         "https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs"
 
       const arrayBuffer = await file.arrayBuffer()
+      console.log("[PDF] Carregando documento, tamanho:", arrayBuffer.byteLength, "bytes")
+
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      console.log("[PDF] Número de páginas:", pdf.numPages)
+
       let texto = ""
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i)
@@ -205,31 +241,32 @@ export function DocumentosClient({
         texto += content.items.map((item: any) => item.str ?? "").join(" ") + " "
       }
 
-      const datas = texto.match(/\d{2}\/\d{2}\/\d{4}/g) ?? []
-      if (datas.length === 0) return
+      console.log("[PDF] Texto extraído (primeiros 500 chars):", texto.slice(0, 500))
 
-      const toISO = (s: string) => {
-        const [d, m, y] = s.split("/")
-        return `${y}-${m}-${d}`
+      const { emissao, validade } = extrairDatasDoTexto(texto)
+
+      if (!emissao) {
+        console.log("[PDF] Nenhuma data válida encontrada no texto")
+        setIaStatus("nao_encontrado")
+        return
       }
-
-      const primeiraData = datas[0]
-      if (!primeiraData) return
 
       const preenchidos = new Set<string>()
       setForm((f) => {
         const updates: Partial<DocumentoFormData> = {}
-        updates.data_emissao = toISO(primeiraData)
+        updates.data_emissao = emissao
         preenchidos.add("data_emissao")
-        if (datas.length >= 2) {
-          updates.data_validade = toISO(datas[datas.length - 1])
+        if (validade && validade !== emissao) {
+          updates.data_validade = validade
           preenchidos.add("data_validade")
         }
         return { ...f, ...updates }
       })
       setIaPreenchido(preenchidos)
-    } catch {
-      // Falha silenciosa — usuário preenche manualmente
+      setIaStatus("encontrado")
+    } catch (err) {
+      console.error("[PDF] Erro ao analisar:", err)
+      setIaStatus("nao_encontrado")
     } finally {
       setIaAnalisando(false)
     }
@@ -280,7 +317,7 @@ export function DocumentosClient({
       if (!user) { toast.error("Não autenticado"); return }
 
       // buscar company_id do documento
-      const doc = documents.find((d) => d.id === docId)
+      const doc = docs.find((d) => d.id === docId)
       if (!doc) return
       const ext = file.name.split(".").pop() ?? "bin"
       const path = `${user.id}/${doc.company_id}/${Date.now()}.${ext}`
@@ -309,8 +346,14 @@ export function DocumentosClient({
 
       if (updateError) { toast.error("Erro ao salvar referência do arquivo"); return }
 
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === docId
+            ? { ...d, arquivo_url: uploadData.path, nome_arquivo: file.name, status: novoStatus }
+            : d
+        )
+      )
       toast.success("Arquivo anexado com sucesso!")
-      window.location.reload()
     } finally {
       setUploadingInline(null)
     }
@@ -790,7 +833,17 @@ export function DocumentosClient({
               {iaAnalisando && (
                 <div className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-950/20 px-3 py-2">
                   <Loader2 className="h-3.5 w-3.5 text-blue-400 animate-spin shrink-0" />
-                  <span className="text-xs text-blue-300">Lendo datas do PDF...</span>
+                  <span className="text-xs text-blue-300">Lendo PDF...</span>
+                </div>
+              )}
+              {!iaAnalisando && iaStatus === "encontrado" && (
+                <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-950/20 px-3 py-2">
+                  <span className="text-xs text-emerald-300">Datas encontradas!</span>
+                </div>
+              )}
+              {!iaAnalisando && iaStatus === "nao_encontrado" && (
+                <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2">
+                  <span className="text-xs text-amber-300">Nenhuma data encontrada — preencha manualmente</span>
                 </div>
               )}
             </div>
