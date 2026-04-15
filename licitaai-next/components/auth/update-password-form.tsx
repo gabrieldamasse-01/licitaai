@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Scale, Loader2 } from "lucide-react"
+import { traduzirErro } from "@/lib/auth-errors"
 
 export function UpdatePasswordForm({
   className,
@@ -50,23 +51,6 @@ export function UpdatePasswordForm({
       })
     }
   }, [router])
-
-  function traduzirErro(msg: string): string {
-    const m = msg.toLowerCase()
-    if (m.includes("auth session missing")) {
-      return "Sessão expirada. Solicite um novo link de redefinição de senha."
-    }
-    if (m.includes("email rate limit exceeded") || m.includes("rate limit")) {
-      return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente."
-    }
-    if (m.includes("same password")) {
-      return "A nova senha não pode ser igual à senha atual."
-    }
-    if (m.includes("weak password") || m.includes("password should be")) {
-      return "Senha muito fraca. Use pelo menos 8 caracteres com letras e números."
-    }
-    return "Ocorreu um erro ao salvar a senha. Tente novamente."
-  }
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Scale, Loader2, TrendingUp, Shield, Zap, Eye, EyeOff } from "lucide-react"
+import { traduzirErro } from "@/lib/auth-errors"
 
 const signUpSchema = z
   .object({
@@ -60,7 +61,7 @@ export function SignUpForm({
       },
     })
     if (error) {
-      setError("root", { message: error.message })
+      setError("root", { message: traduzirErro(error.message) })
       return
     }
     router.push("/auth/sign-up-success")

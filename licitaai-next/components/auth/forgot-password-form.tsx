@@ -9,6 +9,7 @@ import Link from "next/link"
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Scale, Loader2, CheckCircle2 } from "lucide-react"
+import { traduzirErro } from "@/lib/auth-errors"
 
 function LinkExpiradoDetector({ onDetected }: { onDetected: () => void }) {
   const searchParams = useSearchParams()
@@ -28,20 +29,6 @@ export function ForgotPasswordForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-
-  function traduzirErro(msg: string): string {
-    const m = msg.toLowerCase()
-    if (m.includes("auth session missing")) {
-      return "Sessão expirada. Tente novamente ou solicite um novo link."
-    }
-    if (m.includes("email rate limit exceeded") || m.includes("rate limit")) {
-      return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente."
-    }
-    if (m.includes("user not found") || m.includes("invalid email")) {
-      return "E-mail não encontrado. Verifique e tente novamente."
-    }
-    return "Ocorreu um erro ao enviar o e-mail. Tente novamente."
-  }
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Scale, Loader2, TrendingUp, Shield, Zap, Eye, EyeOff } from "lucide-react"
+import { traduzirErro } from "@/lib/auth-errors"
 import { useEffect, useRef, useState } from "react"
 
 const loginSchema = z.object({
@@ -75,7 +76,7 @@ export function LoginForm({
       password: data.password,
     })
     if (error) {
-      setError("root", { message: "E-mail ou senha incorretos. Tente novamente." })
+      setError("root", { message: traduzirErro(error.message) })
       return
     }
     await handlePostLogin()
@@ -92,7 +93,7 @@ export function LoginForm({
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setIsAutoSubmitting(false)
     if (error) {
-      setError("root", { message: "E-mail ou senha incorretos. Tente novamente." })
+      setError("root", { message: traduzirErro(error.message) })
       return
     }
     await handlePostLogin()
