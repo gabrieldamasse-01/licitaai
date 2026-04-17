@@ -89,8 +89,10 @@ export function SignUpForm({
       },
     })
     if (error) {
-      console.error("Erro cadastro completo:", error)
-      console.error("Erro code:", (error as { code?: string })?.code, "msg:", error.message)
+      console.error("Signup error completo:", JSON.stringify(error))
+      const code = (error as any)?.code || ""
+      const msg = (error as any)?.message || ""
+      console.error("code:", code, "msg:", msg)
       setError("root", { message: traduzirErro(error) })
       return
     }
