@@ -253,3 +253,27 @@ Exceções (não rodar o fiscal):
 - Tarefas só de documentação (alterações apenas em .md)
 - Alterações apenas em arquivos SQL de migration
 - Tarefas de configuração sem código TypeScript
+
+## Ambientes de Deploy
+
+| Ambiente | Branch | URL | Uso |
+|----------|--------|-----|-----|
+| PRODUÇÃO | `master` | https://licitaai-next.vercel.app | Código estável — só recebe merge após validação em beta |
+| BETA | `beta` | https://licitaai-beta.vercel.app | Desenvolvimento ativo de novas features |
+| BACKUP | tag `v1.0-stable-20260416` + branch `backup-stable-20260416` | — | Restore de emergência se necessário |
+
+### Fluxo de Trabalho
+
+1. Todo desenvolvimento novo acontece na branch `beta`
+2. Push para `beta` → deploy automático no Vercel beta
+3. Após validação em beta, abrir PR de `beta` → `master`
+4. Merge aprovado → deploy automático em produção
+
+### Restore de Emergência
+
+```bash
+# Restaurar master para o estado do backup
+git checkout master
+git reset --hard backup-stable-20260416
+git push origin master --force
+```

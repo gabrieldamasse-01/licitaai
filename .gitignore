@@ -1,3 +1,9 @@
 .vercel
 lenspr/
 licitaai/
+node_modules
+.next/
+licitaai-next/.next/
+.env.local
+.env*.local
+licitaai-next/.env.local
