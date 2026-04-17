@@ -16,6 +16,9 @@ const ERROR_MAP: Array<[string, string]> = [
   ["user not found",                "E-mail não encontrado. Verifique e tente novamente."],
   ["signup_disabled",               "Cadastros temporariamente desabilitados."],
   ["anonymous_provider_disabled",   "Cadastro não permitido. Contate o suporte."],
+  ["smtp",                          "Erro no envio de e-mail. Tente novamente em instantes."],
+  ["unexpected_failure",            "Erro inesperado. Tente novamente."],
+  ["failed to",                     "Erro no servidor. Tente novamente."],
 ]
 
 export function traduzirErro(error: unknown): string {
