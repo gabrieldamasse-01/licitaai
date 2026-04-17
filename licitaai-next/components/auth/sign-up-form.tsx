@@ -61,6 +61,8 @@ export function SignUpForm({
       },
     })
     if (error) {
+      console.error("Erro cadastro completo:", error)
+      console.error("Erro code:", (error as { code?: string })?.code, "msg:", error.message)
       setError("root", { message: traduzirErro(error) })
       return
     }
