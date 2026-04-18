@@ -519,10 +519,10 @@ function Step3({ empresa, cnaes }: { empresa: EmpresaData; cnaes: string[] }) {
       </div>
 
       <Button
-        onClick={() => router.push("/oportunidades")}
+        onClick={() => router.push("/onboarding/validar-perfil")}
         className="w-full bg-blue-600 hover:bg-blue-700 h-11 text-base font-semibold"
       >
-        Ver minhas oportunidades
+        Validar meu perfil
         <ArrowRight className="h-5 w-5 ml-2" />
       </Button>
     </div>
