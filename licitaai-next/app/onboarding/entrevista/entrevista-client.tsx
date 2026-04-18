@@ -204,30 +204,45 @@ export function EntrevistaClient({ entrevistaId, respostasIniciais }: Props) {
       return
     }
 
-    startTransition(async () => {
-      const result = await salvarResposta(entrevistaId, pergunta.id, respostas[chave])
-      if ("error" in result) {
-        toast.error(result.error)
-        return
-      }
-
-      if (indice < total - 1) {
+    if (indice < total - 1) {
+      // Perguntas intermediárias: salva e avança
+      startTransition(async () => {
+        const result = await salvarResposta(entrevistaId, pergunta.id, respostas[chave])
+        if ("error" in result) {
+          toast.error(result.error)
+          return
+        }
         setIndice((i) => i + 1)
-      } else {
-        await gerarPerfil()
-      }
-    })
+      })
+    } else {
+      // Última pergunta: salva e gera perfil fora do transition para poder setar gerando=true
+      await gerarPerfil()
+    }
   }
 
   async function gerarPerfil() {
+    const salvo = await salvarResposta(entrevistaId, pergunta.id, respostas[chave])
+    if ("error" in salvo) {
+      toast.error(salvo.error)
+      return
+    }
+
     setGerando(true)
+
     const result = await concluirEntrevista(entrevistaId, respostas)
     if ("error" in result) {
       toast.error(result.error)
       setGerando(false)
       return
     }
-    router.push("/onboarding/validar-perfil")
+
+    if (!result.perfilGerado) {
+      toast("Perfil será aprimorado em breve", {
+        description: "A análise de IA será processada em segundo plano.",
+      })
+    }
+
+    router.push("/oportunidades")
   }
 
   const ehUltima = indice === total - 1
