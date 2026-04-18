@@ -525,6 +525,15 @@ function Step3({ empresa, cnaes }: { empresa: EmpresaData; cnaes: string[] }) {
         Validar meu perfil
         <ArrowRight className="h-5 w-5 ml-2" />
       </Button>
+
+      <Button
+        variant="outline"
+        onClick={() => router.push("/onboarding/entrevista")}
+        className="w-full h-10 text-sm font-medium text-blue-700 border-blue-200 hover:bg-blue-50"
+      >
+        Aprimorar meu perfil com entrevista
+        <ArrowRight className="h-4 w-4 ml-2" />
+      </Button>
     </div>
   )
 }
