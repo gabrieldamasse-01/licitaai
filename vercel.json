@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/licitacoes-pncp",
       "schedule": "0 7,13,19 * * *"
+    },
+    {
+      "path": "/api/cron/alertas-urgentes",
+      "schedule": "0 */2 * * *"
     }
   ]
 }

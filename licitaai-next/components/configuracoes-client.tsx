@@ -36,6 +36,7 @@ import {
   enviarResetSenha,
   excluirConta,
   toggle2FA,
+  salvarNotifConfig,
 } from '@/app/actions/configuracoes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -53,6 +54,14 @@ type Prefs = {
   alertas_email: boolean
   alert_days: number
   alert_email: string
+}
+
+type NotifConfig = {
+  email_diario: boolean
+  email_urgente: boolean
+  in_app: boolean
+  horario: string
+  score_minimo: number
 }
 
 type Plano = {
@@ -357,7 +366,93 @@ function KeywordsSection({ initialKeywords }: { initialKeywords: string[] }) {
   )
 }
 
-// ─── 4. Preferências de Alerta ───────────────────────────────────────────────
+// ─── 4. Preferências de Notificação ──────────────────────────────────────────
+
+function NotifConfigSection({ notifConfig }: { notifConfig: NotifConfig }) {
+  const [state, action, pending] = useActionState(salvarNotifConfig, null)
+  const [emailDiario, setEmailDiario] = useState(notifConfig.email_diario)
+  const [emailUrgente, setEmailUrgente] = useState(notifConfig.email_urgente)
+  const [inApp, setInApp] = useState(notifConfig.in_app)
+  const [scoreMinimo, setScoreMinimo] = useState(notifConfig.score_minimo)
+
+  useEffect(() => {
+    if (!state) return
+    if ('ok' in state) toast.success('Preferências de notificação salvas!')
+    if ('erro' in state) toast.error(state.erro)
+  }, [state])
+
+  return (
+    <Section
+      icon={<Bell className="h-4 w-4 text-slate-500" />}
+      title="Preferências de Notificação"
+      description="Controle quais alertas de licitações você recebe e com qual nível mínimo de score."
+    >
+      <form action={action} className="space-y-5">
+        <input type="hidden" name="email_diario" value={String(emailDiario)} />
+        <input type="hidden" name="email_urgente" value={String(emailUrgente)} />
+        <input type="hidden" name="in_app" value={String(inApp)} />
+        <input type="hidden" name="horario" value="08:00" />
+        <input type="hidden" name="score_minimo" value={String(scoreMinimo)} />
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
+            <div>
+              <p className="text-sm font-medium text-white">Receber e-mail diário de novas licitações</p>
+              <p className="text-xs text-slate-400 mt-0.5">Resumo diário das oportunidades detectadas nas últimas 24h.</p>
+            </div>
+            <Switch checked={emailDiario} onCheckedChange={setEmailDiario} aria-label="E-mail diário" />
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
+            <div>
+              <p className="text-sm font-medium text-white">Alertas urgentes — prazo &lt; 3 dias</p>
+              <p className="text-xs text-slate-400 mt-0.5">E-mail imediato quando uma licitação relevante encerra em até 3 dias.</p>
+            </div>
+            <Switch checked={emailUrgente} onCheckedChange={setEmailUrgente} aria-label="Alertas urgentes" />
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
+            <div>
+              <p className="text-sm font-medium text-white">Notificações no app</p>
+              <p className="text-xs text-slate-400 mt-0.5">Sino de notificações dentro da plataforma.</p>
+            </div>
+            <Switch checked={inApp} onCheckedChange={setInApp} aria-label="Notificações no app" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-slate-300">Score mínimo para notificar</Label>
+            <span className="text-sm font-bold text-blue-400">{scoreMinimo}%</span>
+          </div>
+          <input
+            type="range"
+            min={50}
+            max={95}
+            step={5}
+            value={scoreMinimo}
+            onChange={(e) => setScoreMinimo(Number(e.target.value))}
+            className="w-full accent-blue-500"
+          />
+          <div className="flex justify-between text-[10px] text-slate-500">
+            <span>50%</span>
+            <span>95%</span>
+          </div>
+          <p className="text-xs text-slate-400">
+            Você receberá alertas de licitações com score acima de{' '}
+            <span className="font-semibold text-blue-400">{scoreMinimo}%</span>.
+          </p>
+        </div>
+
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? 'Salvando…' : 'Salvar preferências'}
+        </Button>
+      </form>
+    </Section>
+  )
+}
+
+// ─── 5. Preferências de Alerta ───────────────────────────────────────────────
 
 function PreferenciasSection({ prefs }: { prefs: Prefs }) {
   const [state, action, pending] = useActionState(salvarPreferencias, null)
@@ -708,6 +803,14 @@ function ExcluirContaSection() {
 
 // ─── Export principal ─────────────────────────────────────────────────────────
 
+const DEFAULT_NOTIF_CONFIG: NotifConfig = {
+  email_diario: true,
+  email_urgente: true,
+  in_app: true,
+  horario: '08:00',
+  score_minimo: 70,
+}
+
 export function ConfiguracoesClient({
   company,
   prefs,
@@ -716,6 +819,7 @@ export function ConfiguracoesClient({
   planoExpiraEm,
   twoFactorEnabled = false,
   keywords = [],
+  notifConfig = DEFAULT_NOTIF_CONFIG,
 }: {
   company: Company
   prefs: Prefs
@@ -724,6 +828,7 @@ export function ConfiguracoesClient({
   planoExpiraEm: string | null
   twoFactorEnabled?: boolean
   keywords?: string[]
+  notifConfig?: NotifConfig
 }) {
   return (
     <div className="space-y-4">
@@ -731,6 +836,7 @@ export function ConfiguracoesClient({
       <PerfilSection company={company} />
       <CnaesSection initialCnaes={company?.cnae ?? []} />
       <KeywordsSection initialKeywords={keywords} />
+      <NotifConfigSection notifConfig={notifConfig} />
       <PreferenciasSection prefs={prefs} />
       <SegurancaSection userEmail={userEmail} twoFactorEnabled={twoFactorEnabled} />
       <ExcluirContaSection />

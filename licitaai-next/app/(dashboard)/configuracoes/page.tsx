@@ -19,9 +19,14 @@ export default async function ConfiguracoesPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: prefs } = await (supabase as any)
     .from('user_preferences')
-    .select('alertas_email, alert_days, alert_email, plano, plano_expira_em, two_factor_enabled, keywords')
+    .select('alertas_email, alert_days, alert_email, plano, plano_expira_em, two_factor_enabled, keywords, notif_config')
     .eq('user_id', user.id)
     .single()
+
+  const defaultNotifConfig = { email_diario: true, email_urgente: true, in_app: true, horario: '08:00', score_minimo: 70 }
+  const notifConfig = prefs?.notif_config && typeof prefs.notif_config === 'object'
+    ? { ...defaultNotifConfig, ...prefs.notif_config }
+    : defaultNotifConfig
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -49,6 +54,7 @@ export default async function ConfiguracoesPage() {
         planoExpiraEm={prefs?.plano_expira_em ?? null}
         twoFactorEnabled={prefs?.two_factor_enabled ?? false}
         keywords={Array.isArray(prefs?.keywords) ? prefs.keywords : []}
+        notifConfig={notifConfig}
       />
     </div>
   )

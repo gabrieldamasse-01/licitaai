@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles } from "lucide-react"
+import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity } from "lucide-react"
 import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
@@ -65,6 +65,68 @@ async function getCompanyIds(userId: string): Promise<string[]> {
   const service = createServiceClient()
   const { data } = await service.from("companies").select("id").eq("user_id", userId)
   return (data ?? []).map((c) => c.id as string)
+}
+
+// ─── Engajamento ──────────────────────────────────────────────────────────────
+
+async function getEngajamento(userId: string | null) {
+  const inicioMes = new Date()
+  inicioMes.setDate(1)
+  inicioMes.setHours(0, 0, 0, 0)
+  const inicioMesStr = inicioMes.toISOString()
+
+  if (userId) {
+    const service = createServiceClient()
+    const companyIds = await getCompanyIds(userId)
+
+    if (companyIds.length === 0) {
+      return { visualizadas: 0, salvas: 0, docsPct: 0, notifHorario: '08:00' }
+    }
+
+    const [visualizadas, salvas, docsTotal, docsValidos, prefs] = await Promise.all([
+      service.from('matches').select('*', { count: 'exact', head: true }).in('company_id', companyIds).neq('status', 'novo').gte('updated_at', inicioMesStr),
+      service.from('matches').select('*', { count: 'exact', head: true }).in('company_id', companyIds),
+      service.from('documents').select('*', { count: 'exact', head: true }).in('company_id', companyIds),
+      service.from('documents').select('*', { count: 'exact', head: true }).in('company_id', companyIds).eq('status', 'valido'),
+      service.from('user_preferences').select('notif_config').eq('user_id', userId).single(),
+    ])
+
+    const totalDocs = docsTotal.count ?? 0
+    const validosDocs = docsValidos.count ?? 0
+    const docsPct = totalDocs > 0 ? Math.round((validosDocs / totalDocs) * 100) : 0
+    const notifConfig = prefs.data?.notif_config as { horario?: string } | null
+    const notifHorario = notifConfig?.horario ?? '08:00'
+
+    return {
+      visualizadas: visualizadas.count ?? 0,
+      salvas: salvas.count ?? 0,
+      docsPct,
+      notifHorario,
+    }
+  }
+
+  const supabase = await createClient()
+  const [visualizadas, salvas, docsTotal, docsValidos, prefs] = await Promise.all([
+    supabase.from('matches').select('*', { count: 'exact', head: true }).neq('status', 'novo').gte('updated_at', inicioMesStr),
+    supabase.from('matches').select('*', { count: 'exact', head: true }),
+    supabase.from('documents').select('*', { count: 'exact', head: true }),
+    supabase.from('documents').select('*', { count: 'exact', head: true }).eq('status', 'valido'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('user_preferences').select('notif_config').single(),
+  ])
+
+  const totalDocs = docsTotal.count ?? 0
+  const validosDocs = docsValidos.count ?? 0
+  const docsPct = totalDocs > 0 ? Math.round((validosDocs / totalDocs) * 100) : 0
+  const notifConfig = prefs.data?.notif_config as { horario?: string } | null
+  const notifHorario = notifConfig?.horario ?? '08:00'
+
+  return {
+    visualizadas: visualizadas.count ?? 0,
+    salvas: salvas.count ?? 0,
+    docsPct,
+    notifHorario,
+  }
 }
 
 // ─── Métricas ─────────────────────────────────────────────────────────────────
@@ -212,10 +274,11 @@ export default async function DashboardPage() {
   // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades] = await Promise.all([
+  const [metrics, documentosVencendo, ultimasOportunidades, engajamento] = await Promise.all([
     getMetrics(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
+    getEngajamento(impersonatingUserId),
   ])
 
   return (
@@ -391,6 +454,37 @@ export default async function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Card de Engajamento */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
+        <div className="mb-5 flex items-center gap-2">
+          <div className="flex bg-violet-900/30 p-1.5 rounded-lg">
+            <Activity className="h-4 w-4 text-violet-400" />
+          </div>
+          <h2 className="text-base font-semibold text-white">Seu engajamento</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className="text-2xl font-bold text-white">{engajamento.visualizadas}</p>
+            <p className="text-xs text-slate-400 mt-1">Licitações visualizadas este mês</p>
+          </div>
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className="text-2xl font-bold text-white">{engajamento.salvas}</p>
+            <p className="text-xs text-slate-400 mt-1">Oportunidades salvas</p>
+          </div>
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className={`text-2xl font-bold ${engajamento.docsPct >= 80 ? 'text-emerald-400' : engajamento.docsPct >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+              {engajamento.docsPct}%
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Documentos em dia</p>
+          </div>
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{engajamento.notifHorario}</p>
+            <p className="text-xs text-slate-400 mt-1">Próximo alerta diário</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }
