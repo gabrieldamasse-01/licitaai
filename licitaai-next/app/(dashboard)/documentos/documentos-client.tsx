@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import {
   Plus, Search, FileText, CalendarClock,
-  Upload, X, Image as ImageIcon, ExternalLink, Loader2, ClipboardList,
+  Upload, X, Image as ImageIcon, ExternalLink, Loader2, ClipboardList, Tag,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -56,6 +56,8 @@ type DocumentType = {
   id: string
   nome: string
   categoria: string
+  camada?: string
+  cnaes_aplicaveis?: string[]
 }
 
 type StatusInfo = {
@@ -131,15 +133,20 @@ export function DocumentosClient({
   documents: initialDocuments,
   companies,
   documentTypes,
+  nichoTypes,
+  temNicho,
 }: {
   documents: Document[]
   companies: Company[]
   documentTypes: DocumentType[]
+  nichoTypes: DocumentType[]
+  temNicho: boolean
 }) {
   const [docs, setDocs] = useState<Document[]>(initialDocuments)
   const [busca, setBusca] = useState("")
   const [checklistEmpresaId, setChecklistEmpresaId] = useState("")
   const [checklistOpen, setChecklistOpen] = useState(false)
+  const [nichoOpen, setNichoOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [form, setForm] = useState<DocumentoFormData>(emptyForm)
   const [isPending, startTransition] = useTransition()
@@ -493,6 +500,77 @@ export function DocumentosClient({
                 </Select>
               </div>
               <ChecklistHabilitacao empresaId={checklistEmpresaId} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Nicho */}
+      {temNicho && (
+        <div className="rounded-xl border border-slate-700 bg-slate-800/50">
+          <button
+            className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+            onClick={() => setNichoOpen((v) => !v)}
+          >
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-purple-400" />
+              Documentos de Nicho
+              <span className="inline-flex items-center rounded-full border border-purple-500/40 bg-purple-950/30 px-2 py-0.5 text-[10px] font-medium text-purple-300">
+                {nichoTypes.length} tipo{nichoTypes.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <span className="text-xs text-slate-500">{nichoOpen ? "Fechar" : "Ver"}</span>
+          </button>
+          {nichoOpen && (
+            <div className="px-5 pb-5 border-t border-slate-700 space-y-3 pt-4">
+              <p className="text-xs text-slate-400">
+                Documentos específicos para os CNAEs cadastrados nas suas empresas.
+              </p>
+              <div className="space-y-2">
+                {nichoTypes.map((dt) => {
+                  const docsDoTipo = docs.filter((d) => {
+                    const tipoNorm = d.tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    const nomeNorm = dt.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    return tipoNorm.includes(nomeNorm) || nomeNorm.includes(tipoNorm)
+                  })
+                  const temDoc = docsDoTipo.length > 0
+                  const docAtivo = docsDoTipo.find((d) => d.status === "ativo")
+                  return (
+                    <div
+                      key={dt.id}
+                      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
+                        docAtivo
+                          ? "border-emerald-800/50 bg-emerald-950/20"
+                          : temDoc
+                            ? "border-amber-800/50 bg-amber-950/20"
+                            : "border-dashed border-slate-700 bg-slate-800/30"
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate ${docAtivo ? "text-emerald-300" : temDoc ? "text-amber-300" : "text-slate-400"}`}>
+                          {dt.nome}
+                        </p>
+                        {dt.categoria && (
+                          <p className="text-xs text-slate-500">{dt.categoria}</p>
+                        )}
+                      </div>
+                      {docAtivo ? (
+                        <span className="text-xs font-semibold text-emerald-400 shrink-0">OK</span>
+                      ) : temDoc ? (
+                        <span className="text-xs font-semibold text-amber-400 shrink-0">Atenção</span>
+                      ) : (
+                        <button
+                          onClick={abrirNovo}
+                          className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors shrink-0"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Adicionar
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
