@@ -4,9 +4,8 @@ import { useState, useTransition, useMemo, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import {
   Plus, Search, FileText, CalendarClock,
-  Upload, X, Image as ImageIcon, ExternalLink, Loader2, ClipboardList, Tag, CheckCircle,
+  Upload, X, Image as ImageIcon, ExternalLink, Loader2, ClipboardList, ShieldCheck,
 } from "lucide-react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -134,20 +133,17 @@ export function DocumentosClient({
   documents: initialDocuments,
   companies,
   documentTypes,
-  nichoTypes,
-  temNicho,
+  tiposNicho,
 }: {
   documents: Document[]
   companies: Company[]
   documentTypes: DocumentType[]
-  nichoTypes: DocumentType[]
-  temNicho: boolean
+  tiposNicho: DocumentType[]
 }) {
   const [docs, setDocs] = useState<Document[]>(initialDocuments)
   const [busca, setBusca] = useState("")
   const [checklistEmpresaId, setChecklistEmpresaId] = useState("")
   const [checklistOpen, setChecklistOpen] = useState(false)
-  const [nichoOpen, setNichoOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [form, setForm] = useState<DocumentoFormData>(emptyForm)
   const [isPending, startTransition] = useTransition()
@@ -163,6 +159,33 @@ export function DocumentosClient({
   const [uploadingInline, setUploadingInline] = useState<string | null>(null)
   const inlineInputRef = useRef<HTMLInputElement>(null)
   const inlineDocIdRef = useRef<string | null>(null)
+  const [abaAtiva, setAbaAtiva] = useState<"todos" | "nicho">("todos")
+
+  // Para cada tipo de nicho, verificar se há documento válido cadastrado
+  const statusNicho = useMemo(() => {
+    return tiposNicho.map((tipo) => {
+      const docsDoTipo = docs.filter((d) => d.tipo === tipo.nome)
+      if (docsDoTipo.length === 0) return { tipo, situacao: "faltando" as const }
+      const valido = docsDoTipo.find((d) => {
+        if (d.status === "vencido") return false
+        if (d.status === "ativo" && d.data_validade) {
+          const val = new Date(d.data_validade + "T00:00:00")
+          const em30 = new Date(); em30.setDate(em30.getDate() + 30)
+          if (val <= em30) return false
+        }
+        return true
+      })
+      if (valido) return { tipo, situacao: "ok" as const }
+      const vencendoBreve = docsDoTipo.find((d) => {
+        if (!d.data_validade || d.status === "vencido") return false
+        const val = new Date(d.data_validade + "T00:00:00")
+        const em30 = new Date(); em30.setDate(em30.getDate() + 30)
+        return val <= em30
+      })
+      if (vencendoBreve) return { tipo, situacao: "vencendo" as const }
+      return { tipo, situacao: "vencido" as const }
+    })
+  }, [tiposNicho, docs])
 
   const filtrados = useMemo(() => {
     const q = busca.toLowerCase()
@@ -174,8 +197,8 @@ export function DocumentosClient({
     )
   }, [docs, busca])
 
-  function abrirNovo(preCompanyId?: string) {
-    setForm({ ...emptyForm, company_id: preCompanyId ?? "" })
+  function abrirNovo() {
+    setForm(emptyForm)
     setArquivo(null)
     setArquivoErro(false)
     setUploadProgress(0)
@@ -185,8 +208,6 @@ export function DocumentosClient({
     setSheetOpen(true)
   }
 
-  const handleAbrirNovo = () => abrirNovo()
-
   function handleDocumentTypeChange(id: string) {
     const dt = documentTypes.find((t) => t.id === id)
     setForm((f) => ({ ...f, document_type_id: id, tipo: dt?.nome ?? "" }))
@@ -195,27 +216,6 @@ export function DocumentosClient({
   function validarArquivo(file: File): string | null {
     if (file.size > MAX_BYTES) return "Arquivo muito grande (máx. 10 MB)"
     if (!TIPOS_PERMITIDOS.includes(file.type)) return "Tipo não permitido. Use PDF, JPG ou PNG"
-    return null
-  }
-
-  function identificarTipoDocumento(nomeArquivo: string, textoPDF: string): string | null {
-    const normalizar = (s: string) =>
-      s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-
-    const nome = normalizar(nomeArquivo)
-    const texto = normalizar(textoPDF)
-
-    if (nome.includes("estadual") || (texto.includes("certidao negativa") && texto.includes("estadual"))) return "CND Estadual"
-    if (nome.includes("municipal") || (texto.includes("certidao negativa") && texto.includes("municipal"))) return "CND Municipal"
-    if (nome.includes("cnd_federal") || nome.includes("cnd-federal") || texto.includes("receita federal") || texto.includes("pgfn")) return "CND Federal"
-    if (nome.includes("fgts") || texto.includes("fgts") || texto.includes("regularidade do fgts")) return "Certificado de Regularidade FGTS"
-    if (nome.includes("cndt") || texto.includes("debitos trabalhistas")) return "CNDT"
-    if (nome.includes("alvara") || texto.includes("alvara de funcionamento")) return "Alvará de Funcionamento"
-    if (nome.includes("contrato_social") || nome.includes("estatuto") || texto.includes("contrato social")) return "Contrato Social / Estatuto"
-    if (nome.includes("procuracao") || texto.includes("procuracao")) return "Procuração"
-    if (nome.includes("art") || nome.includes("rrt") || texto.includes("anotacao de responsabilidade tecnica")) return "ART/RRT do Responsável Técnico"
-    if (nome.includes("crea") || texto.includes("conselho regional de engenharia")) return "Registro CREA/CAU"
-    if (nome.includes("cnd") || texto.includes("certidao negativa")) return "CND Federal"
     return null
   }
 
@@ -275,22 +275,9 @@ export function DocumentosClient({
       console.log("[PDF] Texto extraído (primeiros 500 chars):", texto.slice(0, 500))
 
       const { emissao, validade } = extrairDatasDoTexto(texto)
-      const tipoIdentificado = identificarTipoDocumento(file.name, texto)
-      console.log("[PDF] Tipo identificado:", tipoIdentificado)
-      console.log("[PDF] Tipos disponíveis:", documentTypes.map((dt) => dt.nome))
-      const dtEncontrado = tipoIdentificado
-        ? documentTypes.find((dt) => {
-            const normalizar = (s: string) =>
-              s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-            const a = normalizar(dt.nome)
-            const b = normalizar(tipoIdentificado)
-            return a === b || a.includes(b) || b.includes(a)
-          })
-        : null
-      console.log("[PDF] Tipo encontrado no banco:", dtEncontrado?.nome ?? "nenhum")
 
-      if (!emissao && !dtEncontrado) {
-        console.log("[PDF] Nenhuma data ou tipo identificado")
+      if (!emissao) {
+        console.log("[PDF] Nenhuma data válida encontrada no texto")
         setIaStatus("nao_encontrado")
         return
       }
@@ -298,18 +285,11 @@ export function DocumentosClient({
       const preenchidos = new Set<string>()
       setForm((f) => {
         const updates: Partial<DocumentoFormData> = {}
-        if (emissao) {
-          updates.data_emissao = emissao
-          preenchidos.add("data_emissao")
-        }
+        updates.data_emissao = emissao
+        preenchidos.add("data_emissao")
         if (validade && validade !== emissao) {
           updates.data_validade = validade
           preenchidos.add("data_validade")
-        }
-        if (dtEncontrado) {
-          updates.document_type_id = dtEncontrado.id
-          updates.tipo = dtEncontrado.nome
-          preenchidos.add("document_type_id")
         }
         return { ...f, ...updates }
       })
@@ -330,7 +310,6 @@ export function DocumentosClient({
     setArquivoErro(false)
     setForm((f) => ({ ...f, nome_arquivo: f.nome_arquivo || file.name }))
     analisarPDF(file)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleDragOver(e: React.DragEvent) {
@@ -497,6 +476,84 @@ export function DocumentosClient({
         onChange={handleInlineFileSelected}
       />
 
+      {/* Abas */}
+      {tiposNicho.length > 0 && (
+        <div className="flex gap-1 rounded-lg border border-slate-700 bg-slate-800/50 p-1 w-fit">
+          <button
+            onClick={() => setAbaAtiva("todos")}
+            className={`rounded px-4 py-1.5 text-sm font-medium transition-colors ${
+              abaAtiva === "todos"
+                ? "bg-blue-600 text-white"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Todos os Documentos
+          </button>
+          <button
+            onClick={() => setAbaAtiva("nicho")}
+            className={`flex items-center gap-2 rounded px-4 py-1.5 text-sm font-medium transition-colors ${
+              abaAtiva === "nicho"
+                ? "bg-blue-600 text-white"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Nicho
+            {statusNicho.filter((s) => s.situacao !== "ok").length > 0 && (
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                {statusNicho.filter((s) => s.situacao !== "ok").length}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Aba Nicho */}
+      {abaAtiva === "nicho" && tiposNicho.length > 0 && (
+        <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
+          <div className="border-b border-slate-700 px-5 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Documentos de Nicho ({statusNicho.filter((s) => s.situacao === "ok").length}/{tiposNicho.length} em dia)
+            </p>
+          </div>
+          <ul className="divide-y divide-slate-700">
+            {statusNicho.map(({ tipo, situacao }) => (
+              <li key={tipo.id} className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-lg shrink-0">
+                    {situacao === "ok" ? "✅" : situacao === "vencendo" ? "⚠️" : "❌"}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{tipo.nome}</p>
+                    <p className="text-xs text-slate-500">
+                      {situacao === "ok"
+                        ? "Documento válido cadastrado"
+                        : situacao === "vencendo"
+                          ? "Vencendo em breve — renove"
+                          : "Não cadastrado ou expirado"}
+                    </p>
+                  </div>
+                </div>
+                {situacao !== "ok" && (
+                  <button
+                    onClick={() => {
+                      const dt = documentTypes.find((d) => d.id === tipo.id)
+                      setForm((f) => ({ ...f, document_type_id: tipo.id, tipo: tipo.nome }))
+                      void dt
+                      abrirNovo()
+                    }}
+                    className="shrink-0 ml-3 inline-flex items-center gap-1.5 rounded-lg border border-blue-700/50 bg-blue-950/40 px-3 py-1.5 text-xs font-medium text-blue-300 hover:bg-blue-900/60 transition-colors"
+                  >
+                    <Upload className="h-3 w-3" />
+                    Cadastrar
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-sm flex-1">
@@ -508,19 +565,13 @@ export function DocumentosClient({
             className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button asChild variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
-            <Link href="/onboarding/validar-perfil">
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Validar Perfil
-            </Link>
-          </Button>
-          <Button onClick={handleAbrirNovo} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Documento
-          </Button>
-        </div>
+        <Button onClick={abrirNovo} className="bg-blue-600 hover:bg-blue-700 shrink-0">
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Documento
+        </Button>
       </div>
+
+      {abaAtiva === "nicho" ? null : <>
 
       {/* Habilitação */}
       {companies.length > 0 && (
@@ -551,81 +602,7 @@ export function DocumentosClient({
                   </SelectContent>
                 </Select>
               </div>
-              <ChecklistHabilitacao
-                empresaId={checklistEmpresaId}
-                onAbrirNovoDocumento={() => abrirNovo(checklistEmpresaId)}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Nicho */}
-      {temNicho && (
-        <div className="rounded-xl border border-slate-700 bg-slate-800/50">
-          <button
-            className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
-            onClick={() => setNichoOpen((v) => !v)}
-          >
-            <div className="flex items-center gap-2">
-              <Tag className="h-4 w-4 text-purple-400" />
-              Documentos de Nicho
-              <span className="inline-flex items-center rounded-full border border-purple-500/40 bg-purple-950/30 px-2 py-0.5 text-[10px] font-medium text-purple-300">
-                {nichoTypes.length} tipo{nichoTypes.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-            <span className="text-xs text-slate-500">{nichoOpen ? "Fechar" : "Ver"}</span>
-          </button>
-          {nichoOpen && (
-            <div className="px-5 pb-5 border-t border-slate-700 space-y-3 pt-4">
-              <p className="text-xs text-slate-400">
-                Documentos específicos para os CNAEs cadastrados nas suas empresas.
-              </p>
-              <div className="space-y-2">
-                {nichoTypes.map((dt) => {
-                  const docsDoTipo = docs.filter((d) => {
-                    const tipoNorm = d.tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                    const nomeNorm = dt.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                    return tipoNorm.includes(nomeNorm) || nomeNorm.includes(tipoNorm)
-                  })
-                  const temDoc = docsDoTipo.length > 0
-                  const docAtivo = docsDoTipo.find((d) => d.status === "ativo")
-                  return (
-                    <div
-                      key={dt.id}
-                      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
-                        docAtivo
-                          ? "border-emerald-800/50 bg-emerald-950/20"
-                          : temDoc
-                            ? "border-amber-800/50 bg-amber-950/20"
-                            : "border-dashed border-slate-700 bg-slate-800/30"
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${docAtivo ? "text-emerald-300" : temDoc ? "text-amber-300" : "text-slate-400"}`}>
-                          {dt.nome}
-                        </p>
-                        {dt.categoria && (
-                          <p className="text-xs text-slate-500">{dt.categoria}</p>
-                        )}
-                      </div>
-                      {docAtivo ? (
-                        <span className="text-xs font-semibold text-emerald-400 shrink-0">OK</span>
-                      ) : temDoc ? (
-                        <span className="text-xs font-semibold text-amber-400 shrink-0">Atenção</span>
-                      ) : (
-                        <button
-                          onClick={handleAbrirNovo}
-                          className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors shrink-0"
-                        >
-                          <Plus className="h-3 w-3" />
-                          Adicionar
-                        </button>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+              <ChecklistHabilitacao empresaId={checklistEmpresaId} />
             </div>
           )}
         </div>
@@ -643,7 +620,7 @@ export function DocumentosClient({
               variant="outline"
               size="sm"
               className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700"
-              onClick={handleAbrirNovo}
+              onClick={abrirNovo}
             >
               <Plus className="h-4 w-4 mr-2" />
               Adicionar primeiro documento
@@ -825,6 +802,8 @@ export function DocumentosClient({
         </>
       )}
 
+      </>}
+
       {/* Sheet — formulário */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
@@ -860,18 +839,12 @@ export function DocumentosClient({
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="document_type_id" className="text-slate-300">
-                  Tipo de Documento <span className="text-red-400">*</span>
-                </Label>
-                {iaPreenchido.has("document_type_id") && <IaBadge />}
-              </div>
+              <Label htmlFor="document_type_id" className="text-slate-300">
+                Tipo de Documento <span className="text-red-400">*</span>
+              </Label>
               <Select
                 value={form.document_type_id}
-                onValueChange={(v) => {
-                  setIaPreenchido((s) => { const n = new Set(s); n.delete("document_type_id"); return n })
-                  handleDocumentTypeChange(v)
-                }}
+                onValueChange={handleDocumentTypeChange}
                 required
               >
                 <SelectTrigger id="document_type_id" className="bg-slate-800 border-slate-600 text-white">

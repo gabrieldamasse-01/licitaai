@@ -4,9 +4,7 @@ import { DocumentosClient } from "./documentos-client"
 export default async function DocumentosPage() {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const [{ data: documents }, { data: companies }, { data: allDocumentTypes }] =
+  const [{ data: documents }, { data: companies }, { data: documentTypes }] =
     await Promise.all([
       supabase
         .from("documents")
@@ -17,7 +15,7 @@ export default async function DocumentosPage() {
       supabase
         .from("companies")
         .select("id, razao_social, cnae")
-        .eq("user_id", user?.id ?? "")
+        .eq("ativo", true)
         .order("razao_social"),
       supabase
         .from("document_types")
@@ -25,24 +23,21 @@ export default async function DocumentosPage() {
         .order("nome"),
     ])
 
-  // Prefixos de 2 dígitos dos CNAEs de todas as empresas do usuário
-  // "4120-4/00" → remove tudo a partir do primeiro não-dígito → "4120" → slice(0,2) → "41"
-  const prefixos = (companies ?? []).flatMap((e) =>
-    ((e.cnae ?? []) as string[]).map((c) => c.replace(/\D.*/, "").slice(0, 2)).filter((p) => p.length === 2)
-  )
-  console.log("prefixos:", prefixos)
+  // Coletar todas as divisões CNAE do usuário (2 primeiros dígitos)
+  const cnaesDivisoes = new Set<string>()
+  for (const company of companies ?? []) {
+    for (const cnae of (company.cnae as string[] | null) ?? []) {
+      const divisao = cnae.replace(/\D/g, "").substring(0, 2)
+      if (divisao) cnaesDivisoes.add(divisao)
+    }
+  }
 
-  const documentTypes = (allDocumentTypes ?? []).filter(
-    (dt) => !dt.camada || dt.camada === "geral" || dt.camada === "habilitacao"
-  )
-
-  // Tipos de nicho que se aplicam aos CNAEs das empresas do usuário
-  const nichoTypes = (allDocumentTypes ?? []).filter((dt) => {
+  // Filtrar tipos de nicho aplicáveis ao perfil do usuário
+  const tiposNicho = (documentTypes ?? []).filter((dt) => {
     if (dt.camada !== "nicho") return false
-    if (!dt.cnaes_aplicaveis?.length) return true
-    return (dt.cnaes_aplicaveis as string[]).some((cnae) => prefixos.includes(cnae))
+    const cnaesDoc = (dt.cnaes_aplicaveis as string[] | null) ?? []
+    return cnaesDoc.some((c) => cnaesDivisoes.has(c))
   })
-  console.log("tiposNicho:", nichoTypes.length)
 
   return (
     <div className="space-y-6">
@@ -54,10 +49,9 @@ export default async function DocumentosPage() {
       </div>
       <DocumentosClient
         documents={documents ?? []}
-        companies={(companies ?? []).map(({ id, razao_social }) => ({ id, razao_social }))}
-        documentTypes={documentTypes}
-        nichoTypes={nichoTypes}
-        temNicho={nichoTypes.length > 0}
+        companies={(companies ?? []).map((c) => ({ id: c.id, razao_social: c.razao_social }))}
+        documentTypes={documentTypes ?? []}
+        tiposNicho={tiposNicho}
       />
     </div>
   )
