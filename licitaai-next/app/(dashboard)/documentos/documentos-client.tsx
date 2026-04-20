@@ -279,6 +279,7 @@ export function DocumentosClient({
     setArquivoErro(false)
     setForm((f) => ({ ...f, nome_arquivo: f.nome_arquivo || file.name }))
     analisarPDF(file)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleDragOver(e: React.DragEvent) {
