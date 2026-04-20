@@ -93,6 +93,15 @@ export async function aprovarPerfil(
 
   if (!empresa) return { error: "Empresa não encontrada" }
 
+  // Persistir CNAEs de volta em companies.cnae
+  const { error: cnaeError } = await supabase
+    .from("companies")
+    .update({ cnae: criterios.cnaes })
+    .eq("id", companyId)
+    .eq("user_id", user.id)
+
+  if (cnaeError) return { error: "Erro ao salvar CNAEs: " + cnaeError.message }
+
   const { error: insertError } = await supabase.from("perfis_validados").insert({
     company_id: companyId,
     user_id: user.id,

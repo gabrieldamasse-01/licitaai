@@ -65,7 +65,7 @@ export async function salvarCnaes(
     .eq('user_id', user.id)
 
   if (error) return { erro: error.message }
-  revalidatePath('/configuracoes')
+  revalidatePath('/(dashboard)/configuracoes')
   return { ok: true }
 }
 
