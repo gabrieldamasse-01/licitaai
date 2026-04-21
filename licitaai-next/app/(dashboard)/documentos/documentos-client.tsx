@@ -201,16 +201,17 @@ export function DocumentosClient({
     const nome = nomeArquivo.toLowerCase()
     const texto = textoPDF.toLowerCase()
 
-    if (nome.includes("cnd") || texto.includes("certidão negativa de débitos") || texto.includes("receita federal")) return "CND Federal"
+    if (nome.includes("estadual") || (texto.includes("certidão negativa") && texto.includes("estadual"))) return "CND Estadual"
+    if (nome.includes("municipal") || (texto.includes("certidão negativa") && texto.includes("municipal"))) return "CND Municipal"
+    if (nome.includes("cnd_federal") || nome.includes("cnd-federal") || texto.includes("receita federal") || texto.includes("pgfn")) return "CND Federal"
     if (nome.includes("fgts") || texto.includes("certificado de regularidade do fgts")) return "Certificado de Regularidade FGTS"
-    if (nome.includes("cndt") || texto.includes("certidão negativa de débitos trabalhistas")) return "CNDT"
+    if (nome.includes("cndt") || texto.includes("débitos trabalhistas")) return "CNDT"
     if (nome.includes("alvara") || texto.includes("alvará de funcionamento")) return "Alvará de Funcionamento"
     if (nome.includes("contrato_social") || nome.includes("estatuto") || texto.includes("contrato social")) return "Contrato Social / Estatuto"
     if (nome.includes("procuracao") || texto.includes("procuração")) return "Procuração"
     if (nome.includes("art") || nome.includes("rrt") || texto.includes("anotação de responsabilidade técnica")) return "ART/RRT do Responsável Técnico"
     if (nome.includes("crea") || texto.includes("conselho regional de engenharia")) return "Registro CREA/CAU"
-    if (texto.includes("certidão") && texto.includes("estadual")) return "CND Estadual"
-    if (texto.includes("certidão") && texto.includes("municipal")) return "CND Municipal"
+    if (nome.includes("cnd") || texto.includes("certidão negativa")) return "CND Federal"
     return null
   }
 
