@@ -36,7 +36,7 @@ export default async function DocumentosPage() {
   }
 
   const documentTypes = (allDocumentTypes ?? []).filter(
-    (dt) => !dt.camada || dt.camada === "habilitacao"
+    (dt) => !dt.camada || dt.camada === "geral" || dt.camada === "habilitacao"
   )
 
   // Tipos de nicho que se aplicam aos CNAEs das empresas do usuário

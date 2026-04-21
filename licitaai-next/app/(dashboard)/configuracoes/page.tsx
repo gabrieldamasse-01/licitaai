@@ -39,7 +39,7 @@ export default async function ConfiguracoesPage() {
       </div>
 
       <ConfiguracoesClient
-        company={company ?? null}
+        company={company ? { ...company, cnae: Array.isArray(company.cnae) ? company.cnae : [] } : null}
         prefs={
           prefs
             ? {
