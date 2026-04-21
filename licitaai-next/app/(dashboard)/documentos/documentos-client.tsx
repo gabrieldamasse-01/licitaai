@@ -197,6 +197,23 @@ export function DocumentosClient({
     return null
   }
 
+  function identificarTipoDocumento(nomeArquivo: string, textoPDF: string): string | null {
+    const nome = nomeArquivo.toLowerCase()
+    const texto = textoPDF.toLowerCase()
+
+    if (nome.includes("cnd") || texto.includes("certidão negativa de débitos") || texto.includes("receita federal")) return "CND Federal"
+    if (nome.includes("fgts") || texto.includes("certificado de regularidade do fgts")) return "Certificado de Regularidade FGTS"
+    if (nome.includes("cndt") || texto.includes("certidão negativa de débitos trabalhistas")) return "CNDT"
+    if (nome.includes("alvara") || texto.includes("alvará de funcionamento")) return "Alvará de Funcionamento"
+    if (nome.includes("contrato_social") || nome.includes("estatuto") || texto.includes("contrato social")) return "Contrato Social / Estatuto"
+    if (nome.includes("procuracao") || texto.includes("procuração")) return "Procuração"
+    if (nome.includes("art") || nome.includes("rrt") || texto.includes("anotação de responsabilidade técnica")) return "ART/RRT do Responsável Técnico"
+    if (nome.includes("crea") || texto.includes("conselho regional de engenharia")) return "Registro CREA/CAU"
+    if (texto.includes("certidão") && texto.includes("estadual")) return "CND Estadual"
+    if (texto.includes("certidão") && texto.includes("municipal")) return "CND Municipal"
+    return null
+  }
+
   function extrairDatasDoTexto(texto: string): { emissao: string; validade: string } {
     const padroes = [
       /(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})/g,
@@ -253,9 +270,13 @@ export function DocumentosClient({
       console.log("[PDF] Texto extraído (primeiros 500 chars):", texto.slice(0, 500))
 
       const { emissao, validade } = extrairDatasDoTexto(texto)
+      const tipoIdentificado = identificarTipoDocumento(file.name, texto)
+      const dtEncontrado = tipoIdentificado
+        ? documentTypes.find((dt) => dt.nome.toLowerCase() === tipoIdentificado.toLowerCase())
+        : null
 
-      if (!emissao) {
-        console.log("[PDF] Nenhuma data válida encontrada no texto")
+      if (!emissao && !dtEncontrado) {
+        console.log("[PDF] Nenhuma data ou tipo identificado")
         setIaStatus("nao_encontrado")
         return
       }
@@ -263,11 +284,18 @@ export function DocumentosClient({
       const preenchidos = new Set<string>()
       setForm((f) => {
         const updates: Partial<DocumentoFormData> = {}
-        updates.data_emissao = emissao
-        preenchidos.add("data_emissao")
+        if (emissao) {
+          updates.data_emissao = emissao
+          preenchidos.add("data_emissao")
+        }
         if (validade && validade !== emissao) {
           updates.data_validade = validade
           preenchidos.add("data_validade")
+        }
+        if (dtEncontrado) {
+          updates.document_type_id = dtEncontrado.id
+          updates.tipo = dtEncontrado.nome
+          preenchidos.add("document_type_id")
         }
         return { ...f, ...updates }
       })
@@ -810,12 +838,18 @@ export function DocumentosClient({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="document_type_id" className="text-slate-300">
-                Tipo de Documento <span className="text-red-400">*</span>
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="document_type_id" className="text-slate-300">
+                  Tipo de Documento <span className="text-red-400">*</span>
+                </Label>
+                {iaPreenchido.has("document_type_id") && <IaBadge />}
+              </div>
               <Select
                 value={form.document_type_id}
-                onValueChange={handleDocumentTypeChange}
+                onValueChange={(v) => {
+                  setIaPreenchido((s) => { const n = new Set(s); n.delete("document_type_id"); return n })
+                  handleDocumentTypeChange(v)
+                }}
                 required
               >
                 <SelectTrigger id="document_type_id" className="bg-slate-800 border-slate-600 text-white">
