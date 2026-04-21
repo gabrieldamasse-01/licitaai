@@ -59,14 +59,14 @@ export async function salvarCnaes(
 
   const lista = cnaes.map((c) => c.trim()).filter(Boolean)
 
-  const { error, count } = await supabase
+  const { error, data: updated } = await supabase
     .from('companies')
     .update({ cnae: lista })
     .eq('user_id', user.id)
-    .select('id', { count: 'exact', head: true })
+    .select('id')
 
   if (error) return { erro: error.message }
-  if (count === 0) return { erro: 'Empresa não encontrada para este usuário' }
+  if (!updated || updated.length === 0) return { erro: 'Empresa não encontrada para este usuário' }
   revalidatePath('/configuracoes')
   revalidatePath('/documentos')
   return { ok: true }
