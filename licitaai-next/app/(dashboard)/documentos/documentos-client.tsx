@@ -198,20 +198,23 @@ export function DocumentosClient({
   }
 
   function identificarTipoDocumento(nomeArquivo: string, textoPDF: string): string | null {
-    const nome = nomeArquivo.toLowerCase()
-    const texto = textoPDF.toLowerCase()
+    const normalizar = (s: string) =>
+      s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 
-    if (nome.includes("estadual") || (texto.includes("certidão negativa") && texto.includes("estadual"))) return "CND Estadual"
-    if (nome.includes("municipal") || (texto.includes("certidão negativa") && texto.includes("municipal"))) return "CND Municipal"
+    const nome = normalizar(nomeArquivo)
+    const texto = normalizar(textoPDF)
+
+    if (nome.includes("estadual") || (texto.includes("certidao negativa") && texto.includes("estadual"))) return "CND Estadual"
+    if (nome.includes("municipal") || (texto.includes("certidao negativa") && texto.includes("municipal"))) return "CND Municipal"
     if (nome.includes("cnd_federal") || nome.includes("cnd-federal") || texto.includes("receita federal") || texto.includes("pgfn")) return "CND Federal"
-    if (nome.includes("fgts") || texto.includes("fgts") || texto.includes("certificado de regularidade do fgts")) return "Certificado de Regularidade FGTS"
-    if (nome.includes("cndt") || texto.includes("débitos trabalhistas")) return "CNDT"
-    if (nome.includes("alvara") || texto.includes("alvará de funcionamento")) return "Alvará de Funcionamento"
+    if (nome.includes("fgts") || texto.includes("fgts") || texto.includes("regularidade do fgts")) return "Certificado de Regularidade FGTS"
+    if (nome.includes("cndt") || texto.includes("debitos trabalhistas")) return "CNDT"
+    if (nome.includes("alvara") || texto.includes("alvara de funcionamento")) return "Alvará de Funcionamento"
     if (nome.includes("contrato_social") || nome.includes("estatuto") || texto.includes("contrato social")) return "Contrato Social / Estatuto"
-    if (nome.includes("procuracao") || texto.includes("procuração")) return "Procuração"
-    if (nome.includes("art") || nome.includes("rrt") || texto.includes("anotação de responsabilidade técnica")) return "ART/RRT do Responsável Técnico"
+    if (nome.includes("procuracao") || texto.includes("procuracao")) return "Procuração"
+    if (nome.includes("art") || nome.includes("rrt") || texto.includes("anotacao de responsabilidade tecnica")) return "ART/RRT do Responsável Técnico"
     if (nome.includes("crea") || texto.includes("conselho regional de engenharia")) return "Registro CREA/CAU"
-    if (nome.includes("cnd") || texto.includes("certidão negativa")) return "CND Federal"
+    if (nome.includes("cnd") || texto.includes("certidao negativa")) return "CND Federal"
     return null
   }
 
@@ -276,8 +279,10 @@ export function DocumentosClient({
       console.log("[PDF] Tipos disponíveis:", documentTypes.map((dt) => dt.nome))
       const dtEncontrado = tipoIdentificado
         ? documentTypes.find((dt) => {
-            const a = dt.nome.toLowerCase()
-            const b = tipoIdentificado.toLowerCase()
+            const normalizar = (s: string) =>
+              s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            const a = normalizar(dt.nome)
+            const b = normalizar(tipoIdentificado)
             return a === b || a.includes(b) || b.includes(a)
           })
         : null
