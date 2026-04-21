@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { UpgradeButton } from '@/components/upgrade-button'
+import { buscarCnaes, type CnaeSugerido } from '@/lib/cnaes-sugeridos'
 import {
   salvarPerfil,
   salvarCnaes,
@@ -197,16 +198,43 @@ function PerfilSection({ company }: { company: Company }) {
 
 // ─── 2. CNAEs ────────────────────────────────────────────────────────────────
 
+function validarCnae(val: string): string | null {
+  const digits = val.replace(/\D/g, '')
+  if (digits.length < 4) return 'Use o código CNAE (ex: 4120-4/00)'
+  return null
+}
+
 function CnaesSection({ initialCnaes }: { initialCnaes: string[] }) {
   const [cnaes, setCnaes] = useState<string[]>(initialCnaes)
   const [input, setInput] = useState('')
+  const [erro, setErro] = useState<string | null>(null)
+  const [sugestoes, setSugestoes] = useState<CnaeSugerido[]>([])
   const [isPending, startTransition] = useTransition()
 
-  function adicionar() {
-    const val = input.trim()
-    if (!val || cnaes.includes(val)) return
+  function handleInput(val: string) {
+    setInput(val)
+    setErro(null)
+    setSugestoes(val.trim().length >= 2 ? buscarCnaes(val) : [])
+  }
+
+  function adicionar(valor?: string) {
+    const val = (valor ?? input).trim()
+    if (!val) return
+    const err = validarCnae(val)
+    if (err) { setErro(err); return }
+    if (cnaes.includes(val)) { setErro('CNAE já adicionado'); return }
     setCnaes((prev) => [...prev, val])
     setInput('')
+    setErro(null)
+    setSugestoes([])
+  }
+
+  function selecionarSugestao(s: CnaeSugerido) {
+    if (cnaes.includes(s.codigo)) { setErro('CNAE já adicionado'); setSugestoes([]); return }
+    setCnaes((prev) => [...prev, s.codigo])
+    setInput('')
+    setErro(null)
+    setSugestoes([])
   }
 
   function remover(cnae: string) {
@@ -254,17 +282,45 @@ function CnaesSection({ initialCnaes }: { initialCnaes: string[] }) {
         )}
 
         {/* Adicionar novo */}
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), adicionar())}
-            placeholder="Ex: 6201-5/01 — Desenvolvimento de software"
-            className="flex-1 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-          />
-          <Button type="button" variant="outline" size="sm" onClick={adicionar}>
-            <Plus className="h-4 w-4" />
-          </Button>
+        <div className="relative space-y-1.5">
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => handleInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); adicionar() }
+                if (e.key === 'Escape') setSugestoes([])
+              }}
+              placeholder="Ex: 6201-5/00 ou digite a descrição"
+              className={`flex-1 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 ${erro ? 'border-red-500' : ''}`}
+            />
+            <Button type="button" variant="outline" size="sm" onClick={() => adicionar()}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Erro de validação */}
+          {erro && (
+            <p className="text-xs text-red-400">{erro}</p>
+          )}
+
+          {/* Sugestões */}
+          {sugestoes.length > 0 && (
+            <ul className="absolute z-10 left-0 right-10 rounded-lg border border-slate-600 bg-slate-800 shadow-lg overflow-hidden">
+              {sugestoes.map((s) => (
+                <li key={s.codigo}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); selecionarSugestao(s) }}
+                    className="w-full text-left px-3 py-2 text-xs hover:bg-slate-700 transition-colors flex items-baseline gap-2"
+                  >
+                    <span className="font-mono font-semibold text-blue-300 shrink-0">{s.codigo}</span>
+                    <span className="text-slate-300 truncate">{s.descricao}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <Button size="sm" onClick={salvar} disabled={isPending}>
