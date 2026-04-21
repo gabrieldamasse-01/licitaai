@@ -68,8 +68,10 @@ function ItemRow({ item }: { item: ChecklistItem }) {
 
 export function ChecklistHabilitacao({
   empresaId,
+  onAbrirNovoDocumento,
 }: {
   empresaId: string
+  onAbrirNovoDocumento?: () => void
 }) {
   const [itens, setItens] = useState<ChecklistItem[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -156,12 +158,10 @@ export function ChecklistHabilitacao({
           variant="outline"
           size="sm"
           className="w-full text-xs border-dashed border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white bg-transparent"
-          asChild
+          onClick={onAbrirNovoDocumento ?? (() => { window.location.href = "/documentos" })}
         >
-          <a href="/documentos">
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Cadastrar {faltando.length === 1 ? "documento faltante" : `${faltando.length} documentos faltantes`}
-          </a>
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          Cadastrar {faltando.length === 1 ? "documento faltante" : `${faltando.length} documentos faltantes`}
         </Button>
       )}
     </div>

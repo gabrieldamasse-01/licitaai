@@ -173,8 +173,8 @@ export function DocumentosClient({
     )
   }, [docs, busca])
 
-  function abrirNovo() {
-    setForm(emptyForm)
+  function abrirNovo(preCompanyId?: string) {
+    setForm({ ...emptyForm, company_id: preCompanyId ?? "" })
     setArquivo(null)
     setArquivoErro(false)
     setUploadProgress(0)
@@ -499,7 +499,10 @@ export function DocumentosClient({
                   </SelectContent>
                 </Select>
               </div>
-              <ChecklistHabilitacao empresaId={checklistEmpresaId} />
+              <ChecklistHabilitacao
+                empresaId={checklistEmpresaId}
+                onAbrirNovoDocumento={() => abrirNovo(checklistEmpresaId)}
+              />
             </div>
           )}
         </div>
