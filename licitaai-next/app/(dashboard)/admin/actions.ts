@@ -328,17 +328,23 @@ export async function enviarEmailAdmin(
   `
 
   try {
-    const { error } = await resend.emails.send({
+    const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: userEmail,
       subject: assunto,
       html,
     })
 
-    if (error) return { error: "Erro ao enviar email." }
+    console.error("[enviarEmailAdmin] result:", JSON.stringify(result))
+
+    if (result.error) {
+      console.error("[enviarEmailAdmin] Resend error:", JSON.stringify(result.error))
+      return { error: `Erro Resend: ${result.error.message ?? JSON.stringify(result.error)}` }
+    }
 
     return { success: true }
-  } catch {
-    return { error: "Erro inesperado ao enviar email." }
+  } catch (err) {
+    console.error("[enviarEmailAdmin] exception:", err)
+    return { error: `Erro inesperado: ${String(err)}` }
   }
 }
