@@ -25,15 +25,12 @@ export default async function DocumentosPage() {
         .order("nome"),
     ])
 
-  // CNAEs de todas as empresas do usuário (primeiros 2 dígitos para comparação)
-  const cnaesPrefixes = new Set<string>()
-  for (const company of companies ?? []) {
-    for (const cnae of (company.cnae ?? []) as string[]) {
-      // ex: "4120-4/00" → "41", ou "4120400" → "41"
-      const digits = cnae.replace(/\D/g, "")
-      if (digits.length >= 2) cnaesPrefixes.add(digits.slice(0, 2))
-    }
-  }
+  // Prefixos de 2 dígitos dos CNAEs de todas as empresas do usuário
+  // "4120-4/00" → remove tudo a partir do primeiro não-dígito → "4120" → slice(0,2) → "41"
+  const prefixos = (companies ?? []).flatMap((e) =>
+    ((e.cnae ?? []) as string[]).map((c) => c.replace(/\D.*/, "").slice(0, 2)).filter((p) => p.length === 2)
+  )
+  console.log("prefixos:", prefixos)
 
   const documentTypes = (allDocumentTypes ?? []).filter(
     (dt) => !dt.camada || dt.camada === "geral" || dt.camada === "habilitacao"
@@ -43,8 +40,9 @@ export default async function DocumentosPage() {
   const nichoTypes = (allDocumentTypes ?? []).filter((dt) => {
     if (dt.camada !== "nicho") return false
     if (!dt.cnaes_aplicaveis?.length) return true
-    return (dt.cnaes_aplicaveis as string[]).some((c) => cnaesPrefixes.has(c))
+    return (dt.cnaes_aplicaveis as string[]).some((cnae) => prefixos.includes(cnae))
   })
+  console.log("tiposNicho:", nichoTypes.length)
 
   return (
     <div className="space-y-6">
