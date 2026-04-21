@@ -184,6 +184,8 @@ export function DocumentosClient({
     setSheetOpen(true)
   }
 
+  const handleAbrirNovo = () => abrirNovo()
+
   function handleDocumentTypeChange(id: string) {
     const dt = documentTypes.find((t) => t.id === id)
     setForm((f) => ({ ...f, document_type_id: id, tipo: dt?.nome ?? "" }))
@@ -464,7 +466,7 @@ export function DocumentosClient({
             className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
-        <Button onClick={abrirNovo} className="bg-blue-600 hover:bg-blue-700 shrink-0">
+        <Button onClick={handleAbrirNovo} className="bg-blue-600 hover:bg-blue-700 shrink-0">
           <Plus className="h-4 w-4 mr-2" />
           Novo Documento
         </Button>
@@ -563,7 +565,7 @@ export function DocumentosClient({
                         <span className="text-xs font-semibold text-amber-400 shrink-0">Atenção</span>
                       ) : (
                         <button
-                          onClick={abrirNovo}
+                          onClick={handleAbrirNovo}
                           className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600 transition-colors shrink-0"
                         >
                           <Plus className="h-3 w-3" />
@@ -591,7 +593,7 @@ export function DocumentosClient({
               variant="outline"
               size="sm"
               className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700"
-              onClick={abrirNovo}
+              onClick={handleAbrirNovo}
             >
               <Plus className="h-4 w-4 mr-2" />
               Adicionar primeiro documento
