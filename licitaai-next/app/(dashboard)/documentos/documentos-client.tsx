@@ -204,7 +204,7 @@ export function DocumentosClient({
     if (nome.includes("estadual") || (texto.includes("certidão negativa") && texto.includes("estadual"))) return "CND Estadual"
     if (nome.includes("municipal") || (texto.includes("certidão negativa") && texto.includes("municipal"))) return "CND Municipal"
     if (nome.includes("cnd_federal") || nome.includes("cnd-federal") || texto.includes("receita federal") || texto.includes("pgfn")) return "CND Federal"
-    if (nome.includes("fgts") || texto.includes("certificado de regularidade do fgts")) return "Certificado de Regularidade FGTS"
+    if (nome.includes("fgts") || texto.includes("fgts") || texto.includes("certificado de regularidade do fgts")) return "Certificado de Regularidade FGTS"
     if (nome.includes("cndt") || texto.includes("débitos trabalhistas")) return "CNDT"
     if (nome.includes("alvara") || texto.includes("alvará de funcionamento")) return "Alvará de Funcionamento"
     if (nome.includes("contrato_social") || nome.includes("estatuto") || texto.includes("contrato social")) return "Contrato Social / Estatuto"
@@ -272,9 +272,16 @@ export function DocumentosClient({
 
       const { emissao, validade } = extrairDatasDoTexto(texto)
       const tipoIdentificado = identificarTipoDocumento(file.name, texto)
+      console.log("[PDF] Tipo identificado:", tipoIdentificado)
+      console.log("[PDF] Tipos disponíveis:", documentTypes.map((dt) => dt.nome))
       const dtEncontrado = tipoIdentificado
-        ? documentTypes.find((dt) => dt.nome.toLowerCase() === tipoIdentificado.toLowerCase())
+        ? documentTypes.find((dt) => {
+            const a = dt.nome.toLowerCase()
+            const b = tipoIdentificado.toLowerCase()
+            return a === b || a.includes(b) || b.includes(a)
+          })
         : null
+      console.log("[PDF] Tipo encontrado no banco:", dtEncontrado?.nome ?? "nenhum")
 
       if (!emissao && !dtEncontrado) {
         console.log("[PDF] Nenhuma data ou tipo identificado")
