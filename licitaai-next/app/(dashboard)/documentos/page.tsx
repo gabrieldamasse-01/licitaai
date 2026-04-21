@@ -17,7 +17,7 @@ export default async function DocumentosPage() {
       supabase
         .from("companies")
         .select("id, razao_social, cnae")
-        .eq("ativo", true)
+        .eq("user_id", user?.id ?? "")
         .order("razao_social"),
       supabase
         .from("document_types")

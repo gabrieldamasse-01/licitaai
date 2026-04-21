@@ -65,7 +65,8 @@ export async function salvarCnaes(
     .eq('user_id', user.id)
 
   if (error) return { erro: error.message }
-  revalidatePath('/(dashboard)/configuracoes')
+  revalidatePath('/configuracoes')
+  revalidatePath('/documentos')
   return { ok: true }
 }
 
@@ -282,7 +283,7 @@ export async function salvarEmailContato(
     .eq('user_id', user.id)
 
   if (error) return { erro: error.message }
-  revalidatePath('/(dashboard)/configuracoes')
+  revalidatePath('/configuracoes')
   return { ok: true }
 }
 
