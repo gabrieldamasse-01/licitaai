@@ -266,6 +266,33 @@ export async function removerColaborador(
   return {}
 }
 
+export async function sincronizarPortal(
+  portal: "effecti" | "pncp"
+): Promise<{ success?: boolean; error?: string }> {
+  const adminOk = await isAdmin()
+  if (!adminOk) return { error: "Acesso negado." }
+
+  const secret = process.env.CRON_SECRET ?? ""
+  const url =
+    portal === "effecti"
+      ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"}/api/cron/licitacoes`
+      : `${process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"}/api/cron/licitacoes-pncp`
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}` },
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      return { error: `Erro ${res.status}: ${text}` }
+    }
+    return { success: true }
+  } catch (err) {
+    return { error: String(err) }
+  }
+}
+
 export async function enviarEmailAdmin(
   userEmail: string,
   assunto: string,
@@ -331,7 +358,7 @@ export async function enviarEmailAdmin(
     console.error("[enviarEmailAdmin] FROM_EMAIL:", FROM_EMAIL)
     console.error("[enviarEmailAdmin] API_KEY exists:", !!process.env.RESEND_API_KEY)
     const result = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: "LicitaAI <onboarding@resend.dev>",
       to: userEmail,
       subject: assunto,
       html,

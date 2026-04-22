@@ -48,6 +48,7 @@ import {
   salvarPortalConfig,
   adicionarColaborador,
   removerColaborador,
+  sincronizarPortal,
 } from "./actions"
 
 const MASTER_EMAIL = "gabriel.damasse@mgnext.com"
@@ -439,22 +440,13 @@ export default function AdminClient({
 
   async function handleSincronizar(portal: "effecti" | "pncp") {
     setSincronizando((prev) => ({ ...prev, [portal]: true }))
-    const rota = portal === "effecti" ? "/api/cron/licitacoes" : "/api/cron/licitacoes-pncp"
     try {
-      const res = await fetch(rota, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET ?? "sync"}`,
-        },
-      })
-      if (res.ok) {
-        toast.success("Sincronização iniciada!")
+      const result = await sincronizarPortal(portal)
+      if (result.error) {
+        toast.error(result.error)
       } else {
-        const json = await res.json().catch(() => ({}))
-        toast.error(json.error ?? `Erro ${res.status}`)
+        toast.success("Sincronização iniciada!")
       }
-    } catch {
-      toast.error("Erro ao conectar com o servidor")
     } finally {
       setSincronizando((prev) => ({ ...prev, [portal]: false }))
     }

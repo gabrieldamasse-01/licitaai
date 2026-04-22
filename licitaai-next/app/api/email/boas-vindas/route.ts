@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const nome = razao_social || firstName
 
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: "LicitaAI <onboarding@resend.dev>",
       to: email,
       subject: "Bem-vindo ao LicitaAI! 🎉",
       html: `
