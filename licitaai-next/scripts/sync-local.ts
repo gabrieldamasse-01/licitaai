@@ -26,7 +26,20 @@ async function sincronizar(portal: "effecti" | "pncp") {
 }
 
 async function loop() {
-  console.log("🚀 Sync local iniciado. Intervalo: 60 minutos. Ctrl+C para parar.\n")
+  const secretPreview = SECRET
+    ? `${SECRET.slice(0, 6)}...${SECRET.slice(-4)}`
+    : "(VAZIO — vai gerar 401)"
+
+  console.log("🚀 Sync local iniciado. Intervalo: 60 minutos. Ctrl+C para parar.")
+  console.log(`   BASE_URL : ${BASE_URL}`)
+  console.log(`   CRON_SECRET: ${secretPreview}`)
+  console.log()
+
+  if (!SECRET) {
+    console.error("❌ CRON_SECRET não encontrado no .env.local — todas as chamadas retornarão 401.")
+    process.exit(1)
+  }
+
   await sincronizar("effecti")
   await sincronizar("pncp")
 
