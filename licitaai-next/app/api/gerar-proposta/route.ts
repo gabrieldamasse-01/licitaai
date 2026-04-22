@@ -20,7 +20,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "licitacao_id e company_id são obrigatórios" }, { status: 400 })
     }
 
-    const { data: lic } = await supabase
+    const service = createServiceClient()
+
+    const { data: lic } = await service
       .from("licitacoes")
       .select("objeto, orgao, valor_estimado, data_encerramento, source_url")
       .eq("id", licitacao_id)
@@ -30,11 +32,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Licitação não encontrada" }, { status: 404 })
     }
 
-    const { data: empresa } = await supabase
+    const { data: empresa } = await service
       .from("companies")
       .select("razao_social, cnpj, cnaes")
       .eq("id", company_id)
-      .eq("user_id", user.id)
       .single()
 
     if (!empresa) {
@@ -86,8 +87,7 @@ Escreva em português formal, adequado para licitações públicas brasileiras.`
 
     const proposta = block.text
 
-    const serviceClient = createServiceClient()
-    await serviceClient.from("propostas_geradas").insert({
+    await service.from("propostas_geradas").insert({
       user_id: user.id,
       licitacao_id,
       company_id,
