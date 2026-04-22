@@ -32,6 +32,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Licitação não encontrada" }, { status: 404 })
     }
 
+    console.error("[gerar-proposta] company_id recebido:", company_id)
+    console.error("[gerar-proposta] user.id:", user.id)
+
+    // Buscar todas as companies para debug
+    const { data: todasEmpresas } = await service.from("companies").select("id, razao_social").limit(10)
+    console.error("[gerar-proposta] empresas no banco:", JSON.stringify(todasEmpresas))
+
     const { data: empresa } = await service
       .from("companies")
       .select("razao_social, cnpj, cnaes")
