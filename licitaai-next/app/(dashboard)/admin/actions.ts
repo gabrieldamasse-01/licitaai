@@ -328,6 +328,8 @@ export async function enviarEmailAdmin(
   `
 
   try {
+    console.error("[enviarEmailAdmin] FROM_EMAIL:", FROM_EMAIL)
+    console.error("[enviarEmailAdmin] API_KEY exists:", !!process.env.RESEND_API_KEY)
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: userEmail,
