@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
           ]
 
     const message = await anthropic.messages.create({
-      model: getModel("classificacao"),
-      max_tokens: getMaxTokens("resumo_curto"),
+      model: getModel("analise_licitacao"),
+      max_tokens: getMaxTokens("analise_licitacao"),
       messages: [{ role: "user", content }],
     })
 
