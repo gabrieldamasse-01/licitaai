@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
+import { getModel, getMaxTokens } from "@/lib/ai-model"
 
 export const maxDuration = 60
 
@@ -76,8 +77,8 @@ Escreva em português formal, adequado para licitações públicas brasileiras.`
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      model: getModel("geracao_codigo"),
+      max_tokens: getMaxTokens("geracao_longa"),
       messages: [{ role: "user", content: prompt }],
     })
 

@@ -3,6 +3,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
+import { getModel, getMaxTokens } from "@/lib/ai-model"
 
 async function getEntrevistaComPermissao(entrevistaId: string) {
   const supabase = await createClient()
@@ -92,8 +93,8 @@ async function gerarPerfilViaIA(respostas: Record<string, unknown>): Promise<Rec
       .join("\n")
 
     const message = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      model: getModel("analise"),
+      max_tokens: getMaxTokens("analise_media"),
       messages: [
         {
           role: "user",
