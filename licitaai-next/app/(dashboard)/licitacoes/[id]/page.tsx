@@ -5,6 +5,8 @@ import { ptBR } from "date-fns/locale"
 import { ArrowLeft, Building2, Scale } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/service"
+import { getImpersonatingUserId } from "@/lib/impersonation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AnaliseIaSection } from "./analise-ia-section"
@@ -97,11 +99,14 @@ export default async function LicitacaoDetalhePage({
   const matches = (matchesRaw ?? []) as unknown as MatchRow[]
 
   // Empresas do usuário (para salvar oportunidade)
-  const { data: empresas } = user
-    ? await supabase
+  // Usa service client para bypassar RLS quando admin está impersonando um cliente
+  const impersonatingUserId = await getImpersonatingUserId()
+  const effectiveUserId = impersonatingUserId ?? user?.id
+  const { data: empresas } = effectiveUserId
+    ? await createServiceClient()
         .from("companies")
         .select("id, razao_social")
-        .eq("user_id", user.id)
+        .eq("user_id", effectiveUserId)
         .order("razao_social")
     : { data: [] }
 
