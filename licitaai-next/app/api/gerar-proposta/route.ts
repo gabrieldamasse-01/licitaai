@@ -32,16 +32,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Licitação não encontrada" }, { status: 404 })
     }
 
-    console.error("[gerar-proposta] company_id recebido:", company_id)
-    console.error("[gerar-proposta] user.id:", user.id)
-
-    // Buscar todas as companies para debug
-    const { data: todasEmpresas } = await service.from("companies").select("id, razao_social").limit(10)
-    console.error("[gerar-proposta] empresas no banco:", JSON.stringify(todasEmpresas))
-
     const { data: empresa } = await service
       .from("companies")
-      .select("razao_social, cnpj, cnaes")
+      .select("razao_social, cnpj, cnae")
       .eq("id", company_id)
       .single()
 
@@ -68,6 +61,7 @@ LICITAÇÃO:
 EMPRESA:
 - Razão Social: ${empresa.razao_social}
 - CNPJ: ${empresa.cnpj}
+- CNAE: ${empresa.cnae}
 
 A proposta deve conter:
 1. Identificação da empresa
