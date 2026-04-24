@@ -93,8 +93,8 @@ async function gerarPerfilViaIA(respostas: Record<string, unknown>): Promise<Rec
       .join("\n")
 
     const message = await client.messages.create({
-      model: getModel("analise"),
-      max_tokens: getMaxTokens("analise_media"),
+      model: getModel("entrevista_onboarding"),
+      max_tokens: getMaxTokens("entrevista_onboarding"),
       messages: [
         {
           role: "user",
