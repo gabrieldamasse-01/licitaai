@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList } from "lucide-react"
+import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck } from "lucide-react"
 import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
@@ -254,6 +254,27 @@ async function getEntrevistaConcluida(userId: string | null): Promise<boolean> {
   return data !== null
 }
 
+// ─── Perfil validado ──────────────────────────────────────────────────────────
+
+async function getPerfilValidado(userId: string | null): Promise<boolean> {
+  if (userId) {
+    const { data } = await createServiceClient()
+      .from("perfis_validados")
+      .select("id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle()
+    return data !== null
+  }
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("perfis_validados")
+    .select("id")
+    .limit(1)
+    .maybeSingle()
+  return data !== null
+}
+
 // ─── Metric cards config ──────────────────────────────────────────────────────
 
 const metricCards = [
@@ -297,12 +318,13 @@ export default async function DashboardPage() {
   // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida] = await Promise.all([
+  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado] = await Promise.all([
     getMetrics(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
     getEngajamento(impersonatingUserId),
     getEntrevistaConcluida(impersonatingUserId),
+    getPerfilValidado(impersonatingUserId),
   ])
 
   return (
@@ -517,6 +539,33 @@ export default async function DashboardPage() {
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
+
+      {/* Card Validar Perfil — visível somente quando entrevista concluída mas perfil não validado */}
+      {entrevistaConcluida && !perfilValidado && (
+        <div className="rounded-2xl border border-amber-800/50 bg-amber-950/30 p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-900/50">
+            <ShieldCheck className="h-6 w-6 text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <h2 className="text-base font-semibold text-white">Valide seu perfil</h2>
+              <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold border bg-amber-900/50 text-amber-400 border-amber-700/50">
+                Ação necessária
+              </span>
+            </div>
+            <p className="text-sm text-slate-400">
+              Confirme os critérios de busca e ajuste os pesos de ranqueamento para resultados mais precisos.
+            </p>
+          </div>
+          <Link
+            href="/onboarding/validar-perfil"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-900/30 transition-all active:scale-95 whitespace-nowrap"
+          >
+            Validar agora
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
 
       {/* Card de Engajamento */}
       <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">

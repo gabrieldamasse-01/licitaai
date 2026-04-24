@@ -76,7 +76,14 @@ export async function aprovarPerfil(
     faixa_valor_min: number | null
     faixa_valor_max: number | null
     modalidades: string[]
-  }
+  },
+  pesos: {
+    cnae: number
+    uf: number
+    valor: number
+    modalidade: number
+  },
+  editaisAmostra?: unknown[],
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
   const {
@@ -93,20 +100,30 @@ export async function aprovarPerfil(
 
   if (!empresa) return { error: "Empresa não encontrada" }
 
-  // Persistir CNAEs de volta em companies.cnae
   const { error: cnaeError } = await supabase
     .from("companies")
-    .update({ cnae: criterios.cnaes })
+    .update({
+      cnae: criterios.cnaes,
+      ...(criterios.palavras_chave.length && { keywords: criterios.palavras_chave }),
+      ...(criterios.ufs.length && { ufs_interesse: criterios.ufs }),
+      ...(criterios.faixa_valor_min !== null && { valor_min: criterios.faixa_valor_min }),
+      ...(criterios.faixa_valor_max !== null && { valor_max: criterios.faixa_valor_max }),
+    })
     .eq("id", companyId)
     .eq("user_id", user.id)
 
-  if (cnaeError) return { error: "Erro ao salvar CNAEs: " + cnaeError.message }
+  if (cnaeError) return { error: "Erro ao salvar preferências: " + cnaeError.message }
 
   const { error: insertError } = await supabase.from("perfis_validados").insert({
     company_id: companyId,
     user_id: user.id,
     criterios_busca: criterios,
-    criterios_ranqueamento: { algoritmo: "scoring_v1", threshold: 70 },
+    criterios_ranqueamento: {
+      algoritmo: "scoring_v2_ponderado",
+      threshold: 70,
+      pesos,
+    },
+    editais_amostra: editaisAmostra ?? null,
     validado_em: new Date().toISOString(),
   })
 
@@ -121,5 +138,5 @@ export async function aprovarPerfil(
   })
 
   revalidatePath("/dashboard")
-  redirect("/dashboard")
+  redirect("/oportunidades")
 }
