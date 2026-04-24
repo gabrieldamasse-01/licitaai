@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  Brain,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -26,8 +27,9 @@ const mainNav = [
   { href: "/clientes",     label: "Clientes",     icon: Building2,       iconColor: "text-indigo-400" },
   { href: "/documentos",   label: "Documentos",   icon: FileText,        iconColor: "text-amber-400" },
   { href: "/licitacoes",   label: "Licitações",   icon: Search,          iconColor: "text-emerald-400" },
-  { href: "/oportunidades",label: "Oportunidades",icon: Target,          iconColor: "text-violet-400" },
-  { href: "/relatorios",   label: "Relatórios",   icon: BarChart3,       iconColor: "text-cyan-400" },
+  { href: "/oportunidades",      label: "Oportunidades",      icon: Target,  iconColor: "text-violet-400" },
+  { href: "/onboarding/entrevista", label: "Entrevista de Perfil", icon: Brain,   iconColor: "text-pink-400" },
+  { href: "/relatorios",         label: "Relatórios",         icon: BarChart3, iconColor: "text-cyan-400" },
 ]
 
 const secondaryNav = [

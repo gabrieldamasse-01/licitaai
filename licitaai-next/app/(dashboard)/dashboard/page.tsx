@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity } from "lucide-react"
+import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList } from "lucide-react"
 import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
@@ -231,6 +231,29 @@ async function getUltimasOportunidades(userId: string | null) {
   return data ?? []
 }
 
+// ─── Entrevista de perfil ─────────────────────────────────────────────────────
+
+async function getEntrevistaConcluida(userId: string | null): Promise<boolean> {
+  if (userId) {
+    const { data } = await createServiceClient()
+      .from("entrevistas_onboarding")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "concluida")
+      .limit(1)
+      .maybeSingle()
+    return data !== null
+  }
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("entrevistas_onboarding")
+    .select("id")
+    .eq("status", "concluida")
+    .limit(1)
+    .maybeSingle()
+  return data !== null
+}
+
 // ─── Metric cards config ──────────────────────────────────────────────────────
 
 const metricCards = [
@@ -274,11 +297,12 @@ export default async function DashboardPage() {
   // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades, engajamento] = await Promise.all([
+  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida] = await Promise.all([
     getMetrics(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
     getEngajamento(impersonatingUserId),
+    getEntrevistaConcluida(impersonatingUserId),
   ])
 
   return (
@@ -453,6 +477,45 @@ export default async function DashboardPage() {
           )}
         </div>
 
+      </div>
+
+      {/* Card Perfil de Licitações */}
+      <div className={`rounded-2xl border p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 ${
+        entrevistaConcluida
+          ? "border-emerald-800/50 bg-emerald-950/30"
+          : "border-blue-800/50 bg-blue-950/30"
+      }`}>
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+          entrevistaConcluida ? "bg-emerald-900/50" : "bg-blue-900/50"
+        }`}>
+          <ClipboardList className={`h-6 w-6 ${entrevistaConcluida ? "text-emerald-400" : "text-blue-400"}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <h2 className="text-base font-semibold text-white">Perfil de Licitações</h2>
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold border ${
+              entrevistaConcluida
+                ? "bg-emerald-900/50 text-emerald-400 border-emerald-700/50"
+                : "bg-amber-900/50 text-amber-400 border-amber-700/50"
+            }`}>
+              {entrevistaConcluida ? "Concluído" : "Pendente"}
+            </span>
+          </div>
+          <p className="text-sm text-slate-400">
+            Responda 8 perguntas e nossa IA otimiza suas oportunidades
+          </p>
+        </div>
+        <Link
+          href="/onboarding/entrevista"
+          className={`shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all active:scale-95 whitespace-nowrap ${
+            entrevistaConcluida
+              ? "bg-emerald-700 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30"
+              : "bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/30"
+          }`}
+        >
+          {entrevistaConcluida ? "Refazer entrevista" : "Iniciar entrevista"}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
 
       {/* Card de Engajamento */}
