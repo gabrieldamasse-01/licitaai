@@ -3,7 +3,8 @@
 import { useState, useTransition, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Plus, Search, Pencil, PowerOff, Power, Building2 } from "lucide-react"
+import { Plus, Search, Pencil, PowerOff, Power, Building2, Target } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -160,10 +161,18 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
             className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-300"
           />
         </div>
-        <Button onClick={abrirNova} className="bg-blue-600 hover:bg-blue-700 shrink-0">
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Empresa
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <Button asChild variant="outline" className="border-blue-600 text-white hover:bg-blue-600/10">
+            <Link href="/onboarding/validar-perfil">
+              <Target className="h-4 w-4 mr-2" />
+              Validar Perfil
+            </Link>
+          </Button>
+          <Button onClick={abrirNova} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Empresa
+          </Button>
+        </div>
       </div>
 
       {/* Tabela desktop / Cards mobile */}
