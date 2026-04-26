@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles } from "lucide-react"
+import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck } from "lucide-react"
 import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
@@ -65,6 +65,68 @@ async function getCompanyIds(userId: string): Promise<string[]> {
   const service = createServiceClient()
   const { data } = await service.from("companies").select("id").eq("user_id", userId)
   return (data ?? []).map((c) => c.id as string)
+}
+
+// ─── Engajamento ──────────────────────────────────────────────────────────────
+
+async function getEngajamento(userId: string | null) {
+  const inicioMes = new Date()
+  inicioMes.setDate(1)
+  inicioMes.setHours(0, 0, 0, 0)
+  const inicioMesStr = inicioMes.toISOString()
+
+  if (userId) {
+    const service = createServiceClient()
+    const companyIds = await getCompanyIds(userId)
+
+    if (companyIds.length === 0) {
+      return { visualizadas: 0, salvas: 0, docsPct: 0, notifHorario: '08:00' }
+    }
+
+    const [visualizadas, salvas, docsTotal, docsValidos, prefs] = await Promise.all([
+      service.from('matches').select('*', { count: 'exact', head: true }).in('company_id', companyIds).neq('status', 'novo').gte('updated_at', inicioMesStr),
+      service.from('matches').select('*', { count: 'exact', head: true }).in('company_id', companyIds),
+      service.from('documents').select('*', { count: 'exact', head: true }).in('company_id', companyIds),
+      service.from('documents').select('*', { count: 'exact', head: true }).in('company_id', companyIds).eq('status', 'valido'),
+      service.from('user_preferences').select('notif_config').eq('user_id', userId).single(),
+    ])
+
+    const totalDocs = docsTotal.count ?? 0
+    const validosDocs = docsValidos.count ?? 0
+    const docsPct = totalDocs > 0 ? Math.round((validosDocs / totalDocs) * 100) : 0
+    const notifConfig = prefs.data?.notif_config as { horario?: string } | null
+    const notifHorario = notifConfig?.horario ?? '08:00'
+
+    return {
+      visualizadas: visualizadas.count ?? 0,
+      salvas: salvas.count ?? 0,
+      docsPct,
+      notifHorario,
+    }
+  }
+
+  const supabase = await createClient()
+  const [visualizadas, salvas, docsTotal, docsValidos, prefs] = await Promise.all([
+    supabase.from('matches').select('*', { count: 'exact', head: true }).neq('status', 'novo').gte('updated_at', inicioMesStr),
+    supabase.from('matches').select('*', { count: 'exact', head: true }),
+    supabase.from('documents').select('*', { count: 'exact', head: true }),
+    supabase.from('documents').select('*', { count: 'exact', head: true }).eq('status', 'valido'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('user_preferences').select('notif_config').single(),
+  ])
+
+  const totalDocs = docsTotal.count ?? 0
+  const validosDocs = docsValidos.count ?? 0
+  const docsPct = totalDocs > 0 ? Math.round((validosDocs / totalDocs) * 100) : 0
+  const notifConfig = prefs.data?.notif_config as { horario?: string } | null
+  const notifHorario = notifConfig?.horario ?? '08:00'
+
+  return {
+    visualizadas: visualizadas.count ?? 0,
+    salvas: salvas.count ?? 0,
+    docsPct,
+    notifHorario,
+  }
 }
 
 // ─── Métricas ─────────────────────────────────────────────────────────────────
@@ -169,6 +231,50 @@ async function getUltimasOportunidades(userId: string | null) {
   return data ?? []
 }
 
+// ─── Entrevista de perfil ─────────────────────────────────────────────────────
+
+async function getEntrevistaConcluida(userId: string | null): Promise<boolean> {
+  if (userId) {
+    const { data } = await createServiceClient()
+      .from("entrevistas_onboarding")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "concluida")
+      .limit(1)
+      .maybeSingle()
+    return data !== null
+  }
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("entrevistas_onboarding")
+    .select("id")
+    .eq("status", "concluida")
+    .limit(1)
+    .maybeSingle()
+  return data !== null
+}
+
+// ─── Perfil validado ──────────────────────────────────────────────────────────
+
+async function getPerfilValidado(userId: string | null): Promise<boolean> {
+  if (userId) {
+    const { data } = await createServiceClient()
+      .from("perfis_validados")
+      .select("id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle()
+    return data !== null
+  }
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("perfis_validados")
+    .select("id")
+    .limit(1)
+    .maybeSingle()
+  return data !== null
+}
+
 // ─── Metric cards config ──────────────────────────────────────────────────────
 
 const metricCards = [
@@ -212,10 +318,13 @@ export default async function DashboardPage() {
   // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades] = await Promise.all([
+  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado] = await Promise.all([
     getMetrics(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
+    getEngajamento(impersonatingUserId),
+    getEntrevistaConcluida(impersonatingUserId),
+    getPerfilValidado(impersonatingUserId),
   ])
 
   return (
@@ -391,6 +500,103 @@ export default async function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Card Perfil de Licitações */}
+      <div className={`rounded-2xl border p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 ${
+        entrevistaConcluida
+          ? "border-emerald-800/50 bg-emerald-950/30"
+          : "border-blue-800/50 bg-blue-950/30"
+      }`}>
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+          entrevistaConcluida ? "bg-emerald-900/50" : "bg-blue-900/50"
+        }`}>
+          <ClipboardList className={`h-6 w-6 ${entrevistaConcluida ? "text-emerald-400" : "text-blue-400"}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <h2 className="text-base font-semibold text-white">Perfil de Licitações</h2>
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold border ${
+              entrevistaConcluida
+                ? "bg-emerald-900/50 text-emerald-400 border-emerald-700/50"
+                : "bg-amber-900/50 text-amber-400 border-amber-700/50"
+            }`}>
+              {entrevistaConcluida ? "Concluído" : "Pendente"}
+            </span>
+          </div>
+          <p className="text-sm text-slate-400">
+            Responda 8 perguntas e nossa IA otimiza suas oportunidades
+          </p>
+        </div>
+        <Link
+          href="/onboarding/entrevista"
+          className={`shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all active:scale-95 whitespace-nowrap ${
+            entrevistaConcluida
+              ? "bg-emerald-700 hover:bg-emerald-600 shadow-lg shadow-emerald-900/30"
+              : "bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/30"
+          }`}
+        >
+          {entrevistaConcluida ? "Refazer entrevista" : "Iniciar entrevista"}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      {/* Card Validar Perfil — visível somente quando entrevista concluída mas perfil não validado */}
+      {entrevistaConcluida && !perfilValidado && (
+        <div className="rounded-2xl border border-amber-800/50 bg-amber-950/30 p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-900/50">
+            <ShieldCheck className="h-6 w-6 text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <h2 className="text-base font-semibold text-white">Valide seu perfil</h2>
+              <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold border bg-amber-900/50 text-amber-400 border-amber-700/50">
+                Ação necessária
+              </span>
+            </div>
+            <p className="text-sm text-slate-400">
+              Confirme os critérios de busca e ajuste os pesos de ranqueamento para resultados mais precisos.
+            </p>
+          </div>
+          <Link
+            href="/onboarding/validar-perfil"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-900/30 transition-all active:scale-95 whitespace-nowrap"
+          >
+            Validar agora
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
+
+      {/* Card de Engajamento */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
+        <div className="mb-5 flex items-center gap-2">
+          <div className="flex bg-violet-900/30 p-1.5 rounded-lg">
+            <Activity className="h-4 w-4 text-violet-400" />
+          </div>
+          <h2 className="text-base font-semibold text-white">Seu engajamento</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className="text-2xl font-bold text-white">{engajamento.visualizadas}</p>
+            <p className="text-xs text-slate-400 mt-1">Licitações visualizadas este mês</p>
+          </div>
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className="text-2xl font-bold text-white">{engajamento.salvas}</p>
+            <p className="text-xs text-slate-400 mt-1">Oportunidades salvas</p>
+          </div>
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className={`text-2xl font-bold ${engajamento.docsPct >= 80 ? 'text-emerald-400' : engajamento.docsPct >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+              {engajamento.docsPct}%
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Documentos em dia</p>
+          </div>
+          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{engajamento.notifHorario}</p>
+            <p className="text-xs text-slate-400 mt-1">Próximo alerta diário</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }

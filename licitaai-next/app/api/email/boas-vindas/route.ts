@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { resend, FROM_EMAIL } from "@/lib/resend"
+import { resend } from "@/lib/resend"
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const nome = razao_social || firstName
 
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: "LicitaAI <onboarding@resend.dev>",
       to: email,
       subject: "Bem-vindo ao LicitaAI! 🎉",
       html: `

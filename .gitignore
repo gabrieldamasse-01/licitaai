@@ -1,9 +1,11 @@
 .vercel
 lenspr/
 licitaai/
-node_modules
+node_modules/
+package-lock.json
 .next/
 licitaai-next/.next/
 .env.local
 .env*.local
 licitaai-next/.env.local
+*.log

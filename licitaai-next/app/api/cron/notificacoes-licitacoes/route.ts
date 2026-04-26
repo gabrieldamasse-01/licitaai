@@ -78,15 +78,27 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: true, licitacoes_novas: 0, users_notificados: 0, emails_enviados: 0 })
   }
 
-  // Buscar palavras-chave por user_id
+  // Buscar palavras-chave e notif_config por user_id
   const { data: prefsData } = await supabase
     .from('user_preferences')
-    .select('user_id, keywords')
+    .select('user_id, keywords, notif_config')
+
+  interface NotifConfig { email_diario: boolean; in_app: boolean; score_minimo: number }
+  const DEFAULT_NOTIF: NotifConfig = { email_diario: true, in_app: true, score_minimo: 70 }
 
   const mapaKeywords = new Map<string, string[]>(
     (prefsData ?? []).map((p) => [
       p.user_id as string,
       Array.isArray(p.keywords) ? (p.keywords as string[]) : [],
+    ]),
+  )
+
+  const mapaNotif = new Map<string, NotifConfig>(
+    (prefsData ?? []).map((p) => [
+      p.user_id as string,
+      p.notif_config && typeof p.notif_config === 'object'
+        ? { ...DEFAULT_NOTIF, ...(p.notif_config as Partial<NotifConfig>) }
+        : DEFAULT_NOTIF,
     ]),
   )
 
@@ -138,6 +150,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const licitacoesRelevantes: { empresa: Empresa; licitacoes: LicitacaoComScore[] }[] = []
 
     const userKeywords = mapaKeywords.get(userId) ?? []
+    const userNotif = mapaNotif.get(userId) ?? DEFAULT_NOTIF
 
     for (const empresa of empresasDoUser) {
       const relevantes: LicitacaoComScore[] = []
@@ -154,7 +167,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           { objeto: lic.objeto ?? '', modalidade: lic.modalidade ?? '' },
         )
 
-        if (score >= 70) {
+        if (score >= userNotif.score_minimo) {
           relevantes.push({ ...lic, score, motivo })
         } else if (kwMatch) {
           relevantes.push({ ...lic, score, motivo: 'Match por palavra-chave', matchKeyword: kwMatch })
@@ -175,7 +188,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       mapaUsers.get(userId) ??
       null
 
-    if (emailDestino) {
+    if (emailDestino && userNotif.email_diario) {
       const totalLics = licitacoesRelevantes.reduce((acc, e) => acc + e.licitacoes.length, 0)
 
       const { error: sendError } = await resend.emails.send({
@@ -192,7 +205,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Notificação in-app por empresa
+    // Notificação in-app por empresa (respeitar in_app)
+    if (userNotif.in_app) {
     for (const { empresa, licitacoes: lics } of licitacoesRelevantes) {
       notificacoesParaInserir.push({
         user_id: userId,
@@ -202,6 +216,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         link: '/oportunidades',
       })
     }
+    } // fim if (userNotif.in_app)
 
     usersNotificados++
   }

@@ -266,6 +266,33 @@ export async function removerColaborador(
   return {}
 }
 
+export async function sincronizarPortal(
+  portal: "effecti" | "pncp"
+): Promise<{ success?: boolean; error?: string }> {
+  const adminOk = await isAdmin()
+  if (!adminOk) return { error: "Acesso negado." }
+
+  const secret = process.env.CRON_SECRET ?? ""
+  const url =
+    portal === "effecti"
+      ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"}/api/cron/licitacoes`
+      : `${process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"}/api/cron/licitacoes-pncp`
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}` },
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      return { error: `Erro ${res.status}: ${text}` }
+    }
+    return { success: true }
+  } catch (err) {
+    return { error: String(err) }
+  }
+}
+
 export async function enviarEmailAdmin(
   userEmail: string,
   assunto: string,
@@ -328,17 +355,25 @@ export async function enviarEmailAdmin(
   `
 
   try {
-    const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    console.error("[enviarEmailAdmin] FROM_EMAIL:", FROM_EMAIL)
+    console.error("[enviarEmailAdmin] API_KEY exists:", !!process.env.RESEND_API_KEY)
+    const result = await resend.emails.send({
+      from: "LicitaAI <onboarding@resend.dev>",
       to: userEmail,
       subject: assunto,
       html,
     })
 
-    if (error) return { error: "Erro ao enviar email." }
+    console.error("[enviarEmailAdmin] result:", JSON.stringify(result))
+
+    if (result.error) {
+      console.error("[enviarEmailAdmin] Resend error:", JSON.stringify(result.error))
+      return { error: `Erro Resend: ${result.error.message ?? JSON.stringify(result.error)}` }
+    }
 
     return { success: true }
-  } catch {
-    return { error: "Erro inesperado ao enviar email." }
+  } catch (err) {
+    console.error("[enviarEmailAdmin] exception:", err)
+    return { error: `Erro inesperado: ${String(err)}` }
   }
 }

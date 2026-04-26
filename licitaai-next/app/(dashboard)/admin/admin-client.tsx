@@ -16,6 +16,7 @@ import {
   Eye,
   Database,
   Trash2,
+  RefreshCw,
 } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -47,6 +48,7 @@ import {
   salvarPortalConfig,
   adicionarColaborador,
   removerColaborador,
+  sincronizarPortal,
 } from "./actions"
 
 const MASTER_EMAIL = "gabriel.damasse@mgnext.com"
@@ -434,6 +436,22 @@ export default function AdminClient({
   // Portais de dados
   const [portais, setPortais] = useState({ effecti: portalConfig.effecti, pncp: portalConfig.pncp })
   const [, startPortalTransition] = useTransition()
+  const [sincronizando, setSincronizando] = useState<{ effecti: boolean; pncp: boolean }>({ effecti: false, pncp: false })
+
+  async function handleSincronizar(portal: "effecti" | "pncp") {
+    setSincronizando((prev) => ({ ...prev, [portal]: true }))
+    try {
+      const result = await sincronizarPortal(portal)
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success("Sincronização iniciada!")
+      }
+    } finally {
+      setSincronizando((prev) => ({ ...prev, [portal]: false }))
+    }
+  }
+
   function handleTogglePortal(portal: "effecti" | "pncp") {
     const novoValor = !portais[portal]
     setPortais((prev) => ({ ...prev, [portal]: novoValor }))
@@ -1080,10 +1098,24 @@ export default function AdminClient({
                   </p>
                 </div>
               </div>
-              <AdminToggle
-                checked={portais.effecti}
-                onChange={() => handleTogglePortal("effecti")}
-              />
+              <div className="flex items-center gap-2">
+                {portais.effecti && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleSincronizar("effecti")}
+                    disabled={sincronizando.effecti}
+                    className="h-8 px-3 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 border border-emerald-500/20 gap-1.5"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${sincronizando.effecti ? "animate-spin" : ""}`} />
+                    {sincronizando.effecti ? "Sincronizando..." : "Sincronizar agora"}
+                  </Button>
+                )}
+                <AdminToggle
+                  checked={portais.effecti}
+                  onChange={() => handleTogglePortal("effecti")}
+                />
+              </div>
             </div>
 
             {/* PNCP */}
@@ -1102,10 +1134,24 @@ export default function AdminClient({
                   </p>
                 </div>
               </div>
-              <AdminToggle
-                checked={portais.pncp}
-                onChange={() => handleTogglePortal("pncp")}
-              />
+              <div className="flex items-center gap-2">
+                {portais.pncp && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleSincronizar("pncp")}
+                    disabled={sincronizando.pncp}
+                    className="h-8 px-3 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 border border-blue-500/20 gap-1.5"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${sincronizando.pncp ? "animate-spin" : ""}`} />
+                    {sincronizando.pncp ? "Sincronizando..." : "Sincronizar agora"}
+                  </Button>
+                )}
+                <AdminToggle
+                  checked={portais.pncp}
+                  onChange={() => handleTogglePortal("pncp")}
+                />
+              </div>
             </div>
           </div>
         </TabsContent>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@/lib/supabase/server"
+import { getModel, getMaxTokens } from "@/lib/ai-model"
 
 export const maxDuration = 60
 
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
           ]
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 512,
+      model: getModel("analise_licitacao"),
+      max_tokens: getMaxTokens("analise_licitacao"),
       messages: [{ role: "user", content }],
     })
 

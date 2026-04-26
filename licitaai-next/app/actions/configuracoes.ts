@@ -59,13 +59,16 @@ export async function salvarCnaes(
 
   const lista = cnaes.map((c) => c.trim()).filter(Boolean)
 
-  const { error } = await supabase
+  const { error, data: updated } = await supabase
     .from('companies')
     .update({ cnae: lista })
     .eq('user_id', user.id)
+    .select('id')
 
   if (error) return { erro: error.message }
+  if (!updated || updated.length === 0) return { erro: 'Empresa não encontrada para este usuário' }
   revalidatePath('/configuracoes')
+  revalidatePath('/documentos')
   return { ok: true }
 }
 
@@ -219,6 +222,46 @@ export async function salvarKeywords(
   return { ok: true }
 }
 
+// ─── Preferências de Notificação ─────────────────────────────────────────────
+
+const NotifConfigSchema = z.object({
+  email_diario: z.boolean(),
+  email_urgente: z.boolean(),
+  in_app: z.boolean(),
+  horario: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido'),
+  score_minimo: z.number().int().min(50).max(95),
+})
+
+export async function salvarNotifConfig(
+  _: unknown,
+  formData: FormData,
+): Promise<{ ok: true } | { erro: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { erro: 'Não autenticado' }
+
+  const parsed = NotifConfigSchema.safeParse({
+    email_diario: formData.get('email_diario') === 'true',
+    email_urgente: formData.get('email_urgente') === 'true',
+    in_app: formData.get('in_app') === 'true',
+    horario: formData.get('horario') ?? '08:00',
+    score_minimo: Number(formData.get('score_minimo') ?? 70),
+  })
+  if (!parsed.success) return { erro: parsed.error.issues[0].message }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from('user_preferences')
+    .upsert(
+      { user_id: user.id, notif_config: parsed.data, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    )
+
+  if (error) return { erro: error.message }
+  revalidatePath('/configuracoes')
+  return { ok: true }
+}
+
 // ─── Manter compatibilidade com código anterior ───────────────────────────────
 
 const EmailSchema = z.object({
@@ -242,7 +285,7 @@ export async function salvarEmailContato(
     .eq('user_id', user.id)
 
   if (error) return { erro: error.message }
-  revalidatePath('/(dashboard)/configuracoes')
+  revalidatePath('/configuracoes')
   return { ok: true }
 }
 

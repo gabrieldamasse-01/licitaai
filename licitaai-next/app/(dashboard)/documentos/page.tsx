@@ -4,7 +4,9 @@ import { DocumentosClient } from "./documentos-client"
 export default async function DocumentosPage() {
   const supabase = await createClient()
 
-  const [{ data: documents }, { data: companies }, { data: documentTypes }] =
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [{ data: documents }, { data: companies }, { data: allDocumentTypes }] =
     await Promise.all([
       supabase
         .from("documents")
@@ -14,14 +16,33 @@ export default async function DocumentosPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("companies")
-        .select("id, razao_social")
-        .eq("ativo", true)
+        .select("id, razao_social, cnae")
+        .eq("user_id", user?.id ?? "")
         .order("razao_social"),
       supabase
         .from("document_types")
-        .select("id, nome, categoria")
+        .select("id, nome, categoria, camada, cnaes_aplicaveis")
         .order("nome"),
     ])
+
+  // Prefixos de 2 dígitos dos CNAEs de todas as empresas do usuário
+  // "4120-4/00" → remove tudo a partir do primeiro não-dígito → "4120" → slice(0,2) → "41"
+  const prefixos = (companies ?? []).flatMap((e) =>
+    ((e.cnae ?? []) as string[]).map((c) => c.replace(/\D.*/, "").slice(0, 2)).filter((p) => p.length === 2)
+  )
+  console.log("prefixos:", prefixos)
+
+  const documentTypes = (allDocumentTypes ?? []).filter(
+    (dt) => !dt.camada || dt.camada === "geral" || dt.camada === "habilitacao"
+  )
+
+  // Tipos de nicho que se aplicam aos CNAEs das empresas do usuário
+  const nichoTypes = (allDocumentTypes ?? []).filter((dt) => {
+    if (dt.camada !== "nicho") return false
+    if (!dt.cnaes_aplicaveis?.length) return true
+    return (dt.cnaes_aplicaveis as string[]).some((cnae) => prefixos.includes(cnae))
+  })
+  console.log("tiposNicho:", nichoTypes.length)
 
   return (
     <div className="space-y-6">
@@ -33,8 +54,10 @@ export default async function DocumentosPage() {
       </div>
       <DocumentosClient
         documents={documents ?? []}
-        companies={companies ?? []}
-        documentTypes={documentTypes ?? []}
+        companies={(companies ?? []).map(({ id, razao_social }) => ({ id, razao_social }))}
+        documentTypes={documentTypes}
+        nichoTypes={nichoTypes}
+        temNicho={nichoTypes.length > 0}
       />
     </div>
   )
