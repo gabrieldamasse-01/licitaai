@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Sparkles, FileText, X, Copy, Check, Loader2 } from "lucide-react"
+import { Sparkles, FileText, X, Copy, Check, Loader2, Download, FileDown } from "lucide-react"
 import { toast } from "sonner"
 import { AcoesCard } from "./acoes-card"
+import { exportarPDF, exportarDOCX } from "@/lib/export-utils"
 
 type Empresa = { id: string; razao_social: string }
 
@@ -34,6 +35,7 @@ export function AnaliseIaSection({
   )
   const [gerandoProposta, setGerandoProposta] = useState(false)
   const [proposta, setProposta] = useState<string | null>(null)
+  const [propostaEditada, setPropostaEditada] = useState<string>("")
   const [copiado, setCopiado] = useState(false)
 
   function handleAnalise(texto: string, cache: boolean) {
@@ -68,7 +70,9 @@ export function AnaliseIaSection({
       if (!res.ok || data.error) {
         toast.error(data.error ?? "Erro ao gerar proposta.")
       } else {
-        setProposta(data.proposta ?? null)
+        const texto = data.proposta ?? null
+        setProposta(texto)
+        setPropostaEditada(texto ?? "")
         toast.success("Proposta gerada com sucesso!")
       }
     } catch {
@@ -79,11 +83,20 @@ export function AnaliseIaSection({
   }
 
   async function handleCopiar() {
-    if (!proposta) return
-    await navigator.clipboard.writeText(proposta)
+    if (!propostaEditada) return
+    await navigator.clipboard.writeText(propostaEditada)
     setCopiado(true)
     toast.success("Proposta copiada para a área de transferência!")
     setTimeout(() => setCopiado(false), 3000)
+  }
+
+  function handlePDF() {
+    exportarPDF(propostaEditada, "Proposta Comercial")
+  }
+
+  async function handleDOCX() {
+    await exportarDOCX(propostaEditada, "Proposta_Comercial")
+    toast.success("Arquivo DOCX gerado!")
   }
 
   return (
@@ -205,10 +218,15 @@ export function AnaliseIaSection({
               {/* Proposta gerada */}
               {proposta && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                      Proposta Gerada
-                    </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                    Proposta Gerada
+                  </p>
+                  <textarea
+                    value={propostaEditada}
+                    onChange={(e) => setPropostaEditada(e.target.value)}
+                    className="w-full min-h-[400px] rounded-lg bg-slate-800 border border-slate-600 text-white text-sm p-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-y leading-relaxed"
+                  />
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -216,22 +234,29 @@ export function AnaliseIaSection({
                       onClick={handleCopiar}
                     >
                       {copiado ? (
-                        <>
-                          <Check className="h-3.5 w-3.5 text-emerald-400" />
-                          Copiado!
-                        </>
+                        <><Check className="h-3.5 w-3.5 text-emerald-400" />Copiado!</>
                       ) : (
-                        <>
-                          <Copy className="h-3.5 w-3.5" />
-                          Copiar proposta
-                        </>
+                        <><Copy className="h-3.5 w-3.5" />Copiar proposta</>
                       )}
                     </Button>
-                  </div>
-                  <div className="rounded-lg bg-slate-800 border border-slate-700 p-4">
-                    <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed font-mono text-[13px]">
-                      {proposta}
-                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
+                      onClick={handlePDF}
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Exportar PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
+                      onClick={handleDOCX}
+                    >
+                      <FileDown className="h-3.5 w-3.5" />
+                      Exportar DOCX
+                    </Button>
                   </div>
                 </div>
               )}
@@ -276,6 +301,7 @@ export function AnaliseIaSection({
                   className="text-slate-400 hover:text-white text-sm"
                   onClick={() => {
                     setProposta(null)
+                    setPropostaEditada("")
                     setCopiado(false)
                   }}
                   disabled={gerandoProposta}

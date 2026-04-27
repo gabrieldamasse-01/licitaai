@@ -27,6 +27,7 @@ const mainNav = [
   { href: "/documentos",   label: "Documentos",   icon: FileText,        iconColor: "text-amber-400" },
   { href: "/licitacoes",   label: "Licitações",   icon: Search,          iconColor: "text-emerald-400" },
   { href: "/oportunidades",      label: "Oportunidades",      icon: Target,  iconColor: "text-violet-400" },
+  { href: "/propostas",          label: "Propostas",          icon: FileText, iconColor: "text-emerald-400" },
   { href: "/relatorios",         label: "Relatórios",         icon: BarChart3, iconColor: "text-cyan-400" },
 ]
 
