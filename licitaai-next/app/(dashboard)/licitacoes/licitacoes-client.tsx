@@ -141,11 +141,11 @@ function LicitacaoCard({
       {/* Objeto */}
       <p
         className="text-sm font-medium text-slate-100 leading-relaxed flex-1"
-        title={lic.objetoSemTags || "Sem descrição"}
+        title={lic.objeto || lic.objetoSemTags || "Sem descrição"}
       >
-        {(lic.objetoSemTags || "Sem descrição").length > 80
-          ? (lic.objetoSemTags || "Sem descrição").slice(0, 80) + "…"
-          : lic.objetoSemTags || "Sem descrição"}
+        {(lic.objeto || lic.objetoSemTags || "Sem descrição").length > 80
+          ? (lic.objeto || lic.objetoSemTags || "Sem descrição").slice(0, 80) + "…"
+          : lic.objeto || lic.objetoSemTags || "Sem descrição"}
       </p>
 
       {/* Órgão */}
@@ -208,9 +208,9 @@ function DetalheConteudo({
 
       <div className="flex-1 overflow-y-auto mt-4 space-y-5">
         {/* Objeto completo */}
-        {lic.objetoSemTags && (
+        {(lic.objeto || lic.objetoSemTags) && (
           <p className="text-sm text-slate-300 leading-relaxed">
-            {lic.objetoSemTags}
+            {lic.objeto || lic.objetoSemTags}
           </p>
         )}
 
