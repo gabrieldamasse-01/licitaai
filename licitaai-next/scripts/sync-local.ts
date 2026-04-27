@@ -3,7 +3,7 @@ dotenv.config({ path: ".env.local" })
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"
 const SECRET = process.env.CRON_SECRET ?? ""
-const INTERVAL_MS = 60 * 60 * 1000 // 60 minutos
+const INTERVAL_MS = 5 * 60 * 1000 // 5 minutos
 
 async function sincronizar(portal: "effecti" | "pncp") {
   const url = portal === "effecti"
@@ -30,7 +30,7 @@ async function loop() {
     ? `${SECRET.slice(0, 6)}...${SECRET.slice(-4)}`
     : "(VAZIO — vai gerar 401)"
 
-  console.log("🚀 Sync local iniciado. Intervalo: 60 minutos. Ctrl+C para parar.")
+  console.log("🚀 Sync local iniciado. Intervalo: 5 minutos. Ctrl+C para parar.")
   console.log(`   BASE_URL : ${BASE_URL}`)
   console.log(`   CRON_SECRET: ${secretPreview}`)
   console.log()
