@@ -201,12 +201,19 @@ function DetalheConteudo({
             </Badge>
           )}
         </div>
-        <SheetTitle className="text-base font-semibold text-white leading-relaxed pr-6">
-          {lic.objetoSemTags}
+        <SheetTitle className="text-sm font-semibold text-slate-400 pr-6">
+          Detalhes da Licitação
         </SheetTitle>
       </SheetHeader>
 
       <div className="flex-1 overflow-y-auto mt-4 space-y-5">
+        {/* Objeto completo */}
+        {lic.objetoSemTags && (
+          <p className="text-sm text-slate-300 leading-relaxed">
+            {lic.objetoSemTags}
+          </p>
+        )}
+
         {/* Grid de campos */}
         <div className="grid grid-cols-2 gap-3">
           {[
