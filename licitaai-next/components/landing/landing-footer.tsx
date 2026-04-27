@@ -40,7 +40,10 @@ export function LandingFooter() {
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-slate-500 text-sm">© 2026 LicitaAI. Todos os direitos reservados.</p>
+          <div>
+            <p className="text-slate-500 text-sm">© 2026 LicitaAI. Todos os direitos reservados.</p>
+            <p className="text-xs text-slate-600 mt-1">Desenvolvido por Gabriel Gomes Damasse</p>
+          </div>
           <span className="flex items-center gap-2 text-sm text-slate-500">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
             Sistemas Operacionais
