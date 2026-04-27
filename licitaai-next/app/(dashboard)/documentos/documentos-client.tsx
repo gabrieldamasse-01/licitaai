@@ -4,8 +4,9 @@ import { useState, useTransition, useMemo, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import {
   Plus, Search, FileText, CalendarClock,
-  Upload, X, Image as ImageIcon, ExternalLink, Loader2, ClipboardList, Tag,
+  Upload, X, Image as ImageIcon, ExternalLink, Loader2, ClipboardList, Tag, CheckCircle,
 } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -507,10 +508,18 @@ export function DocumentosClient({
             className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
-        <Button onClick={handleAbrirNovo} className="bg-blue-600 hover:bg-blue-700 shrink-0">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Documento
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button asChild variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
+            <Link href="/onboarding/validar-perfil">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Validar Perfil
+            </Link>
+          </Button>
+          <Button onClick={handleAbrirNovo} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Documento
+          </Button>
+        </div>
       </div>
 
       {/* Habilitação */}
