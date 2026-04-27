@@ -1,8 +1,5 @@
-"use client"
-
 import Link from "next/link"
 import { Check, X, Zap, Star, Crown, ArrowRight } from "lucide-react"
-import { motion } from "motion/react"
 
 const PLANOS_CONFIG = [
   {
@@ -22,8 +19,8 @@ const PLANOS_CONFIG = [
     ],
     recursos_nao: [
       "Checklist de habilitação",
+      "Geração de proposta com IA",
       "Relatórios detalhados",
-      "Empresas ilimitadas",
       "Suporte prioritário",
     ],
     cta: "Começar grátis",
@@ -43,6 +40,7 @@ const PLANOS_CONFIG = [
       "Oportunidades ilimitadas",
       "Score de relevância por CNAE",
       "Checklist de habilitação automático",
+      "Geração de proposta com IA",
       "Alertas de vencimento de documentos",
       "Relatórios e métricas em tempo real",
       "Suporte por email prioritário",
@@ -70,65 +68,43 @@ const PLANOS_CONFIG = [
     ],
     recursos_nao: [] as string[],
     cta: "Falar com vendas",
-    ctaHref: "mailto:vendas@licitaai.com.br",
+    ctaHref: "mailto:suporte@mgnext.com",
   },
 ]
 
 export function LandingPlanos() {
   return (
     <section className="py-24 bg-[#050D1A] relative" id="planos">
-      {/* Background Effect */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-slate-300 text-sm font-medium mb-6 uppercase tracking-widest"
-          >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-slate-300 text-sm font-medium mb-6 uppercase tracking-widest">
             Preços transparentes
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-3xl md:text-5xl font-bold text-white mt-3 mb-6"
-          >
-            Escolha o plano <span className="text-blue-400">ideal para você</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg text-slate-300"
-          >
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold text-white mt-3 mb-6">
+            Escolha o plano{" "}
+            <span className="text-blue-400">ideal para você</span>
+          </h2>
+          <p className="text-lg text-slate-300">
             Comece grátis. Faça upgrade quando quiser. Sem fidelidade — cancele com um clique.
-          </motion.p>
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
-          {PLANOS_CONFIG.map((plano, index) => {
+          {PLANOS_CONFIG.map((plano) => {
             const Icon = plano.icone
             const isDestaque = plano.destaque
 
             return (
-              <motion.div
+              <div
                 key={plano.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
-                className={`relative rounded-3xl p-8 flex flex-col h-full ${
+                className={`relative rounded-3xl p-8 flex flex-col h-full transition-all duration-300 ${
                   isDestaque
-                    ? "bg-gradient-to-b from-blue-700 to-[#0A1628] border border-blue-500/50 shadow-2xl shadow-blue-900/50 scale-100 lg:scale-105 z-10"
-                    : "glass-card border border-white/10"
+                    ? "bg-gradient-to-b from-blue-700 to-[#0A1628] border border-blue-500/50 shadow-2xl shadow-blue-900/50 lg:scale-105 z-10"
+                    : "border border-white/10 bg-white/[0.03] hover:border-white/20"
                 }`}
               >
-                {/* Badge */}
                 {plano.badge && (
                   <div
                     className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest border ${
@@ -141,7 +117,6 @@ export function LandingPlanos() {
                   </div>
                 )}
 
-                {/* Header */}
                 <div className="mb-8">
                   <div className="flex items-center gap-3 mb-4">
                     <div
@@ -172,7 +147,6 @@ export function LandingPlanos() {
                   </p>
                 </div>
 
-                {/* Features */}
                 <ul className="space-y-4 flex-1 mb-8">
                   {plano.recursos.map((r) => (
                     <li key={r} className="flex items-start gap-3">
@@ -200,7 +174,6 @@ export function LandingPlanos() {
                   ))}
                 </ul>
 
-                {/* CTA */}
                 <Link
                   href={plano.ctaHref}
                   className={`w-full h-14 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-base ${
@@ -212,7 +185,7 @@ export function LandingPlanos() {
                   {plano.cta}
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-              </motion.div>
+              </div>
             )
           })}
         </div>
