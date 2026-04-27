@@ -32,6 +32,28 @@ function safeDate(val: string | undefined | null): string | null {
   return isNaN(d.getTime()) ? null : d.toISOString()
 }
 
+function gerarJanelas5Dias(begin: string, end: string): Array<{ beginISO: string; endISO: string }> {
+  const janelas: Array<{ beginISO: string; endISO: string }> = []
+  const MAX_DIAS = 5
+
+  let cursor = new Date(begin.includes("T") ? begin : `${begin}T00:00:00`)
+  const limite = new Date(end.includes("T") ? end : `${end}T23:59:59`)
+
+  while (cursor <= limite) {
+    const fimJanela = new Date(cursor.getTime() + (MAX_DIAS - 1) * 24 * 60 * 60 * 1000)
+    const fimEfetivo = fimJanela < limite ? fimJanela : limite
+
+    const beginISO = cursor.toISOString().slice(0, 10) + "T00:00:00"
+    const endISO = fimEfetivo.toISOString().slice(0, 10) + "T23:59:59"
+    janelas.push({ beginISO, endISO })
+
+    cursor = new Date(fimEfetivo.getTime() + 24 * 60 * 60 * 1000)
+    cursor.setHours(0, 0, 0, 0)
+  }
+
+  return janelas
+}
+
 async function syncEffecti(
   supabase: ReturnType<typeof createServiceClient>,
   begin: string,
@@ -45,93 +67,94 @@ async function syncEffecti(
   const erros: string[] = []
   const preview: LicitacaoPreview[] = []
 
-  const beginISO = begin.includes("T") ? begin : `${begin}T00:00:00`
-  const endISO = end.includes("T") ? end : `${end}T23:59:59`
+  const janelas = gerarJanelas5Dias(begin, end)
 
-  let pagina = 0
-  let totalPaginas = 1
-  const MAX_PAGINAS = 100
+  for (const janela of janelas) {
+    let pagina = 0
+    let totalPaginas = 1
+    const MAX_PAGINAS = 100
 
-  while (pagina < totalPaginas && pagina < MAX_PAGINAS) {
-    const result = await fetchEffectiLicitacoes({
-      begin: beginISO,
-      end: endISO,
-      pagina,
-      itensPorPagina: 100,
-    })
+    while (pagina < totalPaginas && pagina < MAX_PAGINAS) {
+      const result = await fetchEffectiLicitacoes({
+        begin: janela.beginISO,
+        end: janela.endISO,
+        pagina,
+        itensPorPagina: 100,
+      })
 
-    if (result.error) {
-      erros.push(`Effecti página ${pagina}: ${result.error}`)
-      break
-    }
+      if (result.error) {
+        erros.push(`Effecti janela ${janela.beginISO.slice(0, 10)}→${janela.endISO.slice(0, 10)} página ${pagina}: ${result.error}`)
+        break
+      }
 
-    if (pagina === 0) {
-      totalPaginas = result.pagination.total_paginas || 1
-    }
+      if (pagina === 0) {
+        totalPaginas = result.pagination.total_paginas || 1
+      }
 
-    if (result.licitacoes.length === 0) break
+      if (result.licitacoes.length === 0) break
 
-    buscadas += result.licitacoes.length
+      buscadas += result.licitacoes.length
 
-    const rows = result.licitacoes.map((lic) => ({
-      source_id: lic.processo || String(lic.idLicitacao),
-      portal: lic.portal || "Effecti",
-      orgao: lic.orgao,
-      objeto: lic.objetoSemTags || lic.objeto,
-      valor_estimado: lic.valorTotalEstimado || null,
-      modalidade: lic.modalidade,
-      uf: lic.uf?.substring(0, 2) || null,
-      municipio: lic.unidadeGestora || null,
-      data_publicacao: safeDate(lic.dataPublicacao),
-      data_abertura: safeDate(lic.dataInicialProposta),
-      data_encerramento: safeDate(lic.dataFinalProposta),
-      source_url: lic.url || null,
-      numero_processo: lic.processo || null,
-      status: "ativa",
-      updated_at: agora.toISOString(),
-    }))
+      const rows = result.licitacoes.map((lic) => ({
+        source_id: lic.processo || String(lic.idLicitacao),
+        portal: lic.portal || "Effecti",
+        orgao: lic.orgao,
+        objeto: lic.objetoSemTags || lic.objeto,
+        valor_estimado: lic.valorTotalEstimado || null,
+        modalidade: lic.modalidade,
+        uf: lic.uf?.substring(0, 2) || null,
+        municipio: lic.unidadeGestora || null,
+        data_publicacao: safeDate(lic.dataPublicacao),
+        data_abertura: safeDate(lic.dataInicialProposta),
+        data_encerramento: safeDate(lic.dataFinalProposta),
+        source_url: lic.url || null,
+        numero_processo: lic.processo || null,
+        status: "ativa",
+        updated_at: agora.toISOString(),
+      }))
 
-    const seen = new Set<string>()
-    const deduped = rows.filter((r) => {
-      if (seen.has(r.source_id)) return false
-      seen.add(r.source_id)
-      return true
-    })
+      const seen = new Set<string>()
+      const deduped = rows.filter((r) => {
+        if (seen.has(r.source_id)) return false
+        seen.add(r.source_id)
+        return true
+      })
 
-    const sourceIds = deduped.map((r) => r.source_id)
-    const { count: existentes } = await supabase
-      .from("licitacoes")
-      .select("source_id", { count: "exact", head: true })
-      .in("source_id", sourceIds)
+      const sourceIds = deduped.map((r) => r.source_id)
+      const { count: existentes } = await supabase
+        .from("licitacoes")
+        .select("source_id", { count: "exact", head: true })
+        .in("source_id", sourceIds)
 
-    const qtdExistentes = existentes ?? 0
-    const qtdNovas = deduped.length - qtdExistentes
+      const qtdExistentes = existentes ?? 0
+      const qtdNovas = deduped.length - qtdExistentes
 
-    const { error: upsertError } = await supabase
-      .from("licitacoes")
-      .upsert(deduped, { onConflict: "source_id" })
+      const { error: upsertError } = await supabase
+        .from("licitacoes")
+        .upsert(deduped, { onConflict: "source_id" })
 
-    if (upsertError) {
-      erros.push(`Upsert Effecti página ${pagina}: ${upsertError.message}`)
-    } else {
-      inseridas += qtdNovas
-      ignoradas += qtdExistentes
+      if (upsertError) {
+        erros.push(`Upsert Effecti janela ${janela.beginISO.slice(0, 10)} página ${pagina}: ${upsertError.message}`)
+      } else {
+        inseridas += qtdNovas
+        ignoradas += qtdExistentes
 
-      if (preview.length < 50) {
-        for (const row of deduped.slice(0, 50 - preview.length)) {
-          preview.push({
-            objeto: (row.objeto ?? "").slice(0, 120),
-            orgao: row.orgao ?? "",
-            uf: row.uf,
-            valor: row.valor_estimado,
-            status: row.status,
-            source_id: row.source_id,
-          })
+        if (preview.length < 50) {
+          for (const row of deduped.slice(0, 50 - preview.length)) {
+            preview.push({
+              objeto: (row.objeto ?? "").slice(0, 120),
+              orgao: row.orgao ?? "",
+              uf: row.uf,
+              valor: row.valor_estimado,
+              status: row.status,
+              source_id: row.source_id,
+            })
+          }
         }
       }
-    }
 
-    pagina++
+      pagina++
+    }
   }
 
   // Encerrar licitações expiradas

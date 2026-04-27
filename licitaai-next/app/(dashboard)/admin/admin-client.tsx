@@ -1285,12 +1285,29 @@ export default function AdminClient({
                 <button
                   key={label}
                   onClick={() => setSyncAtalho(dias)}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white border border-slate-600 transition-colors"
+                  title={dias > 5 ? "Este intervalo será dividido em janelas de 5 dias automaticamente" : undefined}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    dias > 5
+                      ? "bg-amber-900/40 text-amber-300 hover:bg-amber-800/50 border-amber-700/50"
+                      : "bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white border-slate-600"
+                  }`}
                 >
                   {label}
+                  {dias > 5 && " ⚠"}
                 </button>
               ))}
             </div>
+            {syncPortal === "effecti" && (() => {
+              const begin = syncBegin ? new Date(syncBegin) : null
+              const end = syncEnd ? new Date(syncEnd) : null
+              const diffDias = begin && end ? Math.ceil((end.getTime() - begin.getTime()) / (24 * 60 * 60 * 1000)) + 1 : 0
+              return diffDias > 5 ? (
+                <p className="text-xs text-amber-400 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+                  Este intervalo será dividido em janelas de 5 dias automaticamente ({Math.ceil(diffDias / 5)} janelas)
+                </p>
+              ) : null
+            })()}
 
             {/* Botão buscar */}
             <Button
