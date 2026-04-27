@@ -209,9 +209,10 @@ function DetalheConteudo({
       <div className="flex-1 overflow-y-auto mt-4 space-y-5">
         {/* Objeto completo */}
         {(lic.objeto || lic.objetoSemTags) && (
-          <p className="text-sm text-slate-300 leading-relaxed">
-            {lic.objeto || lic.objetoSemTags}
-          </p>
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Objeto</p>
+            <p className="text-sm text-slate-200 leading-relaxed">{lic.objeto || lic.objetoSemTags}</p>
+          </div>
         )}
 
         {/* Grid de campos */}
