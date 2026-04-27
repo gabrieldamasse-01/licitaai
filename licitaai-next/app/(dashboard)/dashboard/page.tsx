@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck } from "lucide-react"
-import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
+import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck, TrendingUp, BarChart2, DollarSign } from "lucide-react"
+import { GraficoLicitacoesPorUF, GraficoModalidades, GraficoLicitacoesPorDia } from "@/components/domain/dashboard-charts"
 import Link from "next/link"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, subDays } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 type CompanyRelation = { razao_social: string } | { razao_social: string }[] | null
@@ -275,6 +275,116 @@ async function getPerfilValidado(userId: string | null): Promise<boolean> {
   return data !== null
 }
 
+// ─── Métricas de mercado (tabela licitacoes — sem filtro de usuário) ──────────
+
+async function getMetricasMercado() {
+  const service = createServiceClient()
+
+  const trintaDiasAtras = subDays(new Date(), 30).toISOString().split("T")[0]
+
+  const [
+    porUFRaw,
+    porModalidadeRaw,
+    porDiaRaw,
+    valorTotal,
+    ativas,
+    total,
+  ] = await Promise.all([
+    // Top 10 UFs
+    service
+      .from("licitacoes")
+      .select("uf")
+      .not("uf", "is", null)
+      .neq("uf", ""),
+
+    // Por modalidade
+    service
+      .from("licitacoes")
+      .select("modalidade")
+      .not("modalidade", "is", null)
+      .neq("modalidade", ""),
+
+    // Por dia (últimos 30 dias)
+    service
+      .from("licitacoes")
+      .select("data_publicacao")
+      .gte("data_publicacao", trintaDiasAtras)
+      .not("data_publicacao", "is", null),
+
+    // Valor total estimado das ativas
+    service
+      .from("licitacoes")
+      .select("valor_estimado")
+      .eq("status", "ativa")
+      .not("valor_estimado", "is", null),
+
+    // Contagem ativas
+    service
+      .from("licitacoes")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "ativa"),
+
+    // Contagem total
+    service
+      .from("licitacoes")
+      .select("*", { count: "exact", head: true }),
+  ])
+
+  // Agrupa UFs
+  const ufMap = new Map<string, number>()
+  for (const row of porUFRaw.data ?? []) {
+    const uf = (row.uf as string).toUpperCase().trim()
+    ufMap.set(uf, (ufMap.get(uf) ?? 0) + 1)
+  }
+  const dadosUF = [...ufMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([uf, total]) => ({ uf, total }))
+
+  // Agrupa modalidades
+  const modMap = new Map<string, number>()
+  for (const row of porModalidadeRaw.data ?? []) {
+    const mod = (row.modalidade as string).trim()
+    if (mod) modMap.set(mod, (modMap.get(mod) ?? 0) + 1)
+  }
+  const dadosModalidade = [...modMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([modalidade, total]) => ({ modalidade, total }))
+
+  // Agrupa por dia (últimos 30 dias)
+  const diaMap = new Map<string, number>()
+  for (const row of porDiaRaw.data ?? []) {
+    const dia = (row.data_publicacao as string).slice(0, 10)
+    diaMap.set(dia, (diaMap.get(dia) ?? 0) + 1)
+  }
+  const dadosDia: { dia: string; total: number }[] = []
+  for (let i = 29; i >= 0; i--) {
+    const d = subDays(new Date(), i).toISOString().split("T")[0]
+    const label = format(new Date(d + "T12:00:00"), "dd/MM", { locale: ptBR })
+    dadosDia.push({ dia: label, total: diaMap.get(d) ?? 0 })
+  }
+
+  // Valor total estimado
+  const somatorio = (valorTotal.data ?? []).reduce((acc, row) => {
+    return acc + (Number(row.valor_estimado) || 0)
+  }, 0)
+
+  const totalLic = total.count ?? 0
+  const totalAtivas = ativas.count ?? 0
+  const pctAtivas = totalLic > 0 ? Math.round((totalAtivas / totalLic) * 100) : 0
+
+  return {
+    dadosUF,
+    dadosModalidade,
+    dadosDia,
+    valorTotalEstimado: somatorio,
+    totalAtivas,
+    totalLicitacoes: totalLic,
+    pctAtivas,
+  }
+}
+
 // ─── Metric cards config ──────────────────────────────────────────────────────
 
 const metricCards = [
@@ -318,13 +428,14 @@ export default async function DashboardPage() {
   // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado] = await Promise.all([
+  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado, mercado] = await Promise.all([
     getMetrics(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
     getEngajamento(impersonatingUserId),
     getEntrevistaConcluida(impersonatingUserId),
     getPerfilValidado(impersonatingUserId),
+    getMetricasMercado(),
   ])
 
   return (
@@ -375,13 +486,112 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Gráfico */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm">
-        <div className="mb-5">
-          <h2 className="text-base font-semibold text-white">Licitações por Mês</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Últimos 6 meses · dados ilustrativos</p>
+      {/* ── Visão Geral do Mercado ──────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex bg-blue-900/30 p-1.5 rounded-lg">
+            <BarChart2 className="h-4 w-4 text-blue-400" />
+          </div>
+          <h2 className="text-base font-semibold text-white">Visão Geral do Mercado</h2>
+          <span className="text-xs text-slate-500">· dados em tempo real</span>
         </div>
-        <GraficoLicitacoes />
+
+        {/* Cards de métricas de mercado */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 mb-6">
+          {/* Valor total estimado */}
+          <div
+            className="rounded-2xl p-4 md:p-5 shadow-sm"
+            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <p className="text-xs font-medium text-slate-400">Valor Total Estimado</p>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm">
+                <DollarSign className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            <p className="text-xl font-bold text-white leading-tight">
+              {mercado.valorTotalEstimado > 0
+                ? mercado.valorTotalEstimado.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })
+                : "—"}
+            </p>
+            <p className="text-[10px] text-slate-500 mt-1">Licitações ativas no sistema</p>
+          </div>
+
+          {/* Licitações ativas */}
+          <div
+            className="rounded-2xl p-4 md:p-5 shadow-sm"
+            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <p className="text-xs font-medium text-slate-400">Licitações Ativas</p>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
+                <Search className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            <p className="text-xl font-bold text-white leading-tight">
+              {mercado.totalAtivas.toLocaleString("pt-BR")}
+            </p>
+            <p className="text-[10px] text-slate-500 mt-1">
+              de {mercado.totalLicitacoes.toLocaleString("pt-BR")} no total
+            </p>
+          </div>
+
+          {/* Taxa de encerramento */}
+          <div
+            className="rounded-2xl p-4 md:p-5 shadow-sm"
+            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <p className="text-xs font-medium text-slate-400">Taxa de Ativas</p>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-sm">
+                <TrendingUp className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            <p className={`text-xl font-bold leading-tight ${mercado.pctAtivas >= 50 ? "text-emerald-400" : "text-amber-400"}`}>
+              {mercado.pctAtivas}%
+            </p>
+            <p className="text-[10px] text-slate-500 mt-1">do total ainda em aberto</p>
+          </div>
+        </div>
+
+        {/* Gráficos: UF + Modalidade */}
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 mb-4">
+          {/* Gráfico UF — 2/3 */}
+          <div
+            className="xl:col-span-2 rounded-2xl p-5 md:p-6 shadow-sm"
+            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <h3 className="text-sm font-semibold text-white mb-1">Licitações por UF</h3>
+            <p className="text-xs text-slate-500 mb-4">Top 10 estados com mais licitações</p>
+            {mercado.dadosUF.length > 0
+              ? <GraficoLicitacoesPorUF dados={mercado.dadosUF} />
+              : <div className="h-[300px] flex items-center justify-center text-slate-500 text-sm">Sem dados suficientes</div>
+            }
+          </div>
+
+          {/* Gráfico Modalidade — 1/3 */}
+          <div
+            className="rounded-2xl p-5 md:p-6 shadow-sm"
+            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <h3 className="text-sm font-semibold text-white mb-1">Por Modalidade</h3>
+            <p className="text-xs text-slate-500 mb-4">Distribuição das modalidades</p>
+            {mercado.dadosModalidade.length > 0
+              ? <GraficoModalidades dados={mercado.dadosModalidade} />
+              : <div className="h-[300px] flex items-center justify-center text-slate-500 text-sm">Sem dados suficientes</div>
+            }
+          </div>
+        </div>
+
+        {/* Gráfico por dia — linha inteira */}
+        <div
+          className="rounded-2xl p-5 md:p-6 shadow-sm"
+          style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+        >
+          <h3 className="text-sm font-semibold text-white mb-1">Inserções por Dia</h3>
+          <p className="text-xs text-slate-500 mb-4">Licitações adicionadas nos últimos 30 dias</p>
+          <GraficoLicitacoesPorDia dados={mercado.dadosDia} />
+        </div>
       </div>
 
       {/* Documentos Vencendo + Últimas Oportunidades */}
