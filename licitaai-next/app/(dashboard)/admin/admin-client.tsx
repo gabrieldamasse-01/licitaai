@@ -17,7 +17,14 @@ import {
   Database,
   Trash2,
   RefreshCw,
+  Download,
+  CheckCircle2,
+  XCircle,
+  SkipForward,
+  TrendingDown,
+  AlertTriangle,
 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -49,6 +56,7 @@ import {
   adicionarColaborador,
   removerColaborador,
   sincronizarPortal,
+  type SyncResult,
 } from "./actions"
 
 const MASTER_EMAIL = "gabriel.damasse@mgnext.com"
@@ -433,6 +441,64 @@ export default function AdminClient({
     })
   }
 
+  // ── Sincronização manual ────────────────────────────────────────────────────
+  type SyncManualResultado = {
+    inseridas: number
+    ignoradas: number
+    encerradas: number
+    buscadas: number
+    erros: string[]
+    licitacoes_preview: Array<{
+      objeto: string
+      orgao: string
+      uf: string | null
+      valor: number | null
+      status: string
+      source_id: string
+    }>
+  }
+
+  const hoje = new Date().toISOString().slice(0, 10)
+  const [syncPortal, setSyncPortal] = useState<"effecti" | "pncp">("effecti")
+  const [syncBegin, setSyncBegin] = useState(hoje)
+  const [syncEnd, setSyncEnd] = useState(hoje)
+  const [syncLoading, setSyncLoading] = useState(false)
+  const [syncResultado, setSyncResultado] = useState<SyncManualResultado | null>(null)
+
+  function setSyncAtalho(dias: number) {
+    const fim = new Date()
+    const ini = new Date(fim.getTime() - dias * 24 * 60 * 60 * 1000)
+    setSyncBegin(ini.toISOString().slice(0, 10))
+    setSyncEnd(fim.toISOString().slice(0, 10))
+  }
+
+  async function handleSyncManual() {
+    if (!syncBegin || !syncEnd) {
+      toast.error("Preencha as datas de início e fim.")
+      return
+    }
+    setSyncLoading(true)
+    setSyncResultado(null)
+    try {
+      const res = await fetch("/api/cron/sync-manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ portal: syncPortal, begin: syncBegin, end: syncEnd }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error ?? `Erro ${res.status}`)
+        return
+      }
+      setSyncResultado(json)
+      toast.success(`Sync concluída: ${json.inseridas} inseridas`)
+    } catch (err) {
+      toast.error(`Erro: ${String(err)}`)
+    } finally {
+      setSyncLoading(false)
+    }
+  }
+
   // Portais de dados
   const [portais, setPortais] = useState({ effecti: portalConfig.effecti, pncp: portalConfig.pncp })
   const [, startPortalTransition] = useTransition()
@@ -441,11 +507,16 @@ export default function AdminClient({
   async function handleSincronizar(portal: "effecti" | "pncp") {
     setSincronizando((prev) => ({ ...prev, [portal]: true }))
     try {
-      const result = await sincronizarPortal(portal)
+      const result: SyncResult = await sincronizarPortal(portal)
       if (result.error) {
-        toast.error(result.error)
+        toast.error(`Erro na sincronização: ${result.error}`)
       } else {
-        toast.success("Sincronização iniciada!")
+        const portalLabel = portal === "effecti" ? "Effecti" : "PNCP"
+        const erroLabel = result.erros && result.erros.length > 0 ? ` | ⚠️ ${result.erros.length} erro(s)` : ""
+        toast.success(
+          `✅ ${portalLabel}: ${result.inseridas ?? 0} inseridas, ${result.ignoradas ?? 0} ignoradas, ${result.encerradas ?? 0} encerradas${erroLabel}`,
+          { duration: 8000 }
+        )
       }
     } finally {
       setSincronizando((prev) => ({ ...prev, [portal]: false }))
@@ -570,6 +641,7 @@ export default function AdminClient({
             { value: "time", label: "Time" },
             { value: "colaboradores", label: "Colaboradores" },
             { value: "portais", label: "Portais de Dados" },
+            { value: "sincronizacao", label: "Sincronização" },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -1154,6 +1226,189 @@ export default function AdminClient({
               </div>
             </div>
           </div>
+        </TabsContent>
+        {/* ── Sincronização Manual ──────────────────────────────────────── */}
+        <TabsContent value="sincronizacao" className="mt-6 space-y-6">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Sincronização Manual</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Busca e importa licitações de um intervalo de datas específico.
+            </p>
+          </div>
+
+          {/* Painel de controle */}
+          <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5 space-y-4">
+            {/* Portal + datas */}
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Portal</p>
+                <Select value={syncPortal} onValueChange={(v) => setSyncPortal(v as "effecti" | "pncp")}>
+                  <SelectTrigger className="w-40 bg-slate-900 border-slate-600 text-white h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                    <SelectItem value="effecti">Effecti</SelectItem>
+                    <SelectItem value="pncp">PNCP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Data Início</p>
+                <input
+                  type="date"
+                  value={syncBegin}
+                  onChange={(e) => setSyncBegin(e.target.value)}
+                  className="h-9 px-3 rounded-md text-sm bg-slate-900 border border-slate-600 text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Data Fim</p>
+                <input
+                  type="date"
+                  value={syncEnd}
+                  onChange={(e) => setSyncEnd(e.target.value)}
+                  className="h-9 px-3 rounded-md text-sm bg-slate-900 border border-slate-600 text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Atalhos de período */}
+            <div className="flex flex-wrap gap-2">
+              <p className="text-xs text-slate-500 self-center mr-1">Atalhos:</p>
+              {[
+                { label: "Hoje", dias: 0 },
+                { label: "24h", dias: 1 },
+                { label: "48h", dias: 2 },
+                { label: "7 dias", dias: 7 },
+                { label: "30 dias", dias: 30 },
+              ].map(({ label, dias }) => (
+                <button
+                  key={label}
+                  onClick={() => setSyncAtalho(dias)}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white border border-slate-600 transition-colors"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Botão buscar */}
+            <Button
+              onClick={handleSyncManual}
+              disabled={syncLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            >
+              {syncLoading ? (
+                <><RefreshCw className="h-4 w-4 animate-spin" />Importando...</>
+              ) : (
+                <><Download className="h-4 w-4" />Buscar e Importar</>
+              )}
+            </Button>
+          </div>
+
+          {/* Cards de resultado */}
+          {syncResultado && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-xl p-4 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Database className="h-4 w-4 text-slate-400" />
+                    <span className="text-xs text-slate-400">Encontradas</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white tabular-nums">{syncResultado.buscadas.toLocaleString("pt-BR")}</p>
+                </div>
+                <div className="rounded-xl p-4 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <span className="text-xs text-slate-400">Inseridas</span>
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-400 tabular-nums">{syncResultado.inseridas.toLocaleString("pt-BR")}</p>
+                </div>
+                <div className="rounded-xl p-4 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <SkipForward className="h-4 w-4 text-amber-400" />
+                    <span className="text-xs text-slate-400">Ignoradas</span>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-400 tabular-nums">{syncResultado.ignoradas.toLocaleString("pt-BR")}</p>
+                </div>
+                <div className="rounded-xl p-4 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingDown className="h-4 w-4 text-slate-400" />
+                    <span className="text-xs text-slate-400">Encerradas</span>
+                  </div>
+                  <p className="text-2xl font-bold text-slate-300 tabular-nums">{syncResultado.encerradas.toLocaleString("pt-BR")}</p>
+                </div>
+              </div>
+
+              {/* Erros */}
+              {syncResultado.erros.length > 0 && (
+                <div className="rounded-xl border border-red-800/40 bg-red-950/30 p-4 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-red-400" />
+                    <p className="text-sm font-medium text-red-300">{syncResultado.erros.length} erro(s) durante a importação</p>
+                  </div>
+                  {syncResultado.erros.map((e, i) => (
+                    <p key={i} className="text-xs text-red-400 font-mono pl-6">{e}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* Tabela de preview */}
+              {syncResultado.licitacoes_preview.length > 0 && (
+                <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-white">Licitações importadas nessa sessão</h3>
+                    <span className="text-xs text-slate-500">primeiras {syncResultado.licitacoes_preview.length}</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-slate-700/50 hover:bg-transparent">
+                          <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Objeto</TableHead>
+                          <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Órgão</TableHead>
+                          <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">UF</TableHead>
+                          <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Valor</TableHead>
+                          <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {syncResultado.licitacoes_preview.map((lic) => (
+                          <TableRow key={lic.source_id} className="border-slate-700/30 hover:bg-white/[0.02]">
+                            <TableCell className="text-slate-200 text-xs max-w-[220px]">
+                              <span title={lic.objeto}>
+                                {lic.objeto.length > 70 ? lic.objeto.slice(0, 70) + "…" : lic.objeto}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-slate-400 text-xs hidden md:table-cell max-w-[160px] truncate">
+                              {lic.orgao}
+                            </TableCell>
+                            <TableCell className="text-slate-300 text-xs font-bold">
+                              {lic.uf ?? "—"}
+                            </TableCell>
+                            <TableCell className="text-slate-400 text-xs hidden sm:table-cell tabular-nums">
+                              {lic.valor
+                                ? lic.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })
+                                : "—"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={lic.status === "ativa"
+                                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px]"
+                                  : "bg-slate-500/20 text-slate-400 border-slate-500/30 text-[10px]"}
+                              >
+                                {lic.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

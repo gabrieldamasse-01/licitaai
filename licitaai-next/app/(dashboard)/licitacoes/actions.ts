@@ -223,7 +223,7 @@ export async function analisarEdital(
   let analise: string
   try {
     const response = await anthropic.messages.create({
-      model: getModel("analise"),
+      model: getModel("analise_licitacao"),
       max_tokens: getMaxTokens("analise_media"),
       messages: [{ role: "user", content: prompt }],
     })

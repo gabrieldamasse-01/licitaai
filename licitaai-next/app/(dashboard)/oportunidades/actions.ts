@@ -170,7 +170,7 @@ export async function buscarOportunidades(empresaId: string): Promise<{
     .eq("status", "ativa")
     .not("objeto", "is", null)
     .order("updated_at", { ascending: false })
-    .limit(500)
+    .limit(2000)
 
   if (error) {
     return { oportunidades: [], analisadas: 0, docsVencidos, docsVencendo, error: error.message }

@@ -139,8 +139,13 @@ function LicitacaoCard({
       </div>
 
       {/* Objeto */}
-      <p className="text-sm font-medium text-slate-100 line-clamp-2 leading-relaxed flex-1">
-        {lic.objetoSemTags || "Sem descrição"}
+      <p
+        className="text-sm font-medium text-slate-100 leading-relaxed flex-1"
+        title={lic.objetoSemTags || "Sem descrição"}
+      >
+        {(lic.objetoSemTags || "Sem descrição").length > 80
+          ? (lic.objetoSemTags || "Sem descrição").slice(0, 80) + "…"
+          : lic.objetoSemTags || "Sem descrição"}
       </p>
 
       {/* Órgão */}

@@ -266,9 +266,19 @@ export async function removerColaborador(
   return {}
 }
 
+export type SyncResult = {
+  success?: boolean
+  error?: string
+  inseridas?: number
+  ignoradas?: number
+  encerradas?: number
+  buscadas?: number
+  erros?: string[]
+}
+
 export async function sincronizarPortal(
   portal: "effecti" | "pncp"
-): Promise<{ success?: boolean; error?: string }> {
+): Promise<SyncResult> {
   const adminOk = await isAdmin()
   if (!adminOk) return { error: "Acesso negado." }
 
@@ -287,7 +297,15 @@ export async function sincronizarPortal(
       const text = await res.text()
       return { error: `Erro ${res.status}: ${text}` }
     }
-    return { success: true }
+    const json = await res.json()
+    return {
+      success: true,
+      inseridas: json.inseridas ?? 0,
+      ignoradas: json.ignoradas ?? 0,
+      encerradas: json.encerradas ?? 0,
+      buscadas: json.buscadas ?? 0,
+      erros: json.erros,
+    }
   } catch (err) {
     return { error: String(err) }
   }
