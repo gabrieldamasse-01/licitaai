@@ -77,8 +77,8 @@ Escreva em português formal, adequado para licitações públicas brasileiras.`
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
     const message = await anthropic.messages.create({
-      model: getModel("geracao_codigo"),
-      max_tokens: getMaxTokens("geracao_longa"),
+      model: getModel("gerar_proposta"),
+      max_tokens: getMaxTokens("gerar_proposta"),
       messages: [{ role: "user", content: prompt }],
     })
 

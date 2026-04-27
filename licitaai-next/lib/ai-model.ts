@@ -5,6 +5,7 @@ const MODELS: Record<string, string> = {
   analise_licitacao:     "claude-sonnet-4-6",
   entrevista_onboarding: "claude-sonnet-4-6",
   geracao_codigo:        "claude-sonnet-4-6",
+  gerar_proposta:        "claude-sonnet-4-6",
   raciocinio:            "claude-opus-4-7",
   agente_autonomo:       "claude-opus-4-7",
 }
@@ -16,6 +17,7 @@ const MAX_TOKENS: Record<string, number> = {
   analise_licitacao:     1024,
   entrevista_onboarding: 1024,
   geracao_longa:         2048,
+  gerar_proposta:        4096,
 }
 
 export function getModel(task: keyof typeof MODELS): string {

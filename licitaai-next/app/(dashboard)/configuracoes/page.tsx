@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { ConfiguracoesClient } from '@/components/configuracoes-client'
 
 export default async function ConfiguracoesPage() {
@@ -28,6 +29,17 @@ export default async function ConfiguracoesPage() {
     ? { ...defaultNotifConfig, ...prefs.notif_config }
     : defaultNotifConfig
 
+  const { data: entrevistaRow } = await createServiceClient()
+    .from('entrevistas_onboarding')
+    .select('concluida_em')
+    .eq('user_id', user.id)
+    .eq('status', 'concluida')
+    .limit(1)
+    .maybeSingle()
+
+  const entrevistaConcluida = entrevistaRow !== null
+  const entrevistaConcluidaEm: string | null = entrevistaRow?.concluida_em ?? null
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -55,6 +67,8 @@ export default async function ConfiguracoesPage() {
         twoFactorEnabled={prefs?.two_factor_enabled ?? false}
         keywords={Array.isArray(prefs?.keywords) ? prefs.keywords : []}
         notifConfig={notifConfig}
+        entrevistaConcluida={entrevistaConcluida}
+        entrevistaConcluidaEm={entrevistaConcluidaEm}
       />
     </div>
   )

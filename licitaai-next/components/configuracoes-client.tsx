@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useState, useTransition } from 'react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import {
   Building2,
@@ -14,6 +15,8 @@ import {
   Crown,
   Trash2,
   Tag,
+  ClipboardList,
+  CheckCircle2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -422,7 +425,77 @@ function KeywordsSection({ initialKeywords }: { initialKeywords: string[] }) {
   )
 }
 
-// ─── 4. Preferências de Notificação ──────────────────────────────────────────
+// ─── 4. Perfil de Licitações ─────────────────────────────────────────────────
+
+function PerfilLicitacoesSection({
+  concluida,
+  concluidaEm,
+}: {
+  concluida: boolean
+  concluidaEm: string | null
+}) {
+  const dataFormatada = concluidaEm
+    ? new Date(concluidaEm).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : null
+
+  if (concluida) {
+    return (
+      <div className="rounded-xl border border-emerald-700/50 bg-emerald-950/30 p-6 space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-900/40">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-sm font-semibold text-white">Perfil de Licitações</h2>
+            <p className="text-xs text-emerald-400 mt-0.5 font-medium">Entrevista concluída ✓</p>
+            {dataFormatada && (
+              <p className="text-xs text-slate-400 mt-0.5">Realizada em {dataFormatada}</p>
+            )}
+          </div>
+        </div>
+        <div className="border-t border-emerald-800/40 pt-4">
+          <Link href="/onboarding/entrevista">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-700/50 bg-transparent px-3 py-1.5 text-xs font-medium text-emerald-300 hover:bg-emerald-900/30 transition-colors"
+            >
+              <RefreshCw className="h-3 w-3" />
+              Refazer entrevista
+            </button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-amber-700/50 bg-amber-950/20 p-6 space-y-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-900/30">
+          <ClipboardList className="h-4 w-4 text-amber-400" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-white">Perfil de Licitações</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Complete sua entrevista para que a IA encontre as melhores oportunidades para você.
+          </p>
+        </div>
+      </div>
+      <div className="border-t border-amber-800/30 pt-4">
+        <Link href="/onboarding/entrevista">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-500 transition-colors"
+          >
+            Iniciar entrevista
+          </button>
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ─── 5. Preferências de Notificação ──────────────────────────────────────────
 
 function NotifConfigSection({ notifConfig }: { notifConfig: NotifConfig }) {
   const [state, action, pending] = useActionState(salvarNotifConfig, null)
@@ -508,7 +581,7 @@ function NotifConfigSection({ notifConfig }: { notifConfig: NotifConfig }) {
   )
 }
 
-// ─── 5. Preferências de Alerta ───────────────────────────────────────────────
+// ─── 6. Preferências de Alerta ───────────────────────────────────────────────
 
 function PreferenciasSection({ prefs }: { prefs: Prefs }) {
   const [state, action, pending] = useActionState(salvarPreferencias, null)
@@ -621,7 +694,7 @@ function PreferenciasSection({ prefs }: { prefs: Prefs }) {
   )
 }
 
-// ─── 4. Segurança ────────────────────────────────────────────────────────────
+// ─── 7. Segurança ────────────────────────────────────────────────────────────
 
 function SegurancaSection({
   userEmail,
@@ -707,7 +780,7 @@ function SegurancaSection({
   )
 }
 
-// ─── 5. Plano ─────────────────────────────────────────────────────────────────
+// ─── 8. Plano ─────────────────────────────────────────────────────────────────
 
 function PlanoSection({ plano, planoExpiraEm }: Plano) {
   const isPro = plano === 'pro'
@@ -774,7 +847,7 @@ function PlanoSection({ plano, planoExpiraEm }: Plano) {
   )
 }
 
-// ─── 6. Excluir Conta ────────────────────────────────────────────────────────
+// ─── 9. Excluir Conta ────────────────────────────────────────────────────────
 
 function ExcluirContaSection() {
   const [confirmando, setConfirmando] = useState(false)
@@ -876,6 +949,8 @@ export function ConfiguracoesClient({
   twoFactorEnabled = false,
   keywords = [],
   notifConfig = DEFAULT_NOTIF_CONFIG,
+  entrevistaConcluida = false,
+  entrevistaConcluidaEm = null,
 }: {
   company: Company
   prefs: Prefs
@@ -885,6 +960,8 @@ export function ConfiguracoesClient({
   twoFactorEnabled?: boolean
   keywords?: string[]
   notifConfig?: NotifConfig
+  entrevistaConcluida?: boolean
+  entrevistaConcluidaEm?: string | null
 }) {
   return (
     <div className="space-y-4">
@@ -892,6 +969,7 @@ export function ConfiguracoesClient({
       <PerfilSection company={company} />
       <CnaesSection initialCnaes={company?.cnae ?? []} />
       <KeywordsSection initialKeywords={keywords} />
+      <PerfilLicitacoesSection concluida={entrevistaConcluida} concluidaEm={entrevistaConcluidaEm} />
       <NotifConfigSection notifConfig={notifConfig} />
       <PreferenciasSection prefs={prefs} />
       <SegurancaSection userEmail={userEmail} twoFactorEnabled={twoFactorEnabled} />
