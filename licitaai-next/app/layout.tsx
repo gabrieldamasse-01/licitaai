@@ -13,8 +13,15 @@ export const metadata: Metadata = {
   title: "LicitaIA — Inteligência Artificial para Licitações Públicas",
   description:
     "Monitore, analise e vença licitações governamentais com IA. Mais de 15 mil editais por mês, ranking personalizado por CNAE e alertas em tempo real.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "LicitaAI",
+  },
   other: {
-    "theme-color": "#0A1628",
+    "theme-color": "#1d4ed8",
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -31,6 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="dark" suppressHydrationWarning>
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"

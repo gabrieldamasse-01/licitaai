@@ -10,6 +10,7 @@ import { GlobalSearch } from "@/components/global-search"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { getImpersonationContext } from "@/lib/impersonation"
 import { OnboardingTour } from "@/components/onboarding-tour"
+import { PwaRegister } from "@/components/pwa-register"
 
 export default async function DashboardLayout({
   children,
@@ -85,6 +86,7 @@ export default async function DashboardLayout({
           {children}
         </main>
         <OnboardingTour />
+        <PwaRegister />
         <BottomNav />
       </div>
     </div>
