@@ -80,7 +80,7 @@ export function AcoesCard({
   const jaSalva = salvas.has(empresaId)
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 space-y-5 sticky top-6">
+    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 space-y-5 sticky top-6">
       {/* Status */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
