@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck, TrendingUp, BarChart2, DollarSign } from "lucide-react"
+import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck, TrendingUp, TrendingDown, BarChart2, DollarSign } from "lucide-react"
 import { GraficoLicitacoesPorUF, GraficoModalidades, GraficoLicitacoesPorDia } from "@/components/domain/dashboard-charts"
 import Link from "next/link"
 import { format, parseISO, subDays } from "date-fns"
@@ -422,13 +422,42 @@ const metricCards = [
   },
 ]
 
+// ─── Licitações perdidas (últimos 30 dias) ────────────────────────────────────
+
+async function getLicitacoesPerdidas30d() {
+  const service = createServiceClient()
+  const hoje = new Date().toISOString().split("T")[0]
+  const trintaDiasAtras = new Date()
+  trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30)
+  const inicio = trintaDiasAtras.toISOString().split("T")[0]
+
+  const [count, valor] = await Promise.all([
+    service
+      .from("licitacoes")
+      .select("*", { count: "exact", head: true })
+      .or(`status.eq.encerrada,data_encerramento.lt.${hoje}`)
+      .gte("data_encerramento", inicio)
+      .not("data_encerramento", "is", null),
+    service
+      .from("licitacoes")
+      .select("valor_estimado")
+      .or(`status.eq.encerrada,data_encerramento.lt.${hoje}`)
+      .gte("data_encerramento", inicio)
+      .not("data_encerramento", "is", null)
+      .not("valor_estimado", "is", null),
+  ])
+
+  const totalValor = (valor.data ?? []).reduce((acc, r) => acc + (Number(r.valor_estimado) || 0), 0)
+  return { count: count.count ?? 0, totalValor }
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
   // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado, mercado] = await Promise.all([
+  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado, mercado, perdidas30d] = await Promise.all([
     getMetrics(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
@@ -436,6 +465,7 @@ export default async function DashboardPage() {
     getEntrevistaConcluida(impersonatingUserId),
     getPerfilValidado(impersonatingUserId),
     getMetricasMercado(),
+    getLicitacoesPerdidas30d(),
   ])
 
   return (
@@ -772,6 +802,35 @@ export default async function DashboardPage() {
           </Link>
         </div>
       )}
+
+      {/* Card Licitações Perdidas */}
+      <div className="rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center gap-4 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.18)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}>
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-950/60 border border-red-800/40">
+          <TrendingDown className="h-6 w-6 text-red-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+            <h2 className="text-base font-semibold text-white">Oportunidades perdidas</h2>
+            <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold border bg-red-950/50 text-red-400 border-red-800/50">
+              Últimos 30 dias
+            </span>
+          </div>
+          <p className="text-sm text-slate-400">
+            <span className="text-2xl font-bold text-red-400 mr-1">{perdidas30d.count.toLocaleString("pt-BR")}</span>
+            licitações encerradas
+            {perdidas30d.totalValor > 0 && (
+              <> · <span className="font-semibold text-red-300">{perdidas30d.totalValor.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })}</span> em contratos</>
+            )}
+          </p>
+        </div>
+        <Link
+          href="/licitacoes-perdidas"
+          className="shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-red-700 hover:bg-red-600 shadow-lg shadow-red-900/30 transition-all active:scale-95 whitespace-nowrap"
+        >
+          Ver detalhes
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
 
       {/* Card de Engajamento */}
       <div className="rounded-2xl p-5 md:p-6 backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}>
