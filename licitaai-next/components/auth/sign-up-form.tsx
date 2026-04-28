@@ -40,16 +40,44 @@ export function SignUpForm({
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showRepeat, setShowRepeat] = useState(false)
+  const [emailJaCadastrado, setEmailJaCadastrado] = useState(false)
+  const [checkingEmail, setCheckingEmail] = useState(false)
 
   const {
     register,
     handleSubmit,
     setError,
+    clearErrors,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
     mode: "onBlur",
   })
+
+  async function verificarEmail() {
+    const email = getValues("email")
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return
+    setCheckingEmail(true)
+    try {
+      const res = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      const { exists } = await res.json()
+      setEmailJaCadastrado(exists)
+      if (exists) {
+        setError("email", { message: "Este email já está cadastrado. Faça login." })
+      } else {
+        clearErrors("email")
+      }
+    } catch {
+      // silencioso — não bloquear cadastro por falha de rede
+    } finally {
+      setCheckingEmail(false)
+    }
+  }
 
   const onSubmit = async (data: SignUpData) => {
     const supabase = createClient()
@@ -150,8 +178,13 @@ export function SignUpForm({
                 type="email"
                 placeholder="nome@empresa.com.br"
                 className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                {...register("email")}
+                {...register("email", {
+                  onBlur: verificarEmail,
+                })}
               />
+              {checkingEmail && (
+                <p className="text-xs text-slate-400">Verificando email...</p>
+              )}
               {errors.email && (
                 <p className="text-xs text-red-500">{errors.email.message}</p>
               )}
@@ -220,7 +253,7 @@ export function SignUpForm({
             <Button
               type="submit"
               className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base shadow-md shadow-blue-500/20 transition-all"
-              disabled={isSubmitting}
+              disabled={isSubmitting || emailJaCadastrado || checkingEmail}
             >
               {isSubmitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin mr-2" />Criando conta...</>

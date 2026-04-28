@@ -61,6 +61,58 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
+const UFS_BRASIL = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+const MODALIDADES_LISTA = ["Pregão Eletrônico","Dispensa","Concorrência","Tomada de Preços","Convite","Leilão","Credenciamento"]
+
+type CheckboxListProps = {
+  label: string
+  icon: React.ReactNode
+  opcoes: string[]
+  selecionados: string[]
+  onChange: (items: string[]) => void
+}
+
+function CheckboxList({ label, icon, opcoes, selecionados, onChange }: CheckboxListProps) {
+  function toggle(item: string) {
+    if (selecionados.includes(item)) {
+      onChange(selecionados.filter((i) => i !== item))
+    } else {
+      onChange([...selecionados, item])
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-blue-500/30 bg-slate-800/60 p-4">
+      <div className="flex items-center gap-2 text-sm font-semibold text-slate-200 mb-3">
+        {icon}
+        {label}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {opcoes.map((item) => {
+          const sel = selecionados.includes(item)
+          return (
+            <button
+              key={item}
+              type="button"
+              onClick={() => toggle(item)}
+              className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
+                sel
+                  ? "bg-blue-600/30 text-blue-300 border-blue-500/50"
+                  : "bg-slate-700 text-slate-400 border-slate-600 hover:text-slate-300"
+              }`}
+            >
+              {item}
+            </button>
+          )
+        })}
+      </div>
+      {selecionados.length === 0 && (
+        <p className="text-xs text-slate-500 mt-2">Nenhum selecionado (todos aceitos)</p>
+      )}
+    </div>
+  )
+}
+
 type EditableListProps = {
   label: string
   icon: React.ReactNode
@@ -215,7 +267,10 @@ export function ValidarPerfilClient({ companyId, licitacoes, criteriosIniciais }
       const result = await aprovarPerfil(companyId, criterios, pesos, licitacoesRanqueadas.slice(0, 5))
       if (result?.error) {
         toast.error(result.error)
+        return
       }
+      router.refresh()
+      router.push("/oportunidades")
     })
   }
 
@@ -250,17 +305,19 @@ export function ValidarPerfilClient({ companyId, licitacoes, criteriosIniciais }
               items={criterios.palavras_chave}
               onSave={(v) => updateCriterio("palavras_chave", v)}
             />
-            <EditableList
+            <CheckboxList
               label="Estados (UFs)"
               icon={<MapPin className="h-3.5 w-3.5 text-blue-400" />}
-              items={criterios.ufs}
-              onSave={(v) => updateCriterio("ufs", v)}
+              opcoes={UFS_BRASIL}
+              selecionados={criterios.ufs}
+              onChange={(v) => updateCriterio("ufs", v)}
             />
-            <EditableList
+            <CheckboxList
               label="Modalidades"
               icon={<Building2 className="h-3.5 w-3.5 text-blue-400" />}
-              items={criterios.modalidades}
-              onSave={(v) => updateCriterio("modalidades", v)}
+              opcoes={MODALIDADES_LISTA}
+              selecionados={criterios.modalidades}
+              onChange={(v) => updateCriterio("modalidades", v)}
             />
           </div>
 

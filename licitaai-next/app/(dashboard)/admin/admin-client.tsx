@@ -26,6 +26,9 @@ import {
   Activity,
   ClipboardList,
   ServerCrash,
+  Pencil,
+  X,
+  Check,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -59,6 +62,7 @@ import {
   adicionarColaborador,
   removerColaborador,
   sincronizarPortal,
+  atualizarCargo,
   type SyncResult,
 } from "./actions"
 
@@ -558,6 +562,34 @@ export default function AdminClient({
     })
   }
 
+  // Edição inline de cargo
+  const [editandoCargo, setEditandoCargo] = useState<string | null>(null)
+  const [cargoDraft, setCargoDraft] = useState("")
+  const [, startCargoTransition] = useTransition()
+
+  function iniciarEditarCargo(adminId: string, cargoAtual: string | null) {
+    setEditandoCargo(adminId)
+    setCargoDraft(cargoAtual ?? "")
+  }
+
+  function cancelarEditarCargo() {
+    setEditandoCargo(null)
+    setCargoDraft("")
+  }
+
+  function salvarCargo(adminId: string) {
+    startCargoTransition(async () => {
+      const result = await atualizarCargo(adminId, cargoDraft)
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success("Cargo atualizado.")
+        setEditandoCargo(null)
+        router.refresh()
+      }
+    })
+  }
+
   // Impersonar cliente
   const [impersonatingId, setImpersonatingId] = useState<string | null>(null)
   const handleImpersonate = useCallback(async (userId: string) => {
@@ -984,6 +1016,7 @@ export default function AdminClient({
                   <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Email</TableHead>
                   <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Desde</TableHead>
                   <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-center">Status</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider w-8" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1019,7 +1052,29 @@ export default function AdminClient({
                           </div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-slate-400 text-sm">
-                          {membro.cargo ?? <span className="text-slate-600 italic">—</span>}
+                          {!isMaster && editandoCargo === membro.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <Input
+                                value={cargoDraft}
+                                onChange={(e) => setCargoDraft(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") salvarCargo(membro.id)
+                                  if (e.key === "Escape") cancelarEditarCargo()
+                                }}
+                                placeholder="Ex: Suporte"
+                                autoFocus
+                                className="h-7 text-xs bg-slate-700 border-slate-600 text-white w-28"
+                              />
+                              <button onClick={() => salvarCargo(membro.id)} className="text-emerald-400 hover:text-emerald-300">
+                                <Check className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={cancelarEditarCargo} className="text-slate-500 hover:text-slate-300">
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            membro.cargo ?? <span className="text-slate-600 italic">—</span>
+                          )}
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-slate-400 text-xs font-mono">
                           {membro.email}
@@ -1040,6 +1095,17 @@ export default function AdminClient({
                               checked={membro.ativo}
                               onChange={() => handleToggleAdmin(membro.id, membro.ativo)}
                             />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {!isMaster && editandoCargo !== membro.id && (
+                            <button
+                              onClick={() => iniciarEditarCargo(membro.id, membro.cargo)}
+                              title="Editar cargo"
+                              className="text-slate-500 hover:text-blue-400 transition-colors"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
                           )}
                         </TableCell>
                       </TableRow>

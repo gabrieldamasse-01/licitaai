@@ -72,6 +72,13 @@ function displayCNPJ(cnpj: string) {
   return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`
 }
 
+const CNAE_REGEX = /^\d{4}-\d\/\d{2}$/
+
+function validarCNAE(value: string): boolean {
+  if (!value.trim()) return true
+  return CNAE_REGEX.test(value.trim())
+}
+
 const emptyForm: EmpresaFormData = {
   razao_social: "",
   cnpj: "",
@@ -81,12 +88,13 @@ const emptyForm: EmpresaFormData = {
   contato: "",
 }
 
-export function ClientesClient({ companies }: { companies: Company[] }) {
+export function ClientesClient({ companies, isAdmin = false }: { companies: Company[]; isAdmin?: boolean }) {
   const router = useRouter()
   const [busca, setBusca] = useState("")
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editando, setEditando] = useState<Company | null>(null)
   const [form, setForm] = useState<EmpresaFormData>(emptyForm)
+  const [cnaeError, setCnaeError] = useState("")
   const [isPending, startTransition] = useTransition()
 
   const filtradas = useMemo(() => {
@@ -102,11 +110,13 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
   function abrirNova() {
     setEditando(null)
     setForm(emptyForm)
+    setCnaeError("")
     setSheetOpen(true)
   }
 
   function abrirEditar(company: Company) {
     setEditando(company)
+    setCnaeError("")
     setForm({
       razao_social: company.razao_social,
       cnpj: displayCNPJ(company.cnpj),
@@ -120,6 +130,11 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (form.cnae && !validarCNAE(form.cnae)) {
+      setCnaeError("Formato inválido. Use XXXX-X/XX (ex: 6201-5/01)")
+      return
+    }
+    setCnaeError("")
     startTransition(async () => {
       const result = editando
         ? await editarEmpresa(editando.id, form)
@@ -168,10 +183,12 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
               Validar Perfil
             </Link>
           </Button>
-          <Button onClick={abrirNova} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Empresa
-          </Button>
+          {isAdmin && (
+            <Button onClick={abrirNova} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Empresa
+            </Button>
+          )}
         </div>
       </div>
 
@@ -246,20 +263,22 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleToggleAtivo(company)}
-                          title={company.ativo ? "Desativar" : "Ativar"}
-                          className={company.ativo ? "text-red-500 hover:text-red-600" : "text-emerald-600 hover:text-emerald-700"}
-                          disabled={isPending}
-                        >
-                          {company.ativo ? (
-                            <PowerOff className="h-4 w-4" />
-                          ) : (
-                            <Power className="h-4 w-4" />
-                          )}
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleToggleAtivo(company)}
+                            title={company.ativo ? "Desativar" : "Ativar"}
+                            className={company.ativo ? "text-red-500 hover:text-red-600" : "text-emerald-600 hover:text-emerald-700"}
+                            disabled={isPending}
+                          >
+                            {company.ativo ? (
+                              <PowerOff className="h-4 w-4" />
+                            ) : (
+                              <Power className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -313,19 +332,21 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
                     <Pencil className="h-3.5 w-3.5 mr-1.5" />
                     Editar
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={`flex-1 ${company.ativo ? "text-red-400 border-red-800/50 hover:bg-red-900/30" : "text-emerald-400 border-emerald-800/50 hover:bg-emerald-900/30"}`}
-                    onClick={() => handleToggleAtivo(company)}
-                    disabled={isPending}
-                  >
-                    {company.ativo ? (
-                      <><PowerOff className="h-3.5 w-3.5 mr-1.5" />Desativar</>
-                    ) : (
-                      <><Power className="h-3.5 w-3.5 mr-1.5" />Ativar</>
-                    )}
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`flex-1 ${company.ativo ? "text-red-400 border-red-800/50 hover:bg-red-900/30" : "text-emerald-400 border-emerald-800/50 hover:bg-emerald-900/30"}`}
+                      onClick={() => handleToggleAtivo(company)}
+                      disabled={isPending}
+                    >
+                      {company.ativo ? (
+                        <><PowerOff className="h-3.5 w-3.5 mr-1.5" />Desativar</>
+                      ) : (
+                        <><Power className="h-3.5 w-3.5 mr-1.5" />Ativar</>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
@@ -399,10 +420,20 @@ export function ClientesClient({ companies }: { companies: Company[] }) {
               <Input
                 id="cnae"
                 value={form.cnae ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, cnae: e.target.value }))}
-                placeholder="Ex: 6201-5/01 — Desenvolvimento de programas"
-                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                onChange={(e) => {
+                  const val = e.target.value
+                  setForm((f) => ({ ...f, cnae: val }))
+                  if (cnaeError && validarCNAE(val)) setCnaeError("")
+                }}
+                onBlur={(e) => {
+                  if (e.target.value && !validarCNAE(e.target.value)) {
+                    setCnaeError("Formato inválido. Use XXXX-X/XX (ex: 6201-5/01)")
+                  }
+                }}
+                placeholder="Ex: 6201-5/01"
+                className={`bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 ${cnaeError ? "border-red-500" : ""}`}
               />
+              {cnaeError && <p className="text-xs text-red-400">{cnaeError}</p>}
             </div>
 
             <div className="space-y-1.5">

@@ -311,6 +311,36 @@ export async function sincronizarPortal(
   }
 }
 
+export async function atualizarCargo(
+  adminId: string,
+  novoCargo: string,
+): Promise<{ error?: string }> {
+  const adminOk = await isAdmin()
+  if (!adminOk) return { error: "Acesso negado." }
+
+  const admin = createServiceClient()
+
+  const { data: adminUser } = await admin
+    .from("admin_users")
+    .select("email")
+    .eq("id", adminId)
+    .maybeSingle()
+
+  if (adminUser?.email === MASTER_EMAIL) {
+    return { error: "Não é possível alterar o cargo do administrador master." }
+  }
+
+  const { error } = await admin
+    .from("admin_users")
+    .update({ cargo: novoCargo.trim() || null })
+    .eq("id", adminId)
+
+  if (error) return { error: "Erro ao atualizar cargo." }
+
+  revalidatePath("/admin")
+  return {}
+}
+
 export async function enviarEmailAdmin(
   userEmail: string,
   assunto: string,
