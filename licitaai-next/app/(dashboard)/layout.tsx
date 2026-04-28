@@ -48,7 +48,7 @@ export default async function DashboardLayout({
   const isImpersonating = !!impersonatingUserId && !!impersonatedEmail
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-900">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Sidebar desktop */}
       <div className="hidden md:flex md:shrink-0">
         <AppSidebar email={user.email ?? ""} isAdmin={adminOk} />

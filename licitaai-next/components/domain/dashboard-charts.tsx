@@ -18,9 +18,10 @@ import {
 import type { PieLabelRenderProps } from "recharts"
 
 const TOOLTIP_STYLE = {
-  backgroundColor: "rgba(15,15,30,0.95)",
+  background: "rgba(15,23,42,0.85)",
   border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: "8px",
+  borderRadius: "12px",
+  backdropFilter: "blur(20px)",
   color: "white",
   fontSize: "13px",
 }
@@ -42,7 +43,7 @@ export function GraficoLicitacoesPorUF({ dados }: { dados: DadosUF[] }) {
         layout="vertical"
         margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" horizontal={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" horizontal={false} />
         <XAxis
           type="number"
           tick={{ fontSize: 11, fill: "rgba(255,255,255,0.45)" }}
@@ -148,7 +149,7 @@ export function GraficoLicitacoesPorDia({ dados }: { dados: DadosDia[] }) {
   return (
     <ResponsiveContainer width="100%" height={250}>
       <LineChart data={dados} margin={{ top: 4, right: 16, left: -16, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
         <XAxis
           dataKey="dia"
           tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }}

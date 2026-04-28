@@ -465,8 +465,8 @@ export default async function DashboardPage() {
         {metricCards.map(({ key, title, description, icon: Icon, iconBg, iconColor }) => (
           <div
             key={key}
-            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-sm transition-all hover:shadow-md backdrop-blur-[4px]"
-            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 transition-all duration-300 backdrop-blur-xl hover:bg-white/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-start justify-between gap-2">
@@ -500,8 +500,8 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 mb-6">
           {/* Valor total estimado */}
           <div
-            className="rounded-2xl p-4 md:p-5 shadow-sm"
-            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="rounded-2xl p-4 md:p-5 backdrop-blur-xl"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
           >
             <div className="flex items-start justify-between gap-2 mb-3">
               <p className="text-xs font-medium text-slate-400">Valor Total Estimado</p>
@@ -519,8 +519,8 @@ export default async function DashboardPage() {
 
           {/* Licitações ativas */}
           <div
-            className="rounded-2xl p-4 md:p-5 shadow-sm"
-            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="rounded-2xl p-4 md:p-5 backdrop-blur-xl"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
           >
             <div className="flex items-start justify-between gap-2 mb-3">
               <p className="text-xs font-medium text-slate-400">Licitações Ativas</p>
@@ -538,8 +538,8 @@ export default async function DashboardPage() {
 
           {/* Taxa de encerramento */}
           <div
-            className="rounded-2xl p-4 md:p-5 shadow-sm"
-            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="rounded-2xl p-4 md:p-5 backdrop-blur-xl"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
           >
             <div className="flex items-start justify-between gap-2 mb-3">
               <p className="text-xs font-medium text-slate-400">Taxa de Ativas</p>
@@ -558,8 +558,8 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 mb-4">
           {/* Gráfico UF — 2/3 */}
           <div
-            className="xl:col-span-2 rounded-2xl p-5 md:p-6 shadow-sm"
-            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="xl:col-span-2 rounded-2xl p-5 md:p-6 backdrop-blur-xl"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
           >
             <h3 className="text-sm font-semibold text-white mb-1">Licitações por UF</h3>
             <p className="text-xs text-slate-500 mb-4">Top 10 estados com mais licitações</p>
@@ -571,8 +571,8 @@ export default async function DashboardPage() {
 
           {/* Gráfico Modalidade — 1/3 */}
           <div
-            className="rounded-2xl p-5 md:p-6 shadow-sm"
-            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="rounded-2xl p-5 md:p-6 backdrop-blur-xl"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
           >
             <h3 className="text-sm font-semibold text-white mb-1">Por Modalidade</h3>
             <p className="text-xs text-slate-500 mb-4">Distribuição das modalidades</p>
@@ -585,8 +585,8 @@ export default async function DashboardPage() {
 
         {/* Gráfico por dia — linha inteira */}
         <div
-          className="rounded-2xl p-5 md:p-6 shadow-sm"
-          style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
+          className="rounded-2xl p-5 md:p-6 backdrop-blur-xl"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
         >
           <h3 className="text-sm font-semibold text-white mb-1">Inserções por Dia</h3>
           <p className="text-xs text-slate-500 mb-4">Licitações adicionadas nos últimos 30 dias</p>
@@ -598,7 +598,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
         {/* Documentos com Vencimento Próximo */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
+        <div className="rounded-2xl p-5 md:p-6 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}>
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex bg-amber-900/30 p-1.5 rounded-lg">
@@ -615,15 +615,15 @@ export default async function DashboardPage() {
           </div>
 
           {documentosVencendo.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-700/30 rounded-xl border border-dashed border-slate-700">
-              <div className="bg-slate-700 p-3 rounded-2xl shadow-sm mb-3">
+            <div className="flex flex-col items-center justify-center py-12 text-center bg-white/5 rounded-xl border border-dashed border-white/15">
+              <div className="bg-white/10 p-3 rounded-2xl shadow-sm mb-3">
                 <FileText className="h-8 w-8 text-slate-500" />
               </div>
               <p className="text-sm font-medium text-slate-300">Nenhum documento vencendo</p>
               <p className="text-xs text-slate-500 mt-1">Documentos com validade próxima aparecerão aqui.</p>
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-slate-700">
+            <ul className="flex flex-col divide-y divide-white/10">
               {documentosVencendo.map((doc) => {
                 const badge = getDocStatusBadge(doc.data_validade)
                 const company = getRazaoSocial((doc as { companies: CompanyRelation }).companies)
@@ -653,7 +653,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Últimas Oportunidades Salvas */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
+        <div className="rounded-2xl p-5 md:p-6 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}>
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex bg-blue-900/30 p-1.5 rounded-lg">
@@ -670,15 +670,15 @@ export default async function DashboardPage() {
           </div>
 
           {ultimasOportunidades.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-700/30 rounded-xl border border-dashed border-slate-700">
-              <div className="bg-slate-700 p-3 rounded-2xl shadow-sm mb-3">
+            <div className="flex flex-col items-center justify-center py-12 text-center bg-white/5 rounded-xl border border-dashed border-white/15">
+              <div className="bg-white/10 p-3 rounded-2xl shadow-sm mb-3">
                 <Sparkles className="h-8 w-8 text-slate-500" />
               </div>
               <p className="text-sm font-medium text-slate-300">Nenhuma oportunidade salva</p>
               <p className="text-xs text-slate-500 mt-1">Licitações salvas aparecerão aqui.</p>
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-slate-700">
+            <ul className="flex flex-col divide-y divide-white/10">
               {ultimasOportunidades.map((match) => {
                 const licitacao = (match as { licitacoes: LicitacaoRelation }).licitacoes
                 const objeto = getObjeto(licitacao)
@@ -712,11 +712,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Card Perfil de Licitações */}
-      <div className={`rounded-2xl border p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 ${
-        entrevistaConcluida
-          ? "border-emerald-800/50 bg-emerald-950/30"
-          : "border-blue-800/50 bg-blue-950/30"
-      }`}>
+      <div className="rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center gap-4 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}>
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
           entrevistaConcluida ? "bg-emerald-900/50" : "bg-blue-900/50"
         }`}>
@@ -752,7 +748,7 @@ export default async function DashboardPage() {
 
       {/* Card Validar Perfil — visível somente quando entrevista concluída mas perfil não validado */}
       {entrevistaConcluida && !perfilValidado && (
-        <div className="rounded-2xl border border-amber-800/50 bg-amber-950/30 p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center gap-4 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}>
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-900/50">
             <ShieldCheck className="h-6 w-6 text-amber-400" />
           </div>
@@ -778,7 +774,7 @@ export default async function DashboardPage() {
       )}
 
       {/* Card de Engajamento */}
-      <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
+      <div className="rounded-2xl p-5 md:p-6 backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}>
         <div className="mb-5 flex items-center gap-2">
           <div className="flex bg-violet-900/30 p-1.5 rounded-lg">
             <Activity className="h-4 w-4 text-violet-400" />
@@ -786,21 +782,21 @@ export default async function DashboardPage() {
           <h2 className="text-base font-semibold text-white">Seu engajamento</h2>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
             <p className="text-2xl font-bold text-white">{engajamento.visualizadas}</p>
             <p className="text-xs text-slate-400 mt-1">Licitações visualizadas este mês</p>
           </div>
-          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
             <p className="text-2xl font-bold text-white">{engajamento.salvas}</p>
             <p className="text-xs text-slate-400 mt-1">Oportunidades salvas</p>
           </div>
-          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
             <p className={`text-2xl font-bold ${engajamento.docsPct >= 80 ? 'text-emerald-400' : engajamento.docsPct >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
               {engajamento.docsPct}%
             </p>
             <p className="text-xs text-slate-400 mt-1">Documentos em dia</p>
           </div>
-          <div className="rounded-xl bg-slate-700/50 p-4 text-center">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
             <p className="text-2xl font-bold text-violet-400">{engajamento.notifHorario}</p>
             <p className="text-xs text-slate-400 mt-1">Próximo alerta diário</p>
           </div>
