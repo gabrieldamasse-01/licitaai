@@ -66,6 +66,10 @@ export async function fetchLicitacoes({
   uf,
   modalidades,
   busca,
+  valorMin,
+  valorMax,
+  portal,
+  status,
 }: {
   pagina?: number
   dataInicio?: string
@@ -73,6 +77,10 @@ export async function fetchLicitacoes({
   uf?: string
   modalidades?: string[]
   busca?: string
+  valorMin?: number
+  valorMax?: number
+  portal?: string
+  status?: string
 }): Promise<FetchResult> {
   try {
     const supabase = await createClient()
@@ -89,14 +97,19 @@ export async function fetchLicitacoes({
     let query = supabase
       .from("licitacoes")
       .select("*", { count: "exact" })
-      .eq("status", "ativa")
       .order("data_publicacao", { ascending: false })
+
+    const filtroStatus = status && status !== "todas" ? status : "ativa"
+    query = query.eq("status", filtroStatus)
 
     if (dataInicio) query = query.gte("data_publicacao", dataInicio)
     if (dataFim)    query = query.lte("data_publicacao", dataFim)
     if (uf)         query = query.eq("uf", uf)
     if (modalidades && modalidades.length > 0) query = query.in("modalidade", modalidades)
     if (busca && busca.trim()) query = query.ilike("objeto", `%${busca.trim()}%`)
+    if (valorMin)   query = query.gte("valor_estimado", valorMin)
+    if (valorMax)   query = query.lte("valor_estimado", valorMax)
+    if (portal && portal !== "todos") query = query.ilike("portal", `%${portal}%`)
 
     const { data, error, count } = await query.range(from, to)
 

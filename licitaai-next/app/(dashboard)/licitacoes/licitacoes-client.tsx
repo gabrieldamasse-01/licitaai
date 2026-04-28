@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import {
   Search, SlidersHorizontal, ExternalLink, Loader2, X,
   AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale, Clock,
-  ArrowUpRight, Tag,
+  ArrowUpRight, Tag, ChevronDown,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
@@ -50,6 +50,14 @@ const MODALIDADES = [
 ]
 
 const HISTORY_MAX = 5
+
+const PORTAIS = ["Effecti", "PNCP", "ComprasNet", "Compras Públicas", "Licitações-e"]
+
+const STATUS_OPTIONS = [
+  { value: "todas", label: "Todas" },
+  { value: "ativa", label: "Ativas" },
+  { value: "encerrada", label: "Encerradas" },
+]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -381,6 +389,11 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
   const [ufsSel, setUfsSel] = useState<Set<string>>(new Set(UFS))
   const [modsSel, setModsSel] = useState<Set<string>>(new Set(MODALIDADES))
   const [filtrosOpen, setFiltrosOpen] = useState(false)
+  const [avancadoOpen, setAvancadoOpen] = useState(false)
+  const [valorMin, setValorMin] = useState("")
+  const [valorMax, setValorMax] = useState("")
+  const [portalSel, setPortalSel] = useState("todos")
+  const [statusSel, setStatusSel] = useState("todas")
   const [detalhe, setDetalhe] = useState<Licitacao | null>(null)
   const [detalheOpen, setDetalheOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -433,6 +446,10 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
         uf,
         modalidades,
         busca: buscaTerm || undefined,
+        valorMin: valorMin ? parseFloat(valorMin.replace(/\D/g, "")) : undefined,
+        valorMax: valorMax ? parseFloat(valorMax.replace(/\D/g, "")) : undefined,
+        portal: portalSel !== "todos" ? portalSel : undefined,
+        status: statusSel !== "todas" ? statusSel : undefined,
       })
       setDados(result)
       setPaginaAtual(pagina)
@@ -471,6 +488,17 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
     setTexto("")
     setDataInicio("")
     setDataFim("")
+    setValorMin("")
+    setValorMax("")
+    setPortalSel("todos")
+    setStatusSel("todas")
+  }
+
+  function limparFiltrosAvancados() {
+    setValorMin("")
+    setValorMax("")
+    setPortalSel("todos")
+    setStatusSel("todas")
   }
 
   const totalPaginas = dados.pagination?.total_paginas ?? 0
@@ -478,7 +506,8 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
   const totalBanco = dados.total_banco ?? 0
   const ufsAtivas = ufsSel.size > 0 && ufsSel.size < UFS.length ? 1 : 0
   const modsAtivas = modsSel.size > 0 && modsSel.size < MODALIDADES.length ? 1 : 0
-  const filtrosAtivos = ufsAtivas + modsAtivas + (texto ? 1 : 0) + (dataInicio ? 1 : 0) + (dataFim ? 1 : 0)
+  const filtrosAvancadosAtivos = (valorMin ? 1 : 0) + (valorMax ? 1 : 0) + (portalSel !== "todos" ? 1 : 0) + (statusSel !== "todas" ? 1 : 0)
+  const filtrosAtivos = ufsAtivas + modsAtivas + (texto ? 1 : 0) + (dataInicio ? 1 : 0) + (dataFim ? 1 : 0) + filtrosAvancadosAtivos
 
   // Painel de filtros (reutilizado em desktop + Sheet mobile)
   const painelFiltros = (
@@ -590,6 +619,104 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
             />
           </div>
         </div>
+      </div>
+
+      {/* Filtros Avançados */}
+      <div className="space-y-2">
+        <button
+          onClick={() => setAvancadoOpen((v) => !v)}
+          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:bg-slate-700/40 transition-colors"
+        >
+          <span className="flex items-center gap-1.5">
+            Filtros avançados
+            {filtrosAvancadosAtivos > 0 && (
+              <span className="inline-flex items-center justify-center h-4 min-w-[16px] rounded-full bg-blue-600 text-[10px] font-bold text-white px-1">
+                {filtrosAvancadosAtivos}
+              </span>
+            )}
+          </span>
+          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", avancadoOpen && "rotate-180")} />
+        </button>
+
+        {avancadoOpen && (
+          <div className="space-y-3 pt-1 pl-1 border-l-2 border-slate-700 ml-1">
+            {/* Valor mínimo e máximo */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-500">Valor mín. (R$)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="0"
+                  value={valorMin}
+                  onChange={(e) => setValorMin(e.target.value)}
+                  className="h-9 text-sm bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-500">Valor máx. (R$)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="∞"
+                  value={valorMax}
+                  onChange={(e) => setValorMax(e.target.value)}
+                  className="h-9 text-sm bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
+                />
+              </div>
+            </div>
+
+            {/* Portal */}
+            <div className="space-y-1">
+              <Label className="text-[11px] text-slate-500">Portal</Label>
+              <select
+                value={portalSel}
+                onChange={(e) => setPortalSel(e.target.value)}
+                className="w-full h-9 rounded-md border border-slate-600 bg-slate-800 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="todos">Todos os portais</option>
+                {PORTAIS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-1">
+              <Label className="text-[11px] text-slate-500">Status</Label>
+              <div className="flex gap-1.5">
+                {STATUS_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => setStatusSel(value)}
+                    className={cn(
+                      "flex-1 h-8 rounded-md text-xs font-medium border transition-colors",
+                      statusSel === value
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-slate-800 text-slate-400 border-slate-600 hover:border-blue-500 hover:text-blue-400"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {filtrosAvancadosAtivos > 0 && (
+              <button
+                onClick={limparFiltrosAvancados}
+                className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                <X className="h-3 w-3" />
+                Limpar filtros avançados
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Botão Buscar */}
+      <div>
         <Button
           onClick={() => { buscar(0); setFiltrosOpen(false) }}
           className="w-full bg-[#1A5276] hover:bg-[#154360] text-white h-9 text-sm gap-2"
