@@ -1223,7 +1223,7 @@ export default function AdminClient({
                 <div>
                   <p className="text-sm font-semibold text-white">PNCP → Supabase</p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Importação direta via API oficial do PNCP. Somente admins podem ativar.
+                    Desativado por configuração — apenas Effecti ativo.
                   </p>
                 </div>
               </div>
