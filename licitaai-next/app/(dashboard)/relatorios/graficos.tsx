@@ -11,6 +11,15 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
+const TOOLTIP_STYLE = {
+  background: "rgba(15, 23, 42, 0.85)",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  borderRadius: "12px",
+  backdropFilter: "blur(20px)",
+  color: "#e2e8f0",
+  fontSize: "13px",
+}
+
 export type MesData = {
   mes: string
   quantidade: number
@@ -59,14 +68,8 @@ export function GraficoOportunidadesMes({ data }: { data: MesData[] }) {
           tickLine={false}
         />
         <Tooltip
-          contentStyle={{
-            borderRadius: 8,
-            border: "1px solid #334155",
-            backgroundColor: "#1e293b",
-            color: "#f1f5f9",
-            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
-            fontSize: 13,
-          }}
+          contentStyle={TOOLTIP_STYLE}
+          cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
           formatter={(value) => [value, "Oportunidades"]}
         />
         <Bar dataKey="quantidade" fill="#3b82f6" radius={[4, 4, 0, 0]} />
@@ -111,14 +114,8 @@ export function GraficoDocsEmpresa({ data }: { data: EmpresaDocData[] }) {
           tickLine={false}
         />
         <Tooltip
-          contentStyle={{
-            borderRadius: 8,
-            border: "1px solid #334155",
-            backgroundColor: "#1e293b",
-            color: "#f1f5f9",
-            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
-            fontSize: 13,
-          }}
+          contentStyle={TOOLTIP_STYLE}
+          cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
         />
         <Legend
           wrapperStyle={{ fontSize: 12, paddingTop: 8, color: "#94a3b8" }}
