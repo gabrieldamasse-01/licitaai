@@ -19,10 +19,13 @@ import {
   RefreshCw,
   Download,
   CheckCircle2,
-  XCircle,
   SkipForward,
   TrendingDown,
   AlertTriangle,
+  BarChart3,
+  Activity,
+  ClipboardList,
+  ServerCrash,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -103,6 +106,21 @@ function AdminToggle({
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
+type UsageMetrics = {
+  totalPropostas: number
+  totalLicitacoes: number
+  totalLicitacoesAtivas: number
+  ultimaSync: string | null
+  errosSyncCount: number
+  usuariosMaisAtivos: Array<{
+    user_id: string
+    email: string
+    propostas: number
+    licitacoes_salvas: number
+    ativo_30d: boolean
+  }>
+}
+
 type AdminClientProps = {
   initialTab: string
   metrics: {
@@ -150,6 +168,7 @@ type AdminClientProps = {
     effecti: boolean
     pncp: boolean
   }
+  usageMetrics: UsageMetrics
 }
 
 // ─── Componente de Métrica ────────────────────────────────────────────────────
@@ -356,6 +375,7 @@ export default function AdminClient({
   licitacoes,
   time,
   portalConfig,
+  usageMetrics,
 }: AdminClientProps) {
   const router = useRouter()
 
@@ -642,6 +662,7 @@ export default function AdminClient({
             { value: "colaboradores", label: "Colaboradores" },
             { value: "portais", label: "Portais de Dados" },
             { value: "sincronizacao", label: "Sincronização" },
+            { value: "metricas", label: "Métricas" },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -1426,6 +1447,161 @@ export default function AdminClient({
               )}
             </div>
           )}
+        </TabsContent>
+
+        {/* ── Métricas de uso ──────────────────────────────────────────────── */}
+        <TabsContent value="metricas" className="mt-6 space-y-6">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Métricas de Uso</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Dados de utilização da plataforma pelos usuários.
+            </p>
+          </div>
+
+          {/* Linha 1 — Cards de totais */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
+                  <Users className="h-4 w-4" />
+                </div>
+                <span className="text-sm text-slate-400">Total usuários</span>
+              </div>
+              <p className="text-3xl font-bold text-white tabular-nums">{metrics.totalUsers.toLocaleString("pt-BR")}</p>
+            </div>
+
+            <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/20 text-violet-400">
+                  <ClipboardList className="h-4 w-4" />
+                </div>
+                <span className="text-sm text-slate-400">Total propostas</span>
+              </div>
+              <p className="text-3xl font-bold text-white tabular-nums">{usageMetrics.totalPropostas.toLocaleString("pt-BR")}</p>
+            </div>
+
+            <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <Activity className="h-4 w-4" />
+                </div>
+                <span className="text-sm text-slate-400">Licitações no banco</span>
+              </div>
+              <p className="text-3xl font-bold text-white tabular-nums">{usageMetrics.totalLicitacoes.toLocaleString("pt-BR")}</p>
+            </div>
+
+            <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
+                  <BarChart3 className="h-4 w-4" />
+                </div>
+                <span className="text-sm text-slate-400">Licitações ativas</span>
+              </div>
+              <p className="text-3xl font-bold text-white tabular-nums">{usageMetrics.totalLicitacoesAtivas.toLocaleString("pt-BR")}</p>
+            </div>
+          </div>
+
+          {/* Linha 2 — Tabela usuários mais ativos */}
+          <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Usuários mais ativos</h3>
+              <span className="text-xs text-slate-500">Top 10 por engajamento</span>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-700/50 hover:bg-transparent">
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Email</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-center">Propostas</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-center">Lic. salvas</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-center">Ativo 30d</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {usageMetrics.usuariosMaisAtivos.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-slate-500 py-8">
+                      Nenhum dado de uso disponível ainda.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  usageMetrics.usuariosMaisAtivos.map((u) => (
+                    <TableRow key={u.user_id} className="border-slate-700/30 hover:bg-white/[0.02] transition-colors">
+                      <TableCell className="text-slate-300 font-mono text-xs">{u.email}</TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-white font-semibold tabular-nums">{u.propostas}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-white font-semibold tabular-nums">{u.licitacoes_salvas}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {u.ativo_30d ? (
+                          <Badge variant="outline" className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs">
+                            Sim
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-slate-600/40 text-slate-400 border-slate-600/40 text-xs">
+                            Não
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Linha 3 — Saúde da plataforma */}
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-3">Saúde da plataforma</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-500/20 text-slate-400">
+                    <Database className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm text-slate-400">Licitações no banco</span>
+                </div>
+                <p className="text-3xl font-bold text-white tabular-nums">{usageMetrics.totalLicitacoes.toLocaleString("pt-BR")}</p>
+              </div>
+
+              <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm text-slate-400">Licitações ativas</span>
+                </div>
+                <p className="text-3xl font-bold text-emerald-400 tabular-nums">{usageMetrics.totalLicitacoesAtivas.toLocaleString("pt-BR")}</p>
+              </div>
+
+              <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
+                    <RefreshCw className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm text-slate-400">Última sync</span>
+                </div>
+                <p className="text-sm font-semibold text-white">
+                  {usageMetrics.ultimaSync
+                    ? new Date(usageMetrics.ultimaSync).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                    : "—"}
+                </p>
+              </div>
+
+              <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: `1px solid ${usageMetrics.errosSyncCount > 0 ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.07)"}` }}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${usageMetrics.errosSyncCount > 0 ? "bg-red-500/20 text-red-400" : "bg-slate-500/20 text-slate-400"}`}>
+                    <ServerCrash className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm text-slate-400">Erros de sync (7d)</span>
+                </div>
+                <p className={`text-3xl font-bold tabular-nums ${usageMetrics.errosSyncCount > 0 ? "text-red-400" : "text-white"}`}>
+                  {usageMetrics.errosSyncCount.toLocaleString("pt-BR")}
+                </p>
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

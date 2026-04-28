@@ -77,7 +77,7 @@ export function PropostasClient({ propostas }: { propostas: PropostaRow[] }) {
           <FileText className="h-10 w-10 text-slate-600 mb-3" />
           <p className="text-slate-400 text-sm font-medium">Nenhuma proposta gerada ainda</p>
           <p className="text-slate-500 text-xs mt-1 mb-4">
-            Acesse uma licitação e clique em "Gerar Proposta com IA"
+            Acesse uma licitação e clique em &quot;Gerar Proposta com IA&quot;
           </p>
           <Button asChild size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:text-white">
             <Link href="/licitacoes">Ver licitações</Link>

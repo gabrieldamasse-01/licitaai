@@ -18,6 +18,9 @@ export default async function AdminPage({
   const admin = createServiceClient()
 
   // Buscar todos os dados em paralelo
+  const trinta_dias_atras = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const sete_dias_atras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
   const [
     { data: authData },
     { count: totalCompanies },
@@ -29,6 +32,14 @@ export default async function AdminPage({
     { data: userPrefs },
     { data: matchesRaw },
     { data: portalConfigRaw },
+    { count: totalPropostas },
+    { count: totalLicitacoes },
+    { count: totalLicitacoesAtivas },
+    { data: ultimaSyncRaw },
+    { count: errosSyncCount },
+    { data: propostasTopRaw },
+    { data: matchesTopRaw },
+    { data: usuariosAtivosRaw },
   ] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
     admin.from("companies").select("*", { count: "exact", head: true }),
@@ -48,6 +59,28 @@ export default async function AdminPage({
       .order("created_at", { ascending: false })
       .limit(50),
     admin.from("portal_config").select("portal, ativo"),
+    // Métricas de uso
+    admin.from("propostas_geradas").select("*", { count: "exact", head: true }),
+    admin.from("licitacoes").select("*", { count: "exact", head: true }),
+    admin.from("licitacoes").select("*", { count: "exact", head: true }).eq("status", "ativa"),
+    admin.from("licitacoes").select("updated_at").order("updated_at", { ascending: false }).limit(1),
+    admin
+      .from("agent_logs")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "error")
+      .gte("created_at", sete_dias_atras),
+    admin
+      .from("propostas_geradas")
+      .select("user_id")
+      .order("user_id"),
+    admin
+      .from("matches")
+      .select("companies!inner(user_id)")
+      .order("created_at", { ascending: false }),
+    admin
+      .from("propostas_geradas")
+      .select("user_id, created_at")
+      .gte("created_at", trinta_dias_atras),
   ])
 
   const authUsers = authData?.users ?? []
@@ -131,6 +164,56 @@ export default async function AdminPage({
     pncp: (portalConfigRaw ?? []).find((p) => p.portal === "pncp")?.ativo ?? false,
   }
 
+  // ── Métricas de uso ────────────────────────────────────────────────────────
+
+  // Top 10 propostas por usuário
+  const propostasPorUser: Record<string, number> = {}
+  for (const p of propostasTopRaw ?? []) {
+    const uid = p.user_id as string
+    propostasPorUser[uid] = (propostasPorUser[uid] ?? 0) + 1
+  }
+
+  // Matches (licitações salvas) por usuário via companies.user_id
+  const matchesPorUser: Record<string, number> = {}
+  for (const m of matchesTopRaw ?? []) {
+    const comp = m.companies as unknown as { user_id: string } | null
+    if (comp?.user_id) {
+      matchesPorUser[comp.user_id] = (matchesPorUser[comp.user_id] ?? 0) + 1
+    }
+  }
+
+  // Usuários ativos (últimos 30 dias) — quem gerou proposta
+  const usuariosAtivos30d = new Set<string>()
+  for (const u of usuariosAtivosRaw ?? []) {
+    usuariosAtivos30d.add(u.user_id as string)
+  }
+
+  // Montar tabela de usuários mais ativos (union de quem tem propostas ou matches)
+  const todosUserIds = new Set([
+    ...Object.keys(propostasPorUser),
+    ...Object.keys(matchesPorUser),
+  ])
+
+  const usuariosMaisAtivos = Array.from(todosUserIds)
+    .map((uid) => ({
+      user_id: uid,
+      email: emailByUserId[uid] ?? uid,
+      propostas: propostasPorUser[uid] ?? 0,
+      licitacoes_salvas: matchesPorUser[uid] ?? 0,
+      ativo_30d: usuariosAtivos30d.has(uid),
+    }))
+    .sort((a, b) => b.propostas + b.licitacoes_salvas - (a.propostas + a.licitacoes_salvas))
+    .slice(0, 10)
+
+  const usageMetrics = {
+    totalPropostas: totalPropostas ?? 0,
+    totalLicitacoes: totalLicitacoes ?? 0,
+    totalLicitacoesAtivas: totalLicitacoesAtivas ?? 0,
+    ultimaSync: ultimaSyncRaw?.[0]?.updated_at as string | null ?? null,
+    errosSyncCount: errosSyncCount ?? 0,
+    usuariosMaisAtivos,
+  }
+
   return (
     <AdminClient
       initialTab={initialTab}
@@ -140,6 +223,7 @@ export default async function AdminPage({
       licitacoes={licitacoes}
       time={time}
       portalConfig={portalConfig}
+      usageMetrics={usageMetrics}
     />
   )
 }
