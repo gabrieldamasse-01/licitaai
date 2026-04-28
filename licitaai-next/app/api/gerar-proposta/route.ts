@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       .from("companies")
       .select("razao_social, cnpj, cnae")
       .eq("id", company_id)
+      .eq("user_id", user.id)
       .single()
 
     if (!empresa) {
