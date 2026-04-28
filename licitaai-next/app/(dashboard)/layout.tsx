@@ -9,6 +9,7 @@ import { NotificationsBell } from "@/components/notifications-bell"
 import { GlobalSearch } from "@/components/global-search"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { getImpersonationContext } from "@/lib/impersonation"
+import { OnboardingTour } from "@/components/onboarding-tour"
 
 export default async function DashboardLayout({
   children,
@@ -83,6 +84,7 @@ export default async function DashboardLayout({
         <main className="flex-1 overflow-y-auto bg-slate-900 p-4 md:p-6 lg:p-8 pb-20 md:pb-6 lg:pb-8">
           {children}
         </main>
+        <OnboardingTour />
         <BottomNav />
       </div>
     </div>

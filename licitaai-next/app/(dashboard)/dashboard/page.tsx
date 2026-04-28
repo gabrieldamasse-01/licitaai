@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
 import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck, TrendingUp, TrendingDown, BarChart2, DollarSign } from "lucide-react"
 import { GraficoLicitacoesPorUF, GraficoModalidades, GraficoLicitacoesPorDia } from "@/components/domain/dashboard-charts"
+import { SetupChecklist } from "@/components/setup-checklist"
 import Link from "next/link"
 import { format, parseISO, subDays } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -80,7 +81,7 @@ async function getEngajamento(userId: string | null) {
     const companyIds = await getCompanyIds(userId)
 
     if (companyIds.length === 0) {
-      return { visualizadas: 0, salvas: 0, docsPct: 0, notifHorario: '08:00' }
+      return { visualizadas: 0, salvas: 0, docsPct: 0, notifHorario: '08:00', totalDocs: 0 }
     }
 
     const [visualizadas, salvas, docsTotal, docsValidos, prefs] = await Promise.all([
@@ -102,6 +103,7 @@ async function getEngajamento(userId: string | null) {
       salvas: salvas.count ?? 0,
       docsPct,
       notifHorario,
+      totalDocs,
     }
   }
 
@@ -126,6 +128,7 @@ async function getEngajamento(userId: string | null) {
     salvas: salvas.count ?? 0,
     docsPct,
     notifHorario,
+    totalDocs,
   }
 }
 
@@ -468,6 +471,8 @@ export default async function DashboardPage() {
     getLicitacoesPerdidas30d(),
   ])
 
+  const temDocumentos = engajamento.totalDocs > 0
+
   return (
     <div className="space-y-8">
       {/* Cabeçalho */}
@@ -489,6 +494,14 @@ export default async function DashboardPage() {
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
+
+      {/* Checklist de configuração inicial */}
+      <SetupChecklist
+        temEmpresa={metrics.totalClientes > 0}
+        temEntrevista={entrevistaConcluida}
+        temPerfilValidado={perfilValidado}
+        temDocumentos={temDocumentos}
+      />
 
       {/* Cards de métricas */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
