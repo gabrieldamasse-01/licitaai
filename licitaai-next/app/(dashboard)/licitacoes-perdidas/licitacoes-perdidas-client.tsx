@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useCallback } from "react"
 import {
   TrendingDown,
   DollarSign,
@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   ArrowRight,
   Filter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import {
   Select,
@@ -52,14 +54,14 @@ function formatCurrency(valor: number | null): string {
   })
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—"
-  try {
-    return new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR")
-  } catch {
-    return dateStr
-  }
+function formatDate(data: string | null): string {
+  if (!data) return "—"
+  const d = new Date(data.includes("T") ? data : data + "T12:00:00")
+  if (isNaN(d.getTime())) return "—"
+  return d.toLocaleDateString("pt-BR")
 }
+
+const PAGE_SIZE = 50
 
 function calcScore(objeto: string | null, cnaes: string[] | null): { score: number; label: string } {
   if (!objeto || !cnaes || cnaes.length === 0) return { score: 30, label: "Baixa" }
@@ -129,10 +131,18 @@ export function LicitacoesPerdidasClient({
   const [empresaId, setEmpresaId] = useState<string>("__all__")
   const [periodo, setPeriodo] = useState<string>("365")
   const [ufFiltro, setUfFiltro] = useState<string>("__all__")
+  const [pagina, setPagina] = useState<number>(1)
+  const tabelaRef = useRef<HTMLDivElement>(null)
+
+  const irParaPagina = useCallback((nova: number) => {
+    setPagina(nova)
+    tabelaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [])
 
   const empresaSelecionada = empresas.find((e) => e.id === empresaId)
 
   const licitacoesComScore: LicitacaoComScore[] = useMemo(() => {
+    setPagina(1)
     const cnaes = empresaSelecionada?.cnae ?? null
     const periodStart = calcPeriodStart(periodo)
 
@@ -149,6 +159,12 @@ export function LicitacoesPerdidasClient({
       })
       .sort((a, b) => (b.valor_estimado ?? 0) - (a.valor_estimado ?? 0))
   }, [licitacoes, empresaSelecionada, periodo, ufFiltro])
+
+  const totalPaginas = Math.ceil(licitacoesComScore.length / PAGE_SIZE)
+  const paginaAtual = Math.min(pagina, Math.max(1, totalPaginas))
+  const inicio = (paginaAtual - 1) * PAGE_SIZE
+  const fim = Math.min(inicio + PAGE_SIZE, licitacoesComScore.length)
+  const licitacoesPagina = licitacoesComScore.slice(inicio, fim)
 
   const totalValor = licitacoesComScore.reduce((acc, l) => acc + (l.valor_estimado ?? 0), 0)
   const ufsUnicas = Array.from(new Set(licitacoesComScore.map((l) => l.uf).filter(Boolean)))
@@ -294,6 +310,7 @@ export function LicitacoesPerdidasClient({
         </div>
       ) : (
         <div
+          ref={tabelaRef}
           className="rounded-2xl overflow-hidden"
           style={{
             background: "rgba(255,255,255,0.05)",
@@ -322,7 +339,7 @@ export function LicitacoesPerdidasClient({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
-                {licitacoesComScore.slice(0, 100).map((l) => (
+                {licitacoesPagina.map((l) => (
                   <tr key={l.id} className="hover:bg-white/[0.03] transition-colors group">
                     <td className="px-5 py-3.5 max-w-xs">
                       <p className="text-sm text-slate-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
@@ -356,16 +373,11 @@ export function LicitacoesPerdidasClient({
                 ))}
               </tbody>
             </table>
-            {licitacoesComScore.length > 100 && (
-              <p className="px-5 py-3 text-xs text-slate-500 border-t border-white/[0.06]">
-                Mostrando as 100 primeiras de {licitacoesComScore.length.toLocaleString("pt-BR")} licitações
-              </p>
-            )}
           </div>
 
           {/* Mobile */}
           <div className="md:hidden divide-y divide-white/[0.06]">
-            {licitacoesComScore.slice(0, 50).map((l) => (
+            {licitacoesPagina.map((l) => (
               <div key={l.id} className="p-4 space-y-2">
                 <p className="text-sm text-slate-200 line-clamp-2 leading-snug">{l.objeto ?? "—"}</p>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
@@ -388,6 +400,37 @@ export function LicitacoesPerdidasClient({
               </div>
             ))}
           </div>
+
+          {/* Paginação */}
+          {totalPaginas > 1 && (
+            <div className="px-5 py-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-xs text-slate-400">
+                Exibindo {(inicio + 1).toLocaleString("pt-BR")}–{fim.toLocaleString("pt-BR")} de{" "}
+                {licitacoesComScore.length.toLocaleString("pt-BR")} licitações encerradas
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => irParaPagina(paginaAtual - 1)}
+                  disabled={paginaAtual <= 1}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 border border-slate-700 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  Anterior
+                </button>
+                <span className="text-xs text-slate-400 px-2">
+                  Página {paginaAtual.toLocaleString("pt-BR")} de {totalPaginas.toLocaleString("pt-BR")}
+                </span>
+                <button
+                  onClick={() => irParaPagina(paginaAtual + 1)}
+                  disabled={paginaAtual >= totalPaginas}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 border border-slate-700 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Próxima
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -50,7 +50,6 @@ export default async function LicitacoesPerdidasPage() {
     .gte("data_encerramento", dozeMAgo)
     .not("data_encerramento", "is", null)
     .order("valor_estimado", { ascending: false })
-    .limit(500)
 
   const licitacoesList = licitacoes ?? []
 
