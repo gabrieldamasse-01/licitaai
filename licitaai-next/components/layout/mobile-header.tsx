@@ -60,14 +60,14 @@ export function MobileHeader({ email, userId }: { email: string; userId: string 
             <ChevronDown className="w-4 h-4 text-slate-400" />
           </button>
         </PopoverTrigger>
-        <PopoverContent align="end" sideOffset={8} className="min-w-[240px] w-auto max-w-[calc(100vw-32px)] p-2 rounded-xl z-50">
+        <PopoverContent align="end" side="bottom" sideOffset={8} className="min-w-[200px] w-auto max-w-[calc(100vw-32px)] p-2 rounded-xl z-50">
           <div className="p-2 border-b border-slate-100 mb-1">
             <p className="text-sm font-semibold text-slate-900 truncate">{firstName}</p>
-            <p className="text-xs text-slate-500 break-all leading-snug">{email}</p>
+            <p className="text-xs text-slate-500 truncate leading-snug">{email}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-start gap-2 h-10 px-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap"
+            className="w-full flex items-center justify-start gap-2 py-2 px-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap"
           >
             <LogOut className="w-4 h-4 shrink-0" />
             Sair da plataforma
