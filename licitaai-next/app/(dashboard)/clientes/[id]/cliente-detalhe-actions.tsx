@@ -48,10 +48,13 @@ function displayCNPJ(cnpj: string) {
   return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`
 }
 
+const CNAE_REGEX = /^\d{4}-\d\/\d{2}$/
+
 export function ClienteEditarSheet({ company }: { company: Company }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [cnaeError, setCnaeError] = useState<string | null>(null)
   const [form, setForm] = useState<EmpresaFormData>({
     razao_social: company.razao_social,
     cnpj: displayCNPJ(company.cnpj),
@@ -61,8 +64,21 @@ export function ClienteEditarSheet({ company }: { company: Company }) {
     contato: company.contato ?? "",
   })
 
+  function handleCnaeChange(value: string) {
+    setForm((f) => ({ ...f, cnae: value }))
+    if (value && !CNAE_REGEX.test(value)) {
+      setCnaeError("Formato inválido. Use XXXX-X/XX (ex: 6201-5/01)")
+    } else {
+      setCnaeError(null)
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (form.cnae && !CNAE_REGEX.test(form.cnae)) {
+      setCnaeError("Formato inválido. Use XXXX-X/XX (ex: 6201-5/01)")
+      return
+    }
     startTransition(async () => {
       const result = await editarEmpresa(company.id, form)
       if (result.error) {
@@ -141,9 +157,13 @@ export function ClienteEditarSheet({ company }: { company: Company }) {
               <Input
                 id="cnae"
                 value={form.cnae ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, cnae: e.target.value }))}
-                placeholder="Ex: 6201-5/01 — Desenvolvimento de programas"
+                onChange={(e) => handleCnaeChange(e.target.value)}
+                placeholder="Ex: 6201-5/01"
+                className={cnaeError ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {cnaeError && (
+                <p className="text-xs text-red-500">{cnaeError}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">

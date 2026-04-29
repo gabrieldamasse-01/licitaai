@@ -63,18 +63,133 @@ function formatDate(data: string | null): string {
 
 const PAGE_SIZE = 50
 
+// Mapa de palavras-chave por divisão CNAE (2 primeiros dígitos)
+const CNAE_KEYWORDS: Record<string, string[]> = {
+  "01": ["agricultura", "agropecuária", "cultivo", "pecuária", "agrícola"],
+  "02": ["silvicultura", "florestal", "madeira", "reflorestamento"],
+  "03": ["pesca", "aquicultura", "pescado"],
+  "05": ["carvão", "mineral", "mineração"],
+  "06": ["petróleo", "gás", "combustível"],
+  "10": ["alimentos", "alimentício", "beneficiamento", "processamento de alimentos"],
+  "11": ["bebidas", "água mineral", "refrigerante"],
+  "13": ["têxtil", "fio", "tecido", "fibra"],
+  "14": ["vestuário", "confecção", "uniforme", "roupa", "indumentária"],
+  "15": ["couro", "calçado", "sapato"],
+  "16": ["madeira", "móveis", "marcenaria", "carpintaria"],
+  "17": ["papel", "celulose", "embalagem"],
+  "18": ["impressão", "gráfica", "publicação", "editoração"],
+  "19": ["petroquímica", "refinaria", "combustível"],
+  "20": ["química", "produto químico", "saneante", "defensivo"],
+  "21": ["farmacêutico", "medicamento", "remédio", "insumo farmacêutico"],
+  "22": ["borracha", "plástico", "embalagem plástica"],
+  "23": ["minerais não-metálicos", "cerâmica", "vidro", "cimento", "concreto"],
+  "24": ["metalurgia", "siderurgia", "aço", "ferro"],
+  "25": ["metal", "estrutura metálica", "serralheria"],
+  "26": ["eletrônico", "equipamento eletrônico", "computador", "informática", "hardware"],
+  "27": ["elétrico", "equipamento elétrico", "motor elétrico", "transformador"],
+  "28": ["máquina", "equipamento", "maquinário"],
+  "29": ["veículo", "automóvel", "caminhão", "ônibus"],
+  "30": ["embarcação", "aeronave", "ferroviário"],
+  "31": ["móveis", "mobiliário"],
+  "32": ["instrumentos", "óptico", "relógio"],
+  "33": ["manutenção", "reparo", "instalação de máquinas"],
+  "35": ["energia elétrica", "eletricidade", "geração de energia", "subestação"],
+  "36": ["água", "saneamento", "abastecimento de água", "esgoto"],
+  "37": ["esgoto", "resíduos", "coleta de esgoto"],
+  "38": ["resíduos", "lixo", "coleta de resíduos", "reciclagem"],
+  "39": ["remediação", "descontaminação"],
+  "41": ["construção civil", "edificação", "obras", "reforma", "construção de edifícios"],
+  "42": ["infraestrutura", "rodovia", "ferrovia", "porto", "aeroporto", "obra de infraestrutura"],
+  "43": ["instalação", "acabamento", "pintura", "elétrica predial", "hidráulica"],
+  "45": ["comércio de veículos", "peças automotivas", "concessionária"],
+  "46": ["comércio atacadista", "distribuição", "atacado"],
+  "47": ["comércio varejista", "varejo", "loja"],
+  "49": ["transporte terrestre", "frete", "logística", "caminhoneiro"],
+  "50": ["transporte aquaviário", "navegação"],
+  "51": ["transporte aéreo", "aviação", "carga aérea"],
+  "52": ["armazenagem", "armazém", "depósito", "logística"],
+  "53": ["correio", "entrega", "malote"],
+  "55": ["hospedagem", "hotel", "pousada"],
+  "56": ["alimentação", "restaurante", "refeição", "catering", "lanche"],
+  "58": ["edição", "software", "publicação de software"],
+  "61": ["telecomunicações", "telefonia", "internet", "banda larga", "comunicação"],
+  "62": ["tecnologia da informação", "software", "sistemas", "desenvolvimento de software", "ti", "tic", "programa de computador"],
+  "63": ["dados", "hospedagem de dados", "portal", "processamento de dados"],
+  "64": ["financeiro", "banco", "crédito", "seguro"],
+  "65": ["seguro", "previdência", "resseguro"],
+  "66": ["corretora", "financeiro", "bolsa"],
+  "68": ["imóveis", "aluguel", "locação", "imobiliária"],
+  "69": ["jurídico", "advocacia", "contabilidade", "auditoria"],
+  "70": ["consultoria", "gestão", "assessoria"],
+  "71": ["engenharia", "arquitetura", "projeto", "topografia", "geotecnia"],
+  "72": ["pesquisa", "desenvolvimento", "p&d", "ciência"],
+  "73": ["publicidade", "propaganda", "marketing", "comunicação"],
+  "74": ["design", "fotografia", "tradução"],
+  "75": ["veterinária", "animal", "zootecnia"],
+  "77": ["locação de equipamentos", "aluguel de máquinas", "leasing"],
+  "78": ["recursos humanos", "seleção", "mão de obra", "terceirização de pessoal"],
+  "79": ["viagem", "turismo", "agência de viagens"],
+  "80": ["segurança", "vigilância", "monitoramento"],
+  "81": ["limpeza", "conservação", "portaria", "zeladoria", "copa"],
+  "82": ["call center", "suporte", "secretaria"],
+  "84": ["administração pública", "defesa", "seguridade"],
+  "85": ["educação", "ensino", "treinamento", "capacitação", "escola", "curso"],
+  "86": ["saúde", "hospital", "clínica", "médico", "ambulatorial"],
+  "87": ["assistência social", "acolhimento", "abrigo"],
+  "88": ["assistência social", "creche", "apoio social"],
+  "90": ["arte", "cultura", "espetáculo", "entretenimento"],
+  "91": ["biblioteca", "museu", "arquivo"],
+  "92": ["loteria", "apostas"],
+  "93": ["esporte", "recreação", "academia"],
+  "94": ["associação", "sindicato", "organização"],
+  "95": ["reparo de computadores", "manutenção de eletrônicos"],
+  "96": ["lavanderia", "cabeleireiro", "estética", "serviços pessoais"],
+}
+
+function getKeywordsFromCnaes(cnaes: string[]): string[] {
+  const keywords = new Set<string>()
+  for (const cnae of cnaes) {
+    const divisao = cnae.replace(/\D/g, "").slice(0, 2)
+    const words = CNAE_KEYWORDS[divisao] ?? []
+    words.forEach((w) => keywords.add(w))
+    // também tenta os 4 primeiros dígitos como código direto
+    const codigo4 = cnae.replace(/\D/g, "").slice(0, 4)
+    keywords.add(codigo4)
+  }
+  return Array.from(keywords)
+}
+
+export function calcularCompatibilidadePerdidas(
+  objeto: string,
+  cnaes: string[],
+): { score: number; label: "Alta" | "Média" | "Baixa" } {
+  const obj = objeto.toLowerCase()
+  const keywords = getKeywordsFromCnaes(cnaes)
+
+  // Alta: objeto contém código CNAE exato (4 dígitos) ou palavra-chave do setor
+  const altaMatch = keywords.some((kw) => {
+    if (/^\d{4}$/.test(kw)) return obj.includes(kw)
+    return obj.includes(kw.toLowerCase())
+  })
+  if (altaMatch) return { score: 90, label: "Alta" }
+
+  // Média: objeto contém pelo menos 1 palavra de setores relacionados genéricos
+  const termosGenericos = ["serviço", "fornecimento", "aquisição", "contratação", "prestação"]
+  const mediaMatch = termosGenericos.some((t) => obj.includes(t))
+  if (mediaMatch) return { score: 55, label: "Média" }
+
+  return { score: 30, label: "Baixa" }
+}
+
 function calcScore(objeto: string | null, cnaes: string[] | null): { score: number; label: string } {
   if (!objeto || !cnaes || cnaes.length === 0) return { score: 30, label: "Baixa" }
-  const obj = objeto.toLowerCase()
-  const matchCount = cnaes.filter((c) => obj.includes(c.toLowerCase().slice(0, 4))).length
-  if (matchCount >= 2) return { score: 90, label: "Alta" }
-  if (matchCount === 1) return { score: 65, label: "Media" }
-  return { score: 30, label: "Baixa" }
+  const { score, label } = calcularCompatibilidadePerdidas(objeto, cnaes)
+  return { score, label }
 }
 
 function getScoreClass(label: string): string {
   if (label === "Alta") return "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
-  if (label === "Media") return "bg-amber-950/60 text-amber-400 border-amber-800/50"
+  if (label === "Média") return "bg-amber-950/60 text-amber-400 border-amber-800/50"
   return "bg-slate-800/60 text-slate-400 border-slate-700"
 }
 

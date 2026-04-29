@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { toast } from "sonner"
 import {
   Building2, Target, Loader2, ExternalLink, BookmarkPlus,
@@ -361,6 +361,10 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
   const [salvados, setSalvados] = useState<Set<string>>(new Set())
   const [salvandoId, setSalvandoId] = useState<string | null>(null)
   const [jaAcessado, setJaAcessado] = useState(false)
+
+  useEffect(() => {
+    localStorage.setItem("licitaai_visited_oportunidades", "true")
+  }, [])
 
   const empresaSelecionada = empresas.find((e) => e.id === empresaId)
 

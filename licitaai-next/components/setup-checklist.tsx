@@ -12,13 +12,16 @@ interface SetupChecklistProps {
 }
 
 const DISMISS_KEY = "licitaai_checklist_dismissed"
+const VISITED_OPP_KEY = "licitaai_visited_oportunidades"
 
-const itens = [
-  { label: "Cadastrar primeira empresa", href: "/clientes", prop: "temEmpresa" as const },
-  { label: "Completar entrevista de perfil", href: "/onboarding/entrevista", prop: "temEntrevista" as const },
-  { label: "Validar perfil de licitações", href: "/onboarding/validar-perfil", prop: "temPerfilValidado" as const },
-  { label: "Cadastrar documentos de habilitação", href: "/documentos", prop: "temDocumentos" as const },
-  { label: "Ver suas primeiras oportunidades", href: "/oportunidades", prop: null },
+type StatusKey = "temEmpresa" | "temEntrevista" | "temPerfilValidado" | "temDocumentos" | "temOportunidades"
+
+const itens: { label: string; href: string; prop: StatusKey }[] = [
+  { label: "Cadastrar primeira empresa", href: "/clientes", prop: "temEmpresa" },
+  { label: "Completar entrevista de perfil", href: "/onboarding/entrevista", prop: "temEntrevista" },
+  { label: "Validar perfil de licitações", href: "/onboarding/validar-perfil", prop: "temPerfilValidado" },
+  { label: "Cadastrar documentos de habilitação", href: "/documentos", prop: "temDocumentos" },
+  { label: "Ver suas primeiras oportunidades", href: "/oportunidades", prop: "temOportunidades" },
 ]
 
 export function SetupChecklist({
@@ -32,10 +35,14 @@ export function SetupChecklist({
     if (typeof window !== "undefined") return !!localStorage.getItem(DISMISS_KEY)
     return false
   })
+  const [temOportunidades] = useState(() => {
+    if (typeof window !== "undefined") return !!localStorage.getItem(VISITED_OPP_KEY)
+    return false
+  })
 
-  const status: Record<string, boolean> = { temEmpresa, temEntrevista, temPerfilValidado, temDocumentos }
+  const status: Record<string, boolean> = { temEmpresa, temEntrevista, temPerfilValidado, temDocumentos, temOportunidades }
 
-  const concluidos = itens.filter((item) => item.prop !== null && status[item.prop]).length
+  const concluidos = itens.filter((item) => status[item.prop]).length
   const total = itens.length
   const pct = Math.round((concluidos / total) * 100)
 
@@ -94,7 +101,7 @@ export function SetupChecklist({
       {expanded && (
         <ul className="p-4 space-y-1">
           {itens.map((item) => {
-            const feito = item.prop !== null ? status[item.prop] : false
+            const feito = status[item.prop]
             return (
               <li key={item.href}>
                 {feito ? (
