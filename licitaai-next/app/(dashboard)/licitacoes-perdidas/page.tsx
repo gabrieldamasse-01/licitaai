@@ -43,15 +43,38 @@ export default async function LicitacoesPerdidasPage() {
   const dozeMAgo = dozeM.toISOString().split("T")[0]
   const hoje = new Date().toISOString().split("T")[0]
 
-  const { data: licitacoes } = await service
-    .from("licitacoes")
-    .select("id, objeto, orgao, uf, modalidade, valor_estimado, data_encerramento, status")
-    .or(`status.eq.encerrada,data_encerramento.lt.${hoje}`)
-    .gte("data_encerramento", dozeMAgo)
-    .not("data_encerramento", "is", null)
-    .order("valor_estimado", { ascending: false })
+  type LicitacaoRow = {
+    id: string
+    objeto: string | null
+    orgao: string | null
+    uf: string | null
+    modalidade: string | null
+    valor_estimado: number | null
+    data_encerramento: string | null
+    status: string | null
+  }
 
-  const licitacoesList = licitacoes ?? []
+  const todasLicitacoes: LicitacaoRow[] = []
+  const BATCH = 1000
+  let from = 0
+
+  while (true) {
+    const { data } = await service
+      .from("licitacoes")
+      .select("id, objeto, orgao, uf, modalidade, valor_estimado, data_encerramento, status")
+      .or(`status.eq.encerrada,data_encerramento.lt.${hoje}`)
+      .gte("data_encerramento", dozeMAgo)
+      .not("data_encerramento", "is", null)
+      .order("valor_estimado", { ascending: false })
+      .range(from, from + BATCH - 1)
+
+    if (!data || data.length === 0) break
+    todasLicitacoes.push(...data)
+    if (data.length < BATCH) break
+    from += BATCH
+  }
+
+  const licitacoesList = todasLicitacoes
 
   return (
     <LicitacoesPerdidasClient
