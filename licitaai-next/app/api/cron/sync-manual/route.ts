@@ -120,18 +120,29 @@ async function syncEffecti(
         return true
       })
 
-      const { error: insertError } = await supabase
+      const sourceIdsEffecti = deduped.map((r) => r.source_id)
+      const { data: existentesEffecti } = await supabase
         .from("licitacoes")
-        .insert(deduped)
+        .select("source_id")
+        .in("source_id", sourceIdsEffecti)
 
-      if (insertError && !insertError.message.includes("duplicate") && !insertError.code?.includes("23505")) {
-        erros.push(`Insert Effecti janela ${janela.beginISO.slice(0, 10)} página ${pagina}: ${insertError.message}`)
+      const idsExistentesEffecti = new Set(existentesEffecti?.map((e) => e.source_id) ?? [])
+      const novasEffecti = deduped.filter((r) => !idsExistentesEffecti.has(r.source_id))
+      const qtdNovas = novasEffecti.length
+      const qtdDuplicadas = deduped.length - qtdNovas
+
+      const { error: upsertError } = await supabase
+        .from("licitacoes")
+        .upsert(deduped, { onConflict: "source_id", ignoreDuplicates: false })
+
+      if (upsertError) {
+        erros.push(`Upsert Effecti janela ${janela.beginISO.slice(0, 10)} página ${pagina}: ${upsertError.message}`)
       } else {
-        const qtdNovas = insertError ? 0 : deduped.length
         inseridas += qtdNovas
+        ignoradas += qtdDuplicadas
 
         if (preview.length < 50) {
-          for (const row of deduped.slice(0, 50 - preview.length)) {
+          for (const row of novasEffecti.slice(0, 50 - preview.length)) {
             preview.push({
               objeto: (row.objeto ?? "").slice(0, 120),
               orgao: row.orgao ?? "",
@@ -260,18 +271,29 @@ async function syncPncp(
           return true
         })
 
-        const { error: insertError } = await supabase
+        const sourceIdsPncp = deduped.map((r) => r.source_id)
+        const { data: existentesPncp } = await supabase
           .from("licitacoes")
-          .insert(deduped)
+          .select("source_id")
+          .in("source_id", sourceIdsPncp)
 
-        if (insertError && !insertError.message.includes("duplicate") && !insertError.code?.includes("23505")) {
-          erros.push(`Insert PNCP mod ${modalidade} pág ${pagina}: ${insertError.message}`)
+        const idsExistentesPncp = new Set(existentesPncp?.map((e) => e.source_id) ?? [])
+        const novasPncp = deduped.filter((r) => !idsExistentesPncp.has(r.source_id))
+        const qtdNovasPncp = novasPncp.length
+        const qtdDuplicadasPncp = deduped.length - qtdNovasPncp
+
+        const { error: upsertError } = await supabase
+          .from("licitacoes")
+          .upsert(deduped, { onConflict: "source_id", ignoreDuplicates: false })
+
+        if (upsertError) {
+          erros.push(`Upsert PNCP mod ${modalidade} pág ${pagina}: ${upsertError.message}`)
         } else {
-          const qtdNovas = insertError ? 0 : deduped.length
-          inseridas += qtdNovas
+          inseridas += qtdNovasPncp
+          ignoradas += qtdDuplicadasPncp
 
           if (preview.length < 50) {
-            for (const row of deduped.slice(0, 50 - preview.length)) {
+            for (const row of novasPncp.slice(0, 50 - preview.length)) {
               preview.push({
                 objeto: (row.objeto ?? "").slice(0, 120),
                 orgao: row.orgao ?? "",

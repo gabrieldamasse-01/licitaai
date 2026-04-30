@@ -98,18 +98,28 @@ async function executar(req: NextRequest): Promise<NextResponse> {
       return true
     })
 
-    // Tenta inserir todas — duplicatas geram constraint violation ignorada silenciosamente
-    const { error: insertError } = await supabase
+    // Identifica quais source_ids já existem para contar inseridas vs ignoradas
+    const sourceIds = deduped.map((r) => r.source_id)
+    const { data: existentes } = await supabase
       .from("licitacoes")
-      .insert(deduped)
+      .select("source_id")
+      .in("source_id", sourceIds)
 
-    if (insertError && !insertError.message.includes("duplicate") && !insertError.code?.includes("23505")) {
-      erros.push(`Insert página ${pagina}: ${insertError.message}`)
-      console.error(`[cron/licitacoes] Erro no insert página ${pagina}:`, insertError.message)
+    const idsExistentes = new Set(existentes?.map((e) => e.source_id) ?? [])
+    const qtdNovas = deduped.filter((r) => !idsExistentes.has(r.source_id)).length
+    const qtdDuplicadas = deduped.length - qtdNovas
+
+    const { error: upsertError } = await supabase
+      .from("licitacoes")
+      .upsert(deduped, { onConflict: "source_id", ignoreDuplicates: false })
+
+    if (upsertError) {
+      erros.push(`Upsert página ${pagina}: ${upsertError.message}`)
+      console.error(`[cron/licitacoes] Erro no upsert página ${pagina}:`, upsertError.message)
     } else {
-      const qtdNovas = insertError ? 0 : deduped.length
       inseridas += qtdNovas
-      console.log(`[cron/licitacoes] Página ${pagina + 1}/${totalPaginas} — +${qtdNovas} inseridas`)
+      ignoradas += qtdDuplicadas
+      console.log(`[cron/licitacoes] Página ${pagina + 1}/${totalPaginas} — +${qtdNovas} inseridas, ${qtdDuplicadas} ignoradas`)
     }
 
     pagina++
