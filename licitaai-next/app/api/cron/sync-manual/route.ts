@@ -54,6 +54,23 @@ function gerarJanelas5Dias(begin: string, end: string): Array<{ beginISO: string
   return janelas
 }
 
+async function upsertComRetry(
+  supabase: ReturnType<typeof createServiceClient>,
+  rows: Record<string, unknown>[],
+  tentativa = 1
+): Promise<{ error?: { message: string; code?: string } }> {
+  const { error } = await supabase
+    .from("licitacoes")
+    .upsert(rows, { onConflict: "source_id", ignoreDuplicates: false })
+
+  if (error?.code === "40P01" && tentativa < 3) {
+    await new Promise((r) => setTimeout(r, 1000 * tentativa))
+    return upsertComRetry(supabase, rows, tentativa + 1)
+  }
+
+  return { error: error ?? undefined }
+}
+
 async function syncEffecti(
   supabase: ReturnType<typeof createServiceClient>,
   begin: string,
@@ -79,7 +96,7 @@ async function syncEffecti(
         begin: janela.beginISO,
         end: janela.endISO,
         pagina,
-        itensPorPagina: 100,
+        itensPorPagina: 50,
       })
 
       if (result.error) {
@@ -131,9 +148,7 @@ async function syncEffecti(
       const qtdNovas = novasEffecti.length
       const qtdDuplicadas = deduped.length - qtdNovas
 
-      const { error: upsertError } = await supabase
-        .from("licitacoes")
-        .upsert(deduped, { onConflict: "source_id", ignoreDuplicates: false })
+      const { error: upsertError } = await upsertComRetry(supabase, deduped as Record<string, unknown>[])
 
       if (upsertError) {
         erros.push(`Upsert Effecti janela ${janela.beginISO.slice(0, 10)} página ${pagina}: ${upsertError.message}`)

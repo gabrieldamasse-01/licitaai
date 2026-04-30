@@ -214,6 +214,29 @@ export default async function AdminPage({
     usuariosMaisAtivos,
   }
 
+  // ── WhatsApp Z-API ─────────────────────────────────────────────────────────
+  const inicioDia = new Date()
+  inicioDia.setHours(0, 0, 0, 0)
+
+  const [{ count: whatsappMensagensHoje }, zapiStatusRaw] = await Promise.all([
+    admin
+      .from("agent_logs")
+      .select("*", { count: "exact", head: true })
+      .eq("agent", "whatsapp")
+      .eq("status", "success")
+      .gte("created_at", inicioDia.toISOString()),
+    process.env.ZAPI_INSTANCE_ID && process.env.ZAPI_TOKEN
+      ? fetch(
+          `https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/status`,
+          { headers: { "Client-Token": process.env.ZAPI_CLIENT_TOKEN ?? "" }, cache: "no-store" }
+        )
+          .then((r) => r.ok ? r.json() : null)
+          .catch(() => null)
+      : Promise.resolve(null),
+  ])
+
+  const zapiConectado = zapiStatusRaw?.connected === true || zapiStatusRaw?.status === "CONNECTED"
+
   return (
     <AdminClient
       initialTab={initialTab}
@@ -224,6 +247,8 @@ export default async function AdminPage({
       time={time}
       portalConfig={portalConfig}
       usageMetrics={usageMetrics}
+      whatsappMensagensHoje={whatsappMensagensHoje ?? 0}
+      zapiConectado={zapiConectado}
     />
   )
 }

@@ -173,6 +173,8 @@ type AdminClientProps = {
     pncp: boolean
   }
   usageMetrics: UsageMetrics
+  whatsappMensagensHoje: number
+  zapiConectado: boolean
 }
 
 // ─── Componente de Métrica ────────────────────────────────────────────────────
@@ -380,6 +382,8 @@ export default function AdminClient({
   time,
   portalConfig,
   usageMetrics,
+  whatsappMensagensHoje,
+  zapiConectado,
 }: AdminClientProps) {
   const router = useRouter()
 
@@ -771,6 +775,27 @@ export default function AdminClient({
               value={metrics.totalAdmins}
               color="bg-red-500/20 text-red-400"
             />
+          </div>
+
+          {/* Card WhatsApp Z-API */}
+          <div className="mt-4 rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <MessageSquare className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">WhatsApp (Z-API)</p>
+                  <p className="text-xs text-slate-400">{whatsappMensagensHoje} mensagens enviadas hoje</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${zapiConectado ? "bg-emerald-400" : "bg-red-400"}`} />
+                <span className={`text-xs font-medium ${zapiConectado ? "text-emerald-400" : "text-red-400"}`}>
+                  {zapiConectado ? "Conectado" : "Desconectado"}
+                </span>
+              </div>
+            </div>
           </div>
         </TabsContent>
 

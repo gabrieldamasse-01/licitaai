@@ -230,6 +230,7 @@ const NotifConfigSchema = z.object({
   in_app: z.boolean(),
   horario: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido'),
   score_minimo: z.number().int().min(50).max(95),
+  whatsapp: z.boolean(),
 })
 
 export async function salvarNotifConfig(
@@ -246,14 +247,22 @@ export async function salvarNotifConfig(
     in_app: formData.get('in_app') === 'true',
     horario: formData.get('horario') ?? '08:00',
     score_minimo: Number(formData.get('score_minimo') ?? 70),
+    whatsapp: formData.get('whatsapp') === 'true',
   })
   if (!parsed.success) return { erro: parsed.error.issues[0].message }
+
+  const telefoneWhatsapp = (formData.get('telefone_whatsapp') as string | null)?.replace(/\D/g, '') ?? ''
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
     .from('user_preferences')
     .upsert(
-      { user_id: user.id, notif_config: parsed.data, updated_at: new Date().toISOString() },
+      {
+        user_id: user.id,
+        notif_config: parsed.data,
+        telefone_whatsapp: telefoneWhatsapp || null,
+        updated_at: new Date().toISOString(),
+      },
       { onConflict: 'user_id' },
     )
 

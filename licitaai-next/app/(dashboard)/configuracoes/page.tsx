@@ -20,13 +20,13 @@ export default async function ConfiguracoesPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: prefs } = await (supabase as any)
     .from('user_preferences')
-    .select('alertas_email, alert_days, alert_email, plano, plano_expira_em, two_factor_enabled, keywords, notif_config')
+    .select('alertas_email, alert_days, alert_email, plano, plano_expira_em, two_factor_enabled, keywords, notif_config, telefone_whatsapp')
     .eq('user_id', user.id)
     .single()
 
-  const defaultNotifConfig = { email_diario: true, email_urgente: true, in_app: true, horario: '08:00', score_minimo: 70 }
+  const defaultNotifConfig = { email_diario: true, email_urgente: true, in_app: true, horario: '08:00', score_minimo: 70, whatsapp: false, telefone_whatsapp: '' }
   const notifConfig = prefs?.notif_config && typeof prefs.notif_config === 'object'
-    ? { ...defaultNotifConfig, ...prefs.notif_config }
+    ? { ...defaultNotifConfig, ...prefs.notif_config, telefone_whatsapp: prefs.telefone_whatsapp ?? '' }
     : defaultNotifConfig
 
   const { data: entrevistaRow } = await createServiceClient()

@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { resend, FROM_EMAIL } from '@/lib/resend'
 import { calcularScore } from '@/lib/scoring'
+import { enviarWhatsApp, formatarMensagemAlerta } from '@/lib/whatsapp'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://licitaai-next.vercel.app'
 
@@ -81,16 +82,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   // Buscar palavras-chave e notif_config por user_id
   const { data: prefsData } = await supabase
     .from('user_preferences')
-    .select('user_id, keywords, notif_config')
+    .select('user_id, keywords, notif_config, telefone_whatsapp')
 
-  interface NotifConfig { email_diario: boolean; in_app: boolean; score_minimo: number }
-  const DEFAULT_NOTIF: NotifConfig = { email_diario: true, in_app: true, score_minimo: 70 }
+  interface NotifConfig { email_diario: boolean; in_app: boolean; score_minimo: number; whatsapp: boolean }
+  const DEFAULT_NOTIF: NotifConfig = { email_diario: true, in_app: true, score_minimo: 70, whatsapp: false }
 
   const mapaKeywords = new Map<string, string[]>(
     (prefsData ?? []).map((p) => [
       p.user_id as string,
       Array.isArray(p.keywords) ? (p.keywords as string[]) : [],
     ]),
+  )
+
+  const mapaTelefone = new Map<string, string | null>(
+    (prefsData ?? []).map((p) => [p.user_id as string, (p.telefone_whatsapp as string | null) ?? null]),
   )
 
   const mapaNotif = new Map<string, NotifConfig>(
@@ -203,6 +208,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       } else {
         console.error('Resend error para userId', userId, sendError)
       }
+    }
+
+    // Envio WhatsApp
+    const telefone = mapaTelefone.get(userId)
+    if (telefone && userNotif.whatsapp) {
+      const todasLics = licitacoesRelevantes.flatMap((e) =>
+        e.licitacoes.map((l) => ({
+          objeto: l.objeto ?? '',
+          orgao: l.orgao ?? '',
+          valor_estimado: l.valor_estimado,
+          data_encerramento: l.data_encerramento,
+        }))
+      )
+      const mensagem = formatarMensagemAlerta(todasLics)
+      await enviarWhatsApp(telefone, mensagem)
     }
 
     // Notificação in-app por empresa (respeitar in_app)

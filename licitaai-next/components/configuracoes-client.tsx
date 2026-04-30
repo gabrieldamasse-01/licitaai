@@ -66,6 +66,8 @@ type NotifConfig = {
   in_app: boolean
   horario: string
   score_minimo: number
+  whatsapp: boolean
+  telefone_whatsapp: string
 }
 
 type Plano = {
@@ -503,6 +505,8 @@ function NotifConfigSection({ notifConfig }: { notifConfig: NotifConfig }) {
   const [emailUrgente, setEmailUrgente] = useState(notifConfig.email_urgente)
   const [inApp, setInApp] = useState(notifConfig.in_app)
   const [scoreMinimo, setScoreMinimo] = useState(notifConfig.score_minimo)
+  const [whatsapp, setWhatsapp] = useState(notifConfig.whatsapp ?? false)
+  const [telefoneWhatsapp, setTelefoneWhatsapp] = useState(notifConfig.telefone_whatsapp ?? '')
 
   useEffect(() => {
     if (!state) return
@@ -522,6 +526,8 @@ function NotifConfigSection({ notifConfig }: { notifConfig: NotifConfig }) {
         <input type="hidden" name="in_app" value={String(inApp)} />
         <input type="hidden" name="horario" value="08:00" />
         <input type="hidden" name="score_minimo" value={String(scoreMinimo)} />
+        <input type="hidden" name="whatsapp" value={String(whatsapp)} />
+        <input type="hidden" name="telefone_whatsapp" value={telefoneWhatsapp} />
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
@@ -546,6 +552,28 @@ function NotifConfigSection({ notifConfig }: { notifConfig: NotifConfig }) {
               <p className="text-xs text-slate-400 mt-0.5">Sino de notificações dentro da plataforma.</p>
             </div>
             <Switch checked={inApp} onCheckedChange={setInApp} aria-label="Notificações no app" />
+          </div>
+
+          <div className="rounded-lg border border-slate-700 p-3 space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-white">Receber alertas por WhatsApp</p>
+                <p className="text-xs text-slate-400 mt-0.5">Envio via Z-API para o número cadastrado abaixo.</p>
+              </div>
+              <Switch checked={whatsapp} onCheckedChange={setWhatsapp} aria-label="Alertas por WhatsApp" />
+            </div>
+            {whatsapp && (
+              <div className="space-y-1">
+                <Label className="text-slate-300 text-xs">Telefone para WhatsApp</Label>
+                <Input
+                  value={formatarTelefone(telefoneWhatsapp)}
+                  onChange={(e) => setTelefoneWhatsapp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="(11) 99999-9999"
+                  maxLength={15}
+                  className="bg-slate-800 border-slate-700 text-white text-sm"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -938,6 +966,8 @@ const DEFAULT_NOTIF_CONFIG: NotifConfig = {
   in_app: true,
   horario: '08:00',
   score_minimo: 70,
+  whatsapp: false,
+  telefone_whatsapp: '',
 }
 
 export function ConfiguracoesClient({
