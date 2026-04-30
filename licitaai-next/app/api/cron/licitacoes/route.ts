@@ -36,7 +36,7 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 
   let buscadas = 0
   let inseridas = 0
-  let ignoradas = 0   // licitações já existentes (atualizadas no upsert)
+  let ignoradas = 0
   let encerradas = 0
   let totalPaginas = 1
   let pagina = 0
@@ -91,7 +91,6 @@ async function executar(req: NextRequest): Promise<NextResponse> {
     }))
 
     // Deduplica por source_id — Effecti pode retornar duplicatas na mesma página
-    // (Postgres: ON CONFLICT DO UPDATE não pode afetar a mesma linha duas vezes no batch)
     const seen = new Set<string>()
     const deduped = rows.filter((r) => {
       if (seen.has(r.source_id)) return false
@@ -99,28 +98,18 @@ async function executar(req: NextRequest): Promise<NextResponse> {
       return true
     })
 
-    // Conta source_ids já existentes para distinguir inseridas vs atualizadas
-    const sourceIds = deduped.map((r) => r.source_id)
-    const { count: existentes } = await supabase
+    // Tenta inserir todas — duplicatas geram constraint violation ignorada silenciosamente
+    const { error: insertError } = await supabase
       .from("licitacoes")
-      .select("source_id", { count: "exact", head: true })
-      .in("source_id", sourceIds)
+      .insert(deduped)
 
-    const qtdExistentes = existentes ?? 0
-    const qtdNovas = deduped.length - qtdExistentes
-
-    // Upsert em lote (usando array deduplicado)
-    const { error: upsertError } = await supabase
-      .from("licitacoes")
-      .upsert(deduped, { onConflict: "source_id" })
-
-    if (upsertError) {
-      erros.push(`Upsert página ${pagina}: ${upsertError.message}`)
-      console.error(`[cron/licitacoes] Erro no upsert página ${pagina}:`, upsertError.message)
+    if (insertError && !insertError.message.includes("duplicate") && !insertError.code?.includes("23505")) {
+      erros.push(`Insert página ${pagina}: ${insertError.message}`)
+      console.error(`[cron/licitacoes] Erro no insert página ${pagina}:`, insertError.message)
     } else {
+      const qtdNovas = insertError ? 0 : deduped.length
       inseridas += qtdNovas
-      ignoradas += qtdExistentes
-      console.log(`[cron/licitacoes] Página ${pagina + 1}/${totalPaginas} — +${qtdNovas} novas, ~${qtdExistentes} já existiam`)
+      console.log(`[cron/licitacoes] Página ${pagina + 1}/${totalPaginas} — +${qtdNovas} inseridas`)
     }
 
     pagina++

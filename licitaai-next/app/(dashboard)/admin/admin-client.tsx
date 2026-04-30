@@ -590,6 +590,17 @@ export default function AdminClient({
     })
   }
 
+  // Exportar CSV de licitações
+  const [exportandoCsv, setExportandoCsv] = useState(false)
+
+  function handleExportarCsv() {
+    setExportandoCsv(true)
+    const link = document.createElement("a")
+    link.href = "/api/exportar-licitacoes"
+    link.click()
+    setTimeout(() => setExportandoCsv(false), 3000)
+  }
+
   // Impersonar cliente
   const [impersonatingId, setImpersonatingId] = useState<string | null>(null)
   const handleImpersonate = useCallback(async (userId: string) => {
@@ -942,7 +953,18 @@ export default function AdminClient({
           <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white">Oportunidades salvas recentes</h2>
-              <span className="text-xs text-slate-500">{licitacoes.length} registros</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-500">{licitacoes.length} registros</span>
+                <Button
+                  size="sm"
+                  onClick={handleExportarCsv}
+                  disabled={exportandoCsv}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 h-8"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {exportandoCsv ? "Exportando..." : "Exportar CSV"}
+                </Button>
+              </div>
             </div>
             <Table>
               <TableHeader>

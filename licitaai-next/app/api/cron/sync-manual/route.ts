@@ -120,24 +120,15 @@ async function syncEffecti(
         return true
       })
 
-      const sourceIds = deduped.map((r) => r.source_id)
-      const { count: existentes } = await supabase
+      const { error: insertError } = await supabase
         .from("licitacoes")
-        .select("source_id", { count: "exact", head: true })
-        .in("source_id", sourceIds)
+        .insert(deduped)
 
-      const qtdExistentes = existentes ?? 0
-      const qtdNovas = deduped.length - qtdExistentes
-
-      const { error: upsertError } = await supabase
-        .from("licitacoes")
-        .upsert(deduped, { onConflict: "source_id" })
-
-      if (upsertError) {
-        erros.push(`Upsert Effecti janela ${janela.beginISO.slice(0, 10)} página ${pagina}: ${upsertError.message}`)
+      if (insertError && !insertError.message.includes("duplicate") && !insertError.code?.includes("23505")) {
+        erros.push(`Insert Effecti janela ${janela.beginISO.slice(0, 10)} página ${pagina}: ${insertError.message}`)
       } else {
+        const qtdNovas = insertError ? 0 : deduped.length
         inseridas += qtdNovas
-        ignoradas += qtdExistentes
 
         if (preview.length < 50) {
           for (const row of deduped.slice(0, 50 - preview.length)) {
@@ -269,24 +260,15 @@ async function syncPncp(
           return true
         })
 
-        const sourceIds = deduped.map((r) => r.source_id)
-        const { count: existentes } = await supabase
+        const { error: insertError } = await supabase
           .from("licitacoes")
-          .select("source_id", { count: "exact", head: true })
-          .in("source_id", sourceIds)
+          .insert(deduped)
 
-        const qtdExistentes = existentes ?? 0
-        const qtdNovas = deduped.length - qtdExistentes
-
-        const { error: upsertError } = await supabase
-          .from("licitacoes")
-          .upsert(deduped, { onConflict: "source_id" })
-
-        if (upsertError) {
-          erros.push(`Upsert PNCP mod ${modalidade} pág ${pagina}: ${upsertError.message}`)
+        if (insertError && !insertError.message.includes("duplicate") && !insertError.code?.includes("23505")) {
+          erros.push(`Insert PNCP mod ${modalidade} pág ${pagina}: ${insertError.message}`)
         } else {
+          const qtdNovas = insertError ? 0 : deduped.length
           inseridas += qtdNovas
-          ignoradas += qtdExistentes
 
           if (preview.length < 50) {
             for (const row of deduped.slice(0, 50 - preview.length)) {
