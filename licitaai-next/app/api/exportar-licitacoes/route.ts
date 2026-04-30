@@ -56,7 +56,8 @@ export async function GET() {
     if (!data || data.length === 0) break
 
     for (const row of data) {
-      linhas.push(CAMPOS.map((c) => escapeCsv((row as Record<string, unknown>)[c])).join(","))
+      const r = row as unknown as Record<string, unknown>
+      linhas.push(CAMPOS.map((c) => escapeCsv(r[c])).join(","))
     }
 
     if (data.length < LOTE) break
