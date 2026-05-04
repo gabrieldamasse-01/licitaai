@@ -65,7 +65,7 @@ export default function FeedbackPage() {
           </Button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow p-6 space-y-5">
           {/* Tipo */}
           <div className="space-y-2">
             <Label className="text-slate-300">Tipo</Label>

@@ -524,7 +524,7 @@ export function DocumentosClient({
 
       {/* Habilitação */}
       {companies.length > 0 && (
-        <div className="rounded-xl border border-slate-700 bg-slate-800/50">
+        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow">
           <button
             className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
             onClick={() => setChecklistOpen((v) => !v)}
@@ -562,7 +562,7 @@ export function DocumentosClient({
 
       {/* Nicho */}
       {temNicho && (
-        <div className="rounded-xl border border-slate-700 bg-slate-800/50">
+        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow">
           <button
             className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
             onClick={() => setNichoOpen((v) => !v)}
@@ -653,7 +653,7 @@ export function DocumentosClient({
       ) : (
         <>
           {/* Tabela — desktop */}
-          <div className="hidden md:block rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
+          <div className="hidden md:block rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-800 border-slate-700">
@@ -752,7 +752,7 @@ export function DocumentosClient({
               return (
                 <div
                   key={doc.id}
-                  className="rounded-xl border border-slate-700 bg-slate-800 p-4 space-y-3"
+                  className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow p-4 space-y-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>

@@ -83,7 +83,7 @@ function ScoreBadge({ score, label }: { score: number; label: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 animate-pulse space-y-3">
+    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 animate-pulse space-y-3">
       <div className="flex gap-2">
         <div className="h-5 w-24 rounded-full bg-slate-700" />
         <div className="h-5 w-10 rounded-full bg-slate-700" />
@@ -120,7 +120,7 @@ function OportunidadeCard({
   onSalvar: () => void
 }) {
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 hover:shadow-md hover:border-slate-600 transition-all flex flex-col gap-3">
+    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow hover:shadow-lg hover:border-white/20 transition-all flex flex-col gap-3 p-5">
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         <ScoreBadge score={op.score} label={op.scoreLabel} />
@@ -409,7 +409,7 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
   return (
     <>
       {/* ── Empresa selector ── */}
-      <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-5">
+      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow p-5">
         <div className="flex items-center gap-2 mb-3">
           <Building2 className="h-4 w-4 text-slate-400" />
           <p className="text-sm font-medium text-slate-300">Empresa</p>

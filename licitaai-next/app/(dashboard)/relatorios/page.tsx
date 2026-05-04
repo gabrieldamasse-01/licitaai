@@ -24,6 +24,7 @@ import {
   GraficoOportunidadesMesWrapper as GraficoOportunidadesMes,
   GraficoDocsEmpresaWrapper as GraficoDocsEmpresa,
 } from "./graficos-wrapper"
+import { ExportarRelatorioBtn } from "./exportar-relatorio-btn"
 
 // ─── Checklist (espelhado de oportunidades/actions.ts) ────────────────────────
 
@@ -231,11 +232,14 @@ export default async function RelatoriosPage() {
   return (
     <div className="space-y-8">
       {/* Título */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Relatórios</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Visão geral de clientes, documentos e oportunidades
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Relatórios</h1>
+          <p className="text-sm text-slate-400 mt-1">
+            Visão geral de clientes, documentos e oportunidades
+          </p>
+        </div>
+        <ExportarRelatorioBtn />
       </div>
 
       {/* Cards de resumo */}

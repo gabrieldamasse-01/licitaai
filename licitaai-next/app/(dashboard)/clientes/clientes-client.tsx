@@ -214,7 +214,7 @@ export function ClientesClient({ companies, isAdmin = false }: { companies: Comp
       ) : (
         <>
           {/* Tabela — desktop */}
-          <div className="hidden md:block rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
+          <div className="hidden md:block rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow overflow-hidden">
             <Table className="data-table">
               <TableHeader>
                 <TableRow className="bg-slate-800 border-slate-700">
@@ -292,7 +292,7 @@ export function ClientesClient({ companies, isAdmin = false }: { companies: Comp
             {filtradas.map((company) => (
               <div
                 key={company.id}
-                className="rounded-xl border border-slate-700 bg-slate-800 p-4 space-y-3 cursor-pointer"
+                className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow p-4 space-y-3 cursor-pointer"
                 onClick={() => router.push(`/clientes/${company.id}`)}
               >
                 <div className="flex items-start justify-between gap-2">
