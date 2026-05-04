@@ -484,6 +484,13 @@ export default function AdminClient({
       status: string
       source_id: string
     }>
+    janelas: Array<{
+      inicio: string
+      fim: string
+      buscadas: number
+      inseridas: number
+      ignoradas: number
+    }>
   }
 
   const hoje = new Date().toISOString().slice(0, 10)
@@ -1491,6 +1498,36 @@ export default function AdminClient({
                 </div>
               </div>
 
+              {/* Resumo por janela */}
+              {syncResultado.janelas && syncResultado.janelas.length > 0 && (
+                <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-slate-700/50">
+                    <h3 className="text-sm font-semibold text-white">Resumo por janela</h3>
+                  </div>
+                  <div className="divide-y divide-slate-700/30">
+                    {syncResultado.janelas.map((j, i) => {
+                      const fmtDate = (d: string) => {
+                        const [y, m, day] = d.split("-")
+                        return `${day}/${m}`
+                      }
+                      return (
+                        <div key={i} className="px-5 py-3 flex items-center justify-between gap-4 text-sm">
+                          <span className="text-slate-400 tabular-nums">
+                            Janela {i + 1}{" "}
+                            <span className="text-slate-500">({fmtDate(j.inicio)} → {fmtDate(j.fim)})</span>
+                          </span>
+                          <div className="flex items-center gap-4 text-xs tabular-nums">
+                            <span className="text-slate-400">{j.buscadas.toLocaleString("pt-BR")} buscadas</span>
+                            <span className="text-emerald-400 font-semibold">{j.inseridas.toLocaleString("pt-BR")} inseridas</span>
+                            <span className="text-amber-400">{j.ignoradas.toLocaleString("pt-BR")} ignoradas</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Erros */}
               {syncResultado.erros.length > 0 && (
                 <div className="rounded-xl border border-red-800/40 bg-red-950/30 p-4 space-y-1.5">
@@ -1509,7 +1546,7 @@ export default function AdminClient({
                 <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
                   <div className="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-white">Licitações importadas nessa sessão</h3>
-                    <span className="text-xs text-slate-500">primeiras {syncResultado.licitacoes_preview.length}</span>
+                    <span className="text-xs text-slate-500">{syncResultado.licitacoes_preview.length} licitações</span>
                   </div>
                   <div className="overflow-x-auto">
                     <Table>

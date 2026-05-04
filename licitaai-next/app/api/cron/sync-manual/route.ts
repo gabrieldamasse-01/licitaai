@@ -17,6 +17,14 @@ type LicitacaoPreview = {
   source_id: string
 }
 
+type JanelaResult = {
+  inicio: string
+  fim: string
+  buscadas: number
+  inseridas: number
+  ignoradas: number
+}
+
 type SyncManualResult = {
   inseridas: number
   ignoradas: number
@@ -24,6 +32,7 @@ type SyncManualResult = {
   buscadas: number
   erros: string[]
   licitacoes_preview: LicitacaoPreview[]
+  janelas: JanelaResult[]
 }
 
 function safeDate(val: string | undefined | null): string | null {
@@ -83,6 +92,7 @@ async function syncEffecti(
   let encerradas = 0
   const erros: string[] = []
   const preview: LicitacaoPreview[] = []
+  const janelaResults: JanelaResult[] = []
 
   const janelas = gerarJanelas5Dias(begin, end)
 
@@ -90,6 +100,9 @@ async function syncEffecti(
     let pagina = 0
     let totalPaginas = 1
     const MAX_PAGINAS = 100
+    let jBuscadas = 0
+    let jInseridas = 0
+    let jIgnoradas = 0
 
     while (pagina < totalPaginas && pagina < MAX_PAGINAS) {
       const result = await fetchEffectiLicitacoes({
@@ -110,6 +123,7 @@ async function syncEffecti(
 
       if (result.licitacoes.length === 0) break
 
+      jBuscadas += result.licitacoes.length
       buscadas += result.licitacoes.length
 
       const rows = result.licitacoes.map((lic) => ({
@@ -155,9 +169,11 @@ async function syncEffecti(
       } else {
         inseridas += qtdNovas
         ignoradas += qtdDuplicadas
+        jInseridas += qtdNovas
+        jIgnoradas += qtdDuplicadas
 
-        if (preview.length < 50) {
-          for (const row of novasEffecti.slice(0, 50 - preview.length)) {
+        if (preview.length < 200) {
+          for (const row of novasEffecti.slice(0, 200 - preview.length)) {
             preview.push({
               objeto: (row.objeto ?? "").slice(0, 120),
               orgao: row.orgao ?? "",
@@ -172,6 +188,14 @@ async function syncEffecti(
 
       pagina++
     }
+
+    janelaResults.push({
+      inicio: janela.beginISO.slice(0, 10),
+      fim: janela.endISO.slice(0, 10),
+      buscadas: jBuscadas,
+      inseridas: jInseridas,
+      ignoradas: jIgnoradas,
+    })
   }
 
   // Encerrar licitações expiradas
@@ -189,7 +213,7 @@ async function syncEffecti(
     .eq("status", "ativa")
     .lt("data_encerramento", agora.toISOString())
 
-  return { inseridas, ignoradas, encerradas, buscadas, erros, licitacoes_preview: preview }
+  return { inseridas, ignoradas, encerradas, buscadas, erros, licitacoes_preview: preview, janelas: janelaResults }
 }
 
 async function syncPncp(
@@ -307,8 +331,8 @@ async function syncPncp(
           inseridas += qtdNovasPncp
           ignoradas += qtdDuplicadasPncp
 
-          if (preview.length < 50) {
-            for (const row of novasPncp.slice(0, 50 - preview.length)) {
+          if (preview.length < 200) {
+            for (const row of novasPncp.slice(0, 200 - preview.length)) {
               preview.push({
                 objeto: (row.objeto ?? "").slice(0, 120),
                 orgao: row.orgao ?? "",
@@ -344,7 +368,7 @@ async function syncPncp(
     .eq("status", "ativa")
     .lt("data_encerramento", agora.toISOString())
 
-  return { inseridas, ignoradas, encerradas, buscadas, erros, licitacoes_preview: preview }
+  return { inseridas, ignoradas, encerradas, buscadas, erros, licitacoes_preview: preview, janelas: [{ inicio: begin.slice(0, 10), fim: end.slice(0, 10), buscadas, inseridas, ignoradas }] }
 }
 
 export async function POST(req: NextRequest) {
