@@ -4,7 +4,6 @@ import { useState, useTransition, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Plus, Search, Pencil, PowerOff, Power, Building2, Target } from "lucide-react"
-import { EmptyState } from "@/components/ui/empty-state"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -195,13 +194,22 @@ export function ClientesClient({ companies, isAdmin = false }: { companies: Comp
 
       {/* Tabela desktop / Cards mobile */}
       {filtradas.length === 0 ? (
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02]">
-          <EmptyState
-            icon="opportunity"
-            title={busca ? "Nenhuma empresa encontrada" : "Nenhuma empresa cadastrada"}
-            description={busca ? "Tente outros termos de busca." : "Cadastre sua primeira empresa para começar a monitorar licitações."}
-            action={!busca ? { label: "Cadastrar primeira empresa", onClick: abrirNova } : undefined}
-          />
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
+          <Building2 className="h-10 w-10 text-slate-600 mb-3" />
+          <p className="text-sm font-medium text-slate-400">
+            {busca ? "Nenhuma empresa encontrada" : "Nenhuma empresa cadastrada"}
+          </p>
+          {!busca && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700"
+              onClick={abrirNova}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Cadastrar primeira empresa
+            </Button>
+          )}
         </div>
       ) : (
         <>

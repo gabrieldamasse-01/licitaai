@@ -488,7 +488,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/oportunidades"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-medium text-white shadow-[0_4px_15px_rgba(99,102,241,0.3)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.5)] hover:scale-[1.02] transition-all active:scale-100 whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all active:scale-95 whitespace-nowrap"
         >
           Ver Oportunidades
           <ArrowRight className="h-4 w-4" />
@@ -508,18 +508,18 @@ export default async function DashboardPage() {
         {metricCards.map(({ key, title, description, icon: Icon, iconBg, iconColor }) => (
           <div
             key={key}
-            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 transition-all duration-300 backdrop-blur-xl hover:bg-white/10 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] hover:-translate-y-0.5"
+            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 transition-all duration-300 backdrop-blur-xl hover:bg-white/10 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", borderRadius: "16px" }}
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-xs md:text-sm font-medium text-slate-400">{title}</p>
-                <div className={`flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center rounded-2xl shadow-md ${iconBg}`}>
-                  <Icon className={`h-5 w-5 md:h-6 md:w-6 ${iconColor}`} />
+                <div className={`flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-xl md:rounded-2xl shadow-sm ${iconBg}`}>
+                  <Icon className={`h-4 w-4 md:h-5 md:w-5 ${iconColor}`} />
                 </div>
               </div>
               <div>
-                <p className="text-3xl md:text-4xl font-black tracking-tight text-white">
+                <p className="text-2xl md:text-3xl font-bold tracking-tight text-white">
                   {metrics[key].toLocaleString("pt-BR")}
                 </p>
                 <p className="text-[10px] md:text-xs text-slate-500 mt-1 truncate">{description}</p>

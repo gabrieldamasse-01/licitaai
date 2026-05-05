@@ -656,13 +656,13 @@ export function DocumentosClient({
           <div className="hidden md:block rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="border-white/[0.04] bg-white/[0.02]">
-                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Tipo</TableHead>
-                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Empresa</TableHead>
-                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Nome do Arquivo</TableHead>
-                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Emissão</TableHead>
-                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Validade</TableHead>
-                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Status</TableHead>
+                <TableRow className="bg-slate-800 border-slate-700">
+                  <TableHead className="text-slate-400">Tipo</TableHead>
+                  <TableHead className="text-slate-400">Empresa</TableHead>
+                  <TableHead className="text-slate-400">Nome do Arquivo</TableHead>
+                  <TableHead className="text-slate-400">Emissão</TableHead>
+                  <TableHead className="text-slate-400">Validade</TableHead>
+                  <TableHead className="text-slate-400">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -671,7 +671,7 @@ export function DocumentosClient({
                   const temArquivo = !!doc.arquivo_url
                   const ehPdf = temArquivo && isPdf(doc.arquivo_url!)
                   return (
-                    <TableRow key={doc.id} className="border-white/[0.04] hover:bg-white/[0.02] transition-colors duration-150">
+                    <TableRow key={doc.id} className="border-slate-700 hover:bg-slate-700/50">
                       <TableCell className="font-medium text-white">{doc.tipo}</TableCell>
                       <TableCell className="text-slate-400">
                         {getRazaoSocial(doc.companies)}
