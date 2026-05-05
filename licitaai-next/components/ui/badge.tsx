@@ -15,6 +15,19 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
+        // ── Status pills ──────────────────────────────────────────────────
+        ativa:
+          "rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-3 py-0.5 text-xs font-semibold",
+        encerrada:
+          "rounded-full bg-slate-500/15 text-slate-400 border border-slate-500/20 px-3 py-0.5 text-xs font-semibold",
+        alta:
+          "rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/20 px-3 py-0.5 text-xs font-semibold",
+        vencendo:
+          "rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/20 px-3 py-0.5 text-xs font-semibold",
+        critico:
+          "rounded-full bg-red-500/15 text-red-300 border border-red-500/20 px-3 py-0.5 text-xs font-semibold",
+        valido:
+          "rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-3 py-0.5 text-xs font-semibold",
       },
     },
     defaultVariants: {

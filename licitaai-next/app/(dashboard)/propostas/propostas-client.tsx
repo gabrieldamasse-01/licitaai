@@ -5,6 +5,7 @@ import Link from "next/link"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { FileText, X, Copy, Check, Download, FileDown } from "lucide-react"
+import { EmptyState } from "@/components/ui/empty-state"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { exportarPDF, exportarDOCX } from "@/lib/export-utils"
@@ -73,15 +74,12 @@ export function PropostasClient({ propostas }: { propostas: PropostaRow[] }) {
 
       {/* Estado vazio */}
       {propostas.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow">
-          <FileText className="h-10 w-10 text-slate-600 mb-3" />
-          <p className="text-slate-400 text-sm font-medium">Nenhuma proposta gerada ainda</p>
-          <p className="text-slate-500 text-xs mt-1 mb-4">
-            Acesse uma licitação e clique em &quot;Gerar Proposta com IA&quot;
-          </p>
-          <Button asChild size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:text-white">
-            <Link href="/licitacoes">Ver licitações</Link>
-          </Button>
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+          <EmptyState
+            icon="proposal"
+            title="Nenhuma proposta gerada ainda"
+            description='Acesse uma licitação e clique em "Gerar Proposta com IA" para criar sua primeira proposta.'
+          />
         </div>
       )}
 
