@@ -29,6 +29,9 @@ import {
   Pencil,
   X,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -601,6 +604,50 @@ export default function AdminClient({
     })
   }
 
+  // Modal de licitações por janela
+  type LicitacaoJanela = {
+    id: string
+    objeto: string | null
+    orgao: string | null
+    uf: string | null
+    valor_estimado: number | null
+    modalidade: string | null
+    portal: string | null
+    status: string | null
+    data_publicacao: string | null
+  }
+  const [janelaModal, setJanelaModal] = useState<{ inicio: string; fim: string } | null>(null)
+  const [janelaLics, setJanelaLics] = useState<LicitacaoJanela[]>([])
+  const [janelaLoading, setJanelaLoading] = useState(false)
+  const [janelaPage, setJanelaPage] = useState(0)
+  const JANELA_PAGE_SIZE = 50
+
+  async function abrirJanelaModal(inicio: string, fim: string) {
+    setJanelaModal({ inicio, fim })
+    setJanelaPage(0)
+    setJanelaLics([])
+    setJanelaLoading(true)
+    try {
+      const res = await fetch(`/api/admin/licitacoes-janela?inicio=${inicio}&fim=${fim}`)
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error ?? "Erro ao carregar licitações")
+        return
+      }
+      setJanelaLics(json.licitacoes ?? [])
+    } catch {
+      toast.error("Erro ao carregar licitações da janela")
+    } finally {
+      setJanelaLoading(false)
+    }
+  }
+
+  function fecharJanelaModal() {
+    setJanelaModal(null)
+    setJanelaLics([])
+    setJanelaPage(0)
+  }
+
   // Exportar CSV de licitações
   const [exportandoCsv, setExportandoCsv] = useState(false)
 
@@ -684,8 +731,138 @@ export default function AdminClient({
     return "bg-slate-600/40 text-slate-400 border-slate-600/40"
   }
 
+  // Dados paginados do modal
+  const janelaTotal = janelaLics.length
+  const janelaPageCount = Math.ceil(janelaTotal / JANELA_PAGE_SIZE)
+  const janelaSlice = janelaLics.slice(janelaPage * JANELA_PAGE_SIZE, (janelaPage + 1) * JANELA_PAGE_SIZE)
+
   return (
     <div className="space-y-6">
+      {/* ── Modal licitações por janela ──────────────────────────────── */}
+      {janelaModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+          onClick={fecharJanelaModal}
+        >
+          <div
+            className="relative w-full max-w-5xl max-h-[90vh] flex flex-col rounded-xl border border-slate-700 overflow-hidden"
+            style={{ background: "rgba(15,23,42,0.98)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header do modal */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+              <div>
+                <h2 className="text-sm font-semibold text-white">
+                  Licitações da janela
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {janelaModal.inicio} → {janelaModal.fim}
+                  {!janelaLoading && <span className="ml-2 text-slate-500">({janelaTotal.toLocaleString("pt-BR")} licitações)</span>}
+                </p>
+              </div>
+              <button
+                onClick={fecharJanelaModal}
+                className="text-slate-500 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Conteúdo */}
+            <div className="flex-1 overflow-auto">
+              {janelaLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <RefreshCw className="h-5 w-5 animate-spin text-slate-500" />
+                  <span className="ml-2 text-slate-500 text-sm">Carregando...</span>
+                </div>
+              ) : janelaLics.length === 0 ? (
+                <div className="flex items-center justify-center py-16 text-slate-500 text-sm">
+                  Nenhuma licitação encontrada neste período.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-slate-700/50 hover:bg-transparent">
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Objeto</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Órgão</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">UF</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Valor</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Portal</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {janelaSlice.map((lic) => (
+                      <TableRow key={lic.id} className="border-slate-700/30 hover:bg-white/[0.02]">
+                        <TableCell className="text-slate-200 text-xs max-w-[240px]">
+                          <span title={lic.objeto ?? ""}>
+                            {(lic.objeto ?? "—").length > 80 ? (lic.objeto ?? "").slice(0, 80) + "…" : (lic.objeto ?? "—")}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-slate-400 text-xs hidden md:table-cell max-w-[160px] truncate">
+                          {lic.orgao ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-slate-300 text-xs font-bold">
+                          {lic.uf ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-slate-400 text-xs hidden sm:table-cell tabular-nums">
+                          {lic.valor_estimado
+                            ? lic.valor_estimado.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })
+                            : "—"}
+                        </TableCell>
+                        <TableCell className="text-slate-400 text-xs">
+                          {lic.portal ?? "—"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={lic.status === "ativa"
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px]"
+                              : "bg-slate-500/20 text-slate-400 border-slate-500/30 text-[10px]"}
+                          >
+                            {lic.status ?? "—"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+
+            {/* Paginação */}
+            {janelaPageCount > 1 && (
+              <div className="flex items-center justify-between px-6 py-3 border-t border-slate-700">
+                <span className="text-xs text-slate-500">
+                  Página {janelaPage + 1} de {janelaPageCount} ({janelaTotal.toLocaleString("pt-BR")} licitações)
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setJanelaPage((p) => Math.max(0, p - 1))}
+                    disabled={janelaPage === 0}
+                    className="h-7 px-2 text-slate-400 hover:text-white disabled:opacity-30"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setJanelaPage((p) => Math.min(janelaPageCount - 1, p + 1))}
+                    disabled={janelaPage >= janelaPageCount - 1}
+                    className="h-7 px-2 text-slate-400 hover:text-white disabled:opacity-30"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20">
@@ -1520,6 +1697,15 @@ export default function AdminClient({
                             <span className="text-slate-400">{j.buscadas.toLocaleString("pt-BR")} buscadas</span>
                             <span className="text-emerald-400 font-semibold">{j.inseridas.toLocaleString("pt-BR")} inseridas</span>
                             <span className="text-amber-400">{j.ignoradas.toLocaleString("pt-BR")} ignoradas</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => abrirJanelaModal(j.inicio, j.fim)}
+                              className="h-7 px-2.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 border border-blue-500/20 gap-1 text-xs"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Ver licitações
+                            </Button>
                           </div>
                         </div>
                       )
