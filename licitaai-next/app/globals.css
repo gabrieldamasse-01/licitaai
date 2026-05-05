@@ -234,84 +234,18 @@
 
   /* Primary button gradient */
   .btn-primary-gradient {
-    background: linear-gradient(90deg, #1e40af 0%, #7c3aed 100%); /* from-blue-600 to-violet-600 */
-    color: white;
-    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
-    transition: box-shadow 0.2s ease, transform 0.15s ease;
-    will-change: transform;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    transition: box-shadow 0.2s, transform 0.15s;
   }
 
   .btn-primary-gradient:hover {
-    box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
     transform: scale(1.02);
   }
 
   .btn-primary-gradient:active {
-    transform: scale(1.0);
-  }
-
-  /* Badges — pill variants */
-  .badge-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9999px;
-    padding: 0.125rem 0.75rem;
-    font-size: 0.6875rem; /* 11px */
-    font-weight: 600;
-    line-height: 1;
-  }
-
-  .badge-active {
-    background-color: rgba(16,185,129,0.08); /* emerald-500/15 */
-    color: #86efac; /* emerald-300 */
-    border: 1px solid rgba(16,185,129,0.12);
-  }
-
-  .badge-encerrada {
-    background-color: rgba(148,163,184,0.08); /* slate-500/15 */
-    color: #94a3b8; /* slate-400 */
-    border: 1px solid rgba(148,163,184,0.12);
-  }
-
-  .badge-alta {
-    background-color: rgba(59,130,246,0.08); /* blue-500/15 */
-    color: #93c5fd; /* blue-300 */
-    border: 1px solid rgba(59,130,246,0.12);
-  }
-
-  .badge-vencendo {
-    background-color: rgba(245,158,11,0.08); /* amber-500/15 */
-    color: #fbd38d; /* amber-300 */
-    border: 1px solid rgba(245,158,11,0.12);
-  }
-
-  /* Table header & row hover refinements */
-  .table-header-cell {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: rgba(148,163,184,1); /* text-slate-500 */
-  }
-
-  .table-row-hover:hover {
-    background-color: rgba(255,255,255,0.02);
-    transition: background-color 150ms ease;
-  }
-
-  .table-sep { border-color: rgba(255,255,255,0.04); }
-
-  .table-first-col { font-weight: 600; color: white; }
-
-  /* Skeleton */
-  .skeleton {
-    background-color: rgba(255,255,255,0.05);
-    border-radius: 0.5rem;
-    display: inline-block;
-    width: 100%;
-    height: 100%;
-    animation: pulse 1.4s ease-in-out infinite;
+    transform: scale(1);
   }
 
   /* Metric card with colored left border */

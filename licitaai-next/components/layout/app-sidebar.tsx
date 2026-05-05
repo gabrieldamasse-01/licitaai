@@ -9,7 +9,6 @@ import {
   FileText,
   Search,
   Target,
-  TrendingDown,
   BarChart3,
   Settings,
   Scale,
@@ -27,10 +26,8 @@ const mainNav = [
   { href: "/clientes",     label: "Clientes",     icon: Building2,       iconColor: "text-indigo-400" },
   { href: "/documentos",   label: "Documentos",   icon: FileText,        iconColor: "text-amber-400" },
   { href: "/licitacoes",   label: "Licitações",   icon: Search,          iconColor: "text-emerald-400" },
-  { href: "/oportunidades",        label: "Oportunidades",        icon: Target,       iconColor: "text-violet-400" },
-  { href: "/licitacoes-perdidas", label: "Oport. Perdidas",     icon: TrendingDown, iconColor: "text-red-400" },
-  { href: "/propostas",           label: "Propostas",            icon: FileText,     iconColor: "text-emerald-400" },
-  { href: "/relatorios",         label: "Relatórios",         icon: BarChart3, iconColor: "text-cyan-400" },
+  { href: "/oportunidades",label: "Oportunidades",icon: Target,          iconColor: "text-violet-400" },
+  { href: "/relatorios",   label: "Relatórios",   icon: BarChart3,       iconColor: "text-cyan-400" },
 ]
 
 const secondaryNav = [
@@ -65,19 +62,17 @@ function NavItem({
         "group flex items-center mx-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-h-[44px]",
         collapsed ? "justify-center px-0" : "gap-3 px-3 pl-[10px]",
         isActive
-          ? "bg-gradient-to-r from-blue-600/20 to-violet-600/10 text-blue-300 border-l-2 border-blue-500 backdrop-blur-sm shadow-[inset_0_0_12px_rgba(37,99,235,0.06)]"
-          : "text-slate-400 hover:bg-white/[0.05] hover:text-white border-l-2 border-transparent"
+          ? "bg-gradient-to-r from-blue-600/20 to-violet-600/10 text-blue-300 border-l-2 border-blue-500 backdrop-blur-sm shadow-[inset_0_0_12px_rgba(37,99,235,0.15)]"
+          : "text-slate-400 hover:bg-white/[0.07] hover:text-white border-l-2 border-transparent"
       )}
     >
       <Icon
         className={cn(
-          "h-5 w-5 shrink-0 transition-colors",
-          isActive
-            ? "text-blue-300"
-            : `${iconColor} group-hover:brightness-125 group-hover:drop-shadow-[0_0_6px_rgba(99,102,241,0.6)]`
+          "h-5 w-5 shrink-0 transition-all duration-200",
+          isActive ? "text-blue-300" : `${iconColor} group-hover:brightness-125 group-hover:drop-shadow-[0_0_6px_rgba(99,102,241,0.6)]`
         )}
       />
-      {!collapsed && <span className="truncate">{label}</span>}
+      {!collapsed && <span className="truncate font-medium">{label}</span>}
     </Link>
   )
 }
@@ -123,13 +118,13 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
   return (
     <aside
       className={cn(
-        "flex h-full flex-col bg-[#0A1628] border-r border-white/5 transition-all duration-200",
+        "flex h-full flex-col bg-[#0A1628] border-r border-white/[0.06] transition-all duration-200",
         collapsed ? "w-[60px]" : "w-64"
       )}
     >
       {/* Logo + toggle */}
       <div className={cn(
-        "flex h-16 shrink-0 border-b border-white/5",
+        "flex h-16 shrink-0 border-b border-white/[0.06]",
         collapsed ? "flex-col items-center justify-center gap-1.5" : "items-center gap-2 px-3"
       )}>
         {collapsed ? (
@@ -188,7 +183,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
         ))}
 
         {/* Separador */}
-        <div className={cn("my-2 border-t border-white/5", collapsed ? "mx-2" : "mx-4")} />
+        <div className={cn("my-2 border-t border-white/[0.06]", collapsed ? "mx-2" : "mx-4")} />
 
         {secondaryNav.map((item) => (
           <NavItem key={item.href} {...item} collapsed={collapsed} onNavigate={onNavigate} />
@@ -219,7 +214,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
       )}
 
       {/* Footer / Usuário */}
-      <div className="border-t border-white/5 p-3 shrink-0">
+      <div className="border-t border-white/[0.06] p-3 shrink-0">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
             <div

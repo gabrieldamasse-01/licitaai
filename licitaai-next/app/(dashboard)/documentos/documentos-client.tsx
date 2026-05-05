@@ -610,10 +610,15 @@ export function DocumentosClient({
 
       {/* Empty state */}
       {filtrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
-          <FileText className="h-10 w-10 text-slate-600 mb-3" />
-          <p className="text-sm font-medium text-slate-400">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] py-20 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800/80 border border-white/[0.06] mb-4">
+            <FileText className="h-8 w-8 text-slate-500" />
+          </div>
+          <p className="text-sm font-semibold text-slate-300">
             {busca ? "Nenhum documento encontrado" : "Nenhum documento cadastrado"}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            {busca ? "Tente buscar por outro termo" : "Adicione documentos de habilitação da sua empresa"}
           </p>
           {!busca && (
             <Button
@@ -633,13 +638,13 @@ export function DocumentosClient({
           <div className="hidden md:block rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-800 border-slate-700">
-                  <TableHead className="text-slate-400">Tipo</TableHead>
-                  <TableHead className="text-slate-400">Empresa</TableHead>
-                  <TableHead className="text-slate-400">Nome do Arquivo</TableHead>
-                  <TableHead className="text-slate-400">Emissão</TableHead>
-                  <TableHead className="text-slate-400">Validade</TableHead>
-                  <TableHead className="text-slate-400">Status</TableHead>
+                <TableRow className="bg-slate-800 border-white/[0.04]">
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Tipo</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Empresa</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Nome do Arquivo</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Emissão</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Validade</TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -648,7 +653,7 @@ export function DocumentosClient({
                   const temArquivo = !!doc.arquivo_url
                   const ehPdf = temArquivo && isPdf(doc.arquivo_url!)
                   return (
-                    <TableRow key={doc.id} className="border-slate-700 hover:bg-slate-700/50">
+                    <TableRow key={doc.id} className="border-white/[0.04] hover:bg-white/[0.02] transition-colors duration-150">
                       <TableCell className="font-medium text-white">{doc.tipo}</TableCell>
                       <TableCell className="text-slate-400">
                         {getRazaoSocial(doc.companies)}
