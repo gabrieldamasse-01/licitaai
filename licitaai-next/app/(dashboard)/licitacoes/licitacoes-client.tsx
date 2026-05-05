@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react"
 import { toast } from "sonner"
 import {
   Search, SlidersHorizontal, ExternalLink, Loader2, X,
-  AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale, Clock,
+  AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Clock,
   ArrowUpRight, Tag, ChevronDown,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -268,7 +268,7 @@ function DetalheConteudo({
       {/* Ações fixas no rodapé */}
       <div className="space-y-2 pt-4 border-t border-slate-700 mt-4">
         {lic.dbId && (
-          <Button asChild className="w-full gap-2 bg-violet-700 hover:bg-violet-600 text-white">
+          <Button asChild className="w-full gap-2 btn-primary-gradient">
             <Link href={`/licitacoes/${lic.dbId}`}>
               <ArrowUpRight className="h-4 w-4" />
               Ver página completa + Analisar com IA
@@ -719,7 +719,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
       <div>
         <Button
           onClick={() => { buscar(0); setFiltrosOpen(false) }}
-          className="w-full bg-[#1A5276] hover:bg-[#154360] text-white h-9 text-sm gap-2"
+          className="w-full h-9 text-sm gap-2 btn-primary-gradient"
           disabled={isPending}
         >
           {isPending ? (

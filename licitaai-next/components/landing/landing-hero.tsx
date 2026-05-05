@@ -42,7 +42,7 @@ export function LandingHero({ totalLicitacoes }: LandingHeroProps) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/auth/sign-up"
-              className="w-full sm:w-auto h-14 px-8 inline-flex items-center justify-center rounded-full text-white font-semibold text-lg transition-all bg-blue-600 hover:bg-blue-500 shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)]"
+              className="w-full sm:w-auto h-14 px-8 inline-flex items-center justify-center rounded-full text-white font-semibold text-lg transition-all btn-primary-gradient"
             >
               Começar gratuitamente
               <ArrowRight className="ml-2 h-5 w-5" />

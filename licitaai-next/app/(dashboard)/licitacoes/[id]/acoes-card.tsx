@@ -116,7 +116,7 @@ export function AcoesCard({
 
       {/* Analisar com IA */}
       <Button
-        className="w-full gap-2 bg-violet-700 hover:bg-violet-600 text-white"
+        className="w-full gap-2 btn-primary-gradient"
         onClick={handleAnalisar}
         disabled={isAnalyzing}
       >
@@ -135,7 +135,7 @@ export function AcoesCard({
 
       {/* Gerar Proposta com IA */}
       <Button
-        className="w-full gap-2 bg-emerald-700 hover:bg-emerald-600 text-white"
+        className="w-full gap-2 btn-primary-gradient"
         onClick={onGerarProposta}
         disabled={!onGerarProposta}
       >

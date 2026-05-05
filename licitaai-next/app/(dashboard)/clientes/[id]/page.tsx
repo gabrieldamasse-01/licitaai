@@ -459,14 +459,14 @@ function SummaryCard({
   return (
     <div className={`metric-card ${borderColor ?? ""} rounded-xl border border-slate-700 bg-slate-800 p-4 space-y-3`}>
       <div className="flex items-center justify-between">
-        <div className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm ${iconBg ?? "bg-slate-700"}`}>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-full shadow-sm ${iconBg ?? "bg-slate-700"}`}>
           {icon}
         </div>
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-right leading-tight max-w-[80px]">
           {label}
         </p>
       </div>
-      <p className={`text-4xl font-bold tracking-tight text-white ${valueClassName ?? ""}`}>{value}</p>
+      <p className={`text-4xl font-black tracking-tight text-white ${valueClassName ?? ""}`}>{value}</p>
     </div>
   )
 }

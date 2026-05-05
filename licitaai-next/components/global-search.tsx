@@ -286,7 +286,7 @@ export function GlobalSearch() {
                     setActiveIndex(-1)
                   }}
                   onKeyDown={onKeyDown}
-                  placeholder="Buscar clientes, documentos, oportunidades..."
+                  placeholder="Buscar licitações, empresas, documentos..."
                   className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
                 />
                 {query ? (
