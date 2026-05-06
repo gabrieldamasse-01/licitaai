@@ -220,6 +220,13 @@
 .animate-glow-pulse    { animation: glow-pulse 3s ease-in-out infinite; }
 .animate-dot-ping      { animation: dot-ping 1.5s ease-out infinite; }
 .animate-slide-up-fade { animation: slide-up-fade 0.6s ease-out both; }
+.animate-pulse-slow    { animation: glow-pulse 4s ease-in-out infinite; }
+.animate-pulse-cta     { animation: cta-pulse 2.5s ease-in-out infinite; }
+
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(99,102,241,0.4); }
+  50%       { box-shadow: 0 0 50px rgba(99,102,241,0.7); }
+}
 
 /* ─── Data Table Enhancements ───────────────────────────────────────────────── */
 @layer utilities {
