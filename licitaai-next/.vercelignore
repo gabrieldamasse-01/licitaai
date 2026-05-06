@@ -1,0 +1,12 @@
+# Ignore local env files and examples
+.env.local
+.env.local.example
+.env*.local
+.env
+
+# Node artifacts
+node_modules
+.next
+
+# Misc
+.DS_Store

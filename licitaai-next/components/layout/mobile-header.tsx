@@ -36,13 +36,13 @@ export function MobileHeader({ email, userId }: { email: string; userId: string 
   }
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 shadow-sm z-30 sticky top-0 md:hidden">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.06] bg-[#0A1628]/95 backdrop-blur-md px-4 md:px-6 shadow-sm z-30 sticky top-0 md:hidden">
       {/* Brand logo */}
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.2)]">
           <Scale className="h-4 w-4 text-white" />
         </div>
-        <span className="text-[15px] font-bold text-slate-900 tracking-tight">Licita<span className="text-blue-600">IA</span></span>
+        <span className="text-[15px] font-bold text-white tracking-tight">Licita<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">AI</span></span>
       </div>
 
       {/* Actions */}

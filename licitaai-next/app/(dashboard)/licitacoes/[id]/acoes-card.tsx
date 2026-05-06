@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
-import { ExternalLink, Bookmark, Loader2, Building2, Sparkles, FileText } from "lucide-react"
+import { ExternalLink, Bookmark, Loader2, Building2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -24,7 +24,6 @@ interface AcoesCardProps {
   empresas: Empresa[]
   jaSalvasPorEmpresa: Set<string>
   onAnalise?: (analise: string, fromCache: boolean) => void
-  onGerarProposta?: () => void
 }
 
 export function AcoesCard({
@@ -34,7 +33,6 @@ export function AcoesCard({
   empresas,
   jaSalvasPorEmpresa,
   onAnalise,
-  onGerarProposta,
 }: AcoesCardProps) {
   const [empresaId, setEmpresaId] = useState<string>(
     empresas.length === 1 ? empresas[0].id : ""
@@ -80,7 +78,7 @@ export function AcoesCard({
   const jaSalva = salvas.has(empresaId)
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 space-y-5 sticky top-6">
+    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 space-y-5 sticky top-6">
       {/* Status */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -116,7 +114,7 @@ export function AcoesCard({
 
       {/* Analisar com IA */}
       <Button
-        className="w-full gap-2 bg-violet-700 hover:bg-violet-600 text-white"
+        className="w-full gap-2"
         onClick={handleAnalisar}
         disabled={isAnalyzing}
       >
@@ -131,16 +129,6 @@ export function AcoesCard({
             Analisar com IA
           </>
         )}
-      </Button>
-
-      {/* Gerar Proposta com IA */}
-      <Button
-        className="w-full gap-2 bg-emerald-700 hover:bg-emerald-600 text-white"
-        onClick={onGerarProposta}
-        disabled={!onGerarProposta}
-      >
-        <FileText className="h-4 w-4" />
-        Gerar Proposta com IA
       </Button>
 
       <div className="border-t border-slate-700 pt-4 space-y-3">

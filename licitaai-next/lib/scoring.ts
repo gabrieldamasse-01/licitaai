@@ -19,6 +19,10 @@ export type EmpresaInput = {
   razao_social: string
   porte: string
   cnae: string[]
+  /** Proporção de documentos gerais válidos (0–1). Undefined = não calculado. */
+  docs_gerais_pct?: number
+  /** true se empresa possui todos os docs de nicho aplicáveis válidos */
+  docs_nicho_ok?: boolean
 }
 
 export type LicitacaoInput = {
@@ -135,6 +139,23 @@ export function calcularScore(
   empresa: EmpresaInput,
   lic: LicitacaoInput
 ): ScoreResult {
+  const base = calcularScoreBase(empresa, lic)
+  const bonus = calcularBonusDocs(empresa)
+  const score = Math.min(100, base.score + bonus)
+  return { score, scoreLabel: scoreLabel(score), motivo: base.motivo }
+}
+
+function calcularBonusDocs(empresa: EmpresaInput): number {
+  let bonus = 0
+  if (empresa.docs_gerais_pct !== undefined && empresa.docs_gerais_pct > 0.8) bonus += 5
+  if (empresa.docs_nicho_ok) bonus += 5
+  return bonus
+}
+
+function calcularScoreBase(
+  empresa: EmpresaInput,
+  lic: LicitacaoInput
+): Omit<ScoreResult, "scoreLabel"> {
   const texto = normalizar(`${lic.objetoSemTags ?? ""} ${lic.objeto ?? ""}`)
 
   // 1. Keyword exata do CNAE no texto (95–100)
@@ -145,7 +166,6 @@ export function calcularScore(
     if (exatas.length > 0) {
       return {
         score: Math.min(100, 95 + exatas.length - 1),
-        scoreLabel: scoreLabel(Math.min(100, 95 + exatas.length - 1)),
         motivo: `CNAE exato: "${exatas.slice(0, 2).join('", "')}"`,
       }
     }
@@ -159,10 +179,8 @@ export function calcularScore(
       kw.split(" ").filter((part) => part.length > 3 && texto.includes(normalizar(part)))
     )
     if (parciais.length > 0) {
-      const s = Math.min(94, 85 + parciais.length - 1)
       return {
-        score: s,
-        scoreLabel: scoreLabel(s),
+        score: Math.min(94, 85 + parciais.length - 1),
         motivo: `CNAE parcial: "${[...new Set(parciais)].slice(0, 2).join('", "')}"`,
       }
     }
@@ -172,11 +190,7 @@ export function calcularScore(
   for (const cnae of empresa.cnae ?? []) {
     const numerico = cnae.replace(/\D/g, "").substring(0, 4)
     if (numerico.length >= 4 && texto.includes(numerico)) {
-      return {
-        score: 75,
-        scoreLabel: scoreLabel(75),
-        motivo: `Código CNAE ${numerico} encontrado no objeto`,
-      }
+      return { score: 75, motivo: `Código CNAE ${numerico} encontrado no objeto` }
     }
   }
 
@@ -186,10 +200,8 @@ export function calcularScore(
     .filter((w) => w.length > 4 && !STOPWORDS.has(w))
   const kwMatches = razaoTokens.filter((w) => texto.includes(w))
   if (kwMatches.length > 0) {
-    const s = Math.min(74, 70 + kwMatches.length - 1)
     return {
-      score: s,
-      scoreLabel: scoreLabel(s),
+      score: Math.min(74, 70 + kwMatches.length - 1),
       motivo: `Termos da empresa: "${kwMatches.slice(0, 2).join('", "')}"`,
     }
   }
@@ -202,30 +214,14 @@ export function calcularScore(
   const isGrande = modGrandes.some((m) => mod.includes(normalizar(m)))
 
   if (["MEI", "ME", "EPP"].includes(empresa.porte) && isSimples) {
-    return {
-      score: 65,
-      scoreLabel: scoreLabel(65),
-      motivo: `Modalidade ${lic.modalidade} favorável para empresas de pequeno porte`,
-    }
+    return { score: 65, motivo: `Modalidade ${lic.modalidade} favorável para empresas de pequeno porte` }
   }
   if (["MEDIO", "GRANDE"].includes(empresa.porte) && (isGrande || isSimples)) {
-    return {
-      score: 65,
-      scoreLabel: scoreLabel(65),
-      motivo: `Modalidade ${lic.modalidade} compatível com porte ${empresa.porte}`,
-    }
+    return { score: 65, motivo: `Modalidade ${lic.modalidade} compatível com porte ${empresa.porte}` }
   }
   if (isSimples || isGrande) {
-    return {
-      score: 60,
-      scoreLabel: scoreLabel(60),
-      motivo: `Modalidade identificada: ${lic.modalidade}`,
-    }
+    return { score: 60, motivo: `Modalidade identificada: ${lic.modalidade}` }
   }
 
-  return {
-    score: 30,
-    scoreLabel: scoreLabel(30),
-    motivo: "Sem correspondência específica com o perfil",
-  }
+  return { score: 30, motivo: "Sem correspondência específica com o perfil" }
 }

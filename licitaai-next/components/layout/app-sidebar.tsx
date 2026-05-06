@@ -9,7 +9,6 @@ import {
   FileText,
   Search,
   Target,
-  TrendingDown,
   BarChart3,
   Settings,
   Scale,
@@ -27,10 +26,8 @@ const mainNav = [
   { href: "/clientes",     label: "Clientes",     icon: Building2,       iconColor: "text-indigo-400" },
   { href: "/documentos",   label: "Documentos",   icon: FileText,        iconColor: "text-amber-400" },
   { href: "/licitacoes",   label: "Licitações",   icon: Search,          iconColor: "text-emerald-400" },
-  { href: "/oportunidades",        label: "Oportunidades",        icon: Target,       iconColor: "text-violet-400" },
-  { href: "/licitacoes-perdidas", label: "Oport. Perdidas",     icon: TrendingDown, iconColor: "text-red-400" },
-  { href: "/propostas",           label: "Propostas",            icon: FileText,     iconColor: "text-emerald-400" },
-  { href: "/relatorios",         label: "Relatórios",         icon: BarChart3, iconColor: "text-cyan-400" },
+  { href: "/oportunidades",label: "Oportunidades",icon: Target,          iconColor: "text-violet-400" },
+  { href: "/relatorios",   label: "Relatórios",   icon: BarChart3,       iconColor: "text-cyan-400" },
 ]
 
 const secondaryNav = [
@@ -62,20 +59,20 @@ function NavItem({
       onClick={onNavigate}
       title={collapsed ? label : undefined}
       className={cn(
-        "group flex items-center mx-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 min-h-[44px]",
+        "group flex items-center mx-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-h-[44px]",
         collapsed ? "justify-center px-0" : "gap-3 px-3 pl-[10px]",
         isActive
-          ? "[background:rgba(37,99,235,0.18)] text-blue-300 border-l-2 border-blue-400/60 backdrop-blur-sm shadow-[inset_0_0_12px_rgba(37,99,235,0.15)]"
+          ? "bg-gradient-to-r from-blue-600/20 to-violet-600/10 text-blue-300 border-l-2 border-blue-500 backdrop-blur-sm shadow-[inset_0_0_12px_rgba(37,99,235,0.15)]"
           : "text-slate-400 hover:bg-white/[0.07] hover:text-white border-l-2 border-transparent"
       )}
     >
       <Icon
         className={cn(
-          "h-5 w-5 shrink-0 transition-colors",
-          isActive ? "text-blue-300" : `${iconColor} group-hover:brightness-125`
+          "h-5 w-5 shrink-0 transition-all duration-200",
+          isActive ? "text-blue-300" : `${iconColor} group-hover:brightness-125 group-hover:drop-shadow-[0_0_6px_rgba(99,102,241,0.6)]`
         )}
       />
-      {!collapsed && <span className="truncate">{label}</span>}
+      {!collapsed && <span className="truncate font-medium">{label}</span>}
     </Link>
   )
 }
@@ -142,7 +139,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
               </div>
               <div className="leading-tight min-w-0">
                 <p className="text-[15px] font-bold text-white tracking-tight">
-                  Licita<span className="text-blue-400">AI</span>
+                  Licita<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">AI</span>
                 </p>
                 <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider font-medium">
                   Plataforma de Licitações

@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import EmptyState from "@/components/ui/empty-state"
 import {
   Select,
   SelectContent,
@@ -530,23 +531,12 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
-              <Target className="mb-3 h-10 w-10 text-slate-600" />
-              <p className="text-sm font-medium text-slate-400">
-                Nenhuma oportunidade relevante encontrada
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Tente atualizar o CNAE ou o perfil da empresa em{" "}
-                <Link href="/clientes" className="text-blue-400 underline">
-                  Clientes
-                </Link>
-              </p>
-              {analisadas > 0 && (
-                <p className="mt-2 text-xs text-slate-500">
-                  {analisadas} licitações analisadas nos últimos 5 dias
-                </p>
-              )}
-            </div>
+            <EmptyState
+              icon="opportunity"
+              title="Nenhuma oportunidade relevante encontrada"
+              description={`Tente atualizar o CNAE ou o perfil da empresa em Clientes.`}
+              action={analisadas > 0 ? { label: `${analisadas} licitações analisadas`, onClick: () => {} } : undefined}
+            />
           )}
         </>
       )}

@@ -1,4 +1,7 @@
-import { Building2, Brain, FileText } from "lucide-react"
+"use client"
+
+import { Building2, Brain, Bell } from "lucide-react"
+import { motion } from "motion/react"
 
 const steps = [
   {
@@ -6,31 +9,34 @@ const steps = [
     icon: Building2,
     title: "Cadastre sua empresa e CNAEs",
     description:
-      "Informe CNPJ, CNAEs e regiões de interesse. O LicitaAI usa esse perfil para filtrar apenas as licitações realmente relevantes para o seu negócio.",
-    color: "from-blue-600 to-blue-400",
-    iconBg: "bg-blue-500/20",
-    iconColor: "text-blue-400",
+      "Informe o CNPJ, os CNAEs da sua empresa e as regiões de interesse. O LicitaAI usa esse perfil para filtrar apenas as licitações realmente relevantes para você.",
+    accent: "from-blue-500 to-blue-700",
+    glow: "shadow-blue-500/30",
   },
   {
     number: "02",
     icon: Brain,
-    title: "Receba oportunidades com score de compatibilidade",
+    title: "Nossa IA analisa e pontua cada licitação",
     description:
-      "A IA analisa cada edital e gera um score de 0 a 100% com base no perfil da empresa. Você vê primeiro onde tem mais chance de vencer.",
-    color: "from-cyan-500 to-cyan-300",
-    iconBg: "bg-cyan-500/20",
-    iconColor: "text-cyan-400",
+      "A inteligência artificial lê cada edital do PNCP, extrai objeto, valor, exigências e datas, e gera um score de relevância de 0 a 100% com base no perfil da sua empresa.",
+    accent: "from-violet-500 to-violet-700",
+    glow: "shadow-violet-500/30",
   },
   {
     number: "03",
-    icon: FileText,
-    title: "Gere propostas com IA e participe",
+    icon: Bell,
+    title: "Receba oportunidades relevantes no seu email",
     description:
-      "Com um clique, o LicitaAI gera uma proposta estruturada baseada no edital. Revise, ajuste e envie — sem começar do zero toda vez.",
-    color: "from-emerald-500 to-emerald-300",
-    iconBg: "bg-emerald-500/20",
-    iconColor: "text-emerald-400",
+      "Você recebe alertas diários com as melhores oportunidades ranqueadas. Também notificamos sobre documentos de habilitação próximos do vencimento.",
+    accent: "from-emerald-500 to-emerald-700",
+    glow: "shadow-emerald-500/30",
   },
+]
+
+const numeros = [
+  { valor: "13.411", label: "licitações monitoradas" },
+  { valor: "98%", label: "de precisão no score" },
+  { valor: "27", label: "estados cobertos" },
 ]
 
 export function LandingComoFunciona() {
@@ -40,48 +46,92 @@ export function LandingComoFunciona() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-300 text-sm font-medium mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card border border-blue-500/30 text-blue-300 text-sm font-medium mb-6"
+          >
             Como funciona
-          </div>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-            Do cadastro ao contrato em{" "}
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-3xl md:text-5xl font-bold text-white mb-6"
+          >
+            Do cadastro ao alerta em{" "}
             <span className="text-blue-400">3 passos</span>
-          </h2>
-          <p className="text-lg text-slate-300">
-            Configure uma vez e deixe a IA trabalhar por você — monitorando
-            Effecti e PNCP 24 horas por dia.
-          </p>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-lg text-slate-300"
+          >
+            Configure uma vez e deixe a IA trabalhar por você — monitorando o PNCP 24 horas por dia.
+          </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {steps.map((step, index) => {
-            const Icon = step.icon
-            return (
-              <div
+        {/* Steps com linha conectora horizontal */}
+        <div className="relative max-w-6xl mx-auto">
+          {/* Linha conectora */}
+          <div className="hidden md:block absolute top-12 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px bg-gradient-to-r from-blue-500/40 via-violet-500/40 to-emerald-500/40" />
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {steps.map((step, index) => (
+              <motion.div
                 key={index}
-                className="relative p-8 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-blue-500/20 transition-all duration-300 flex flex-col"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
+                className="relative glass-card p-8 rounded-2xl border border-white/5 hover:border-blue-500/20 transition-all duration-300 flex flex-col"
               >
+                {/* Step number ghost */}
                 <span className="text-5xl font-black text-white/5 absolute top-6 right-6 leading-none select-none">
                   {step.number}
                 </span>
 
-                <div className={`w-14 h-14 rounded-2xl ${step.iconBg} flex items-center justify-center mb-6 shrink-0`}>
-                  <Icon className={`w-7 h-7 ${step.iconColor}`} />
+                {/* Numbered icon */}
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.accent} shadow-lg ${step.glow} flex items-center justify-center mb-6 shrink-0 relative`}>
+                  <step.icon className="w-8 h-8 text-white" />
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-900 border border-white/10 text-xs font-black text-white flex items-center justify-center">
+                    {index + 1}
+                  </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-                <p className="text-slate-400 leading-relaxed text-sm flex-1">
-                  {step.description}
-                </p>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-3">{step.title}</h3>
+                <p className="text-slate-300 leading-relaxed text-base flex-1">{step.description}</p>
 
+                {/* Seta conectora */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 items-center justify-center text-slate-500 text-xs font-bold">
+                  <div className="hidden md:flex absolute -right-5 top-12 z-20 w-10 h-10 rounded-full bg-slate-900 border border-slate-700 items-center justify-center text-slate-400 text-sm font-bold shadow-lg">
                     →
                   </div>
                 )}
-              </div>
-            )
-          })}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Números de impacto */}
+        <div className="mt-20 grid grid-cols-3 gap-8 max-w-3xl mx-auto">
+          {numeros.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="text-center"
+            >
+              <div className="text-4xl md:text-5xl font-black text-white mb-2">{item.valor}</div>
+              <div className="text-sm text-slate-400">{item.label}</div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
