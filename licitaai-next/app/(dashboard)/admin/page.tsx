@@ -162,6 +162,7 @@ export default async function AdminPage({
   const portalConfig = {
     effecti: (portalConfigRaw ?? []).find((p) => p.portal === "effecti")?.ativo ?? true,
     pncp: (portalConfigRaw ?? []).find((p) => p.portal === "pncp")?.ativo ?? false,
+    comprasnet: (portalConfigRaw ?? []).find((p) => p.portal === "comprasnet")?.ativo ?? false,
   }
 
   // ── Métricas de uso ────────────────────────────────────────────────────────

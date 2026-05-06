@@ -153,7 +153,7 @@ export async function salvarPortalConfig(
   const adminOk = await isAdmin()
   if (!adminOk) return { error: "Acesso negado." }
 
-  if (!["effecti", "pncp"].includes(portal)) {
+  if (!["effecti", "pncp", "comprasnet"].includes(portal)) {
     return { error: "Portal inválido." }
   }
 
@@ -277,16 +277,19 @@ export type SyncResult = {
 }
 
 export async function sincronizarPortal(
-  portal: "effecti" | "pncp"
+  portal: "effecti" | "pncp" | "comprasnet"
 ): Promise<SyncResult> {
   const adminOk = await isAdmin()
   if (!adminOk) return { error: "Acesso negado." }
 
   const secret = process.env.CRON_SECRET ?? ""
-  const url =
-    portal === "effecti"
-      ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"}/api/cron/licitacoes`
-      : `${process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"}/api/cron/licitacoes-pncp`
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://licitaai-next.vercel.app"
+  const rotas: Record<string, string> = {
+    effecti:    `${base}/api/cron/licitacoes`,
+    pncp:       `${base}/api/cron/licitacoes-pncp`,
+    comprasnet: `${base}/api/cron/licitacoes-comprasnet`,
+  }
+  const url = rotas[portal]
 
   try {
     const res = await fetch(url, {

@@ -167,6 +167,7 @@ type AdminClientProps = {
   portalConfig: {
     effecti: boolean
     pncp: boolean
+    comprasnet: boolean
   }
   usageMetrics: UsageMetrics
 }
@@ -520,21 +521,21 @@ export default function AdminClient({
   }
 
   // Portais de dados
-  const [portais, setPortais] = useState({ effecti: portalConfig.effecti, pncp: portalConfig.pncp })
+  const [portais, setPortais] = useState({ effecti: portalConfig.effecti, pncp: portalConfig.pncp, comprasnet: portalConfig.comprasnet })
   const [, startPortalTransition] = useTransition()
-  const [sincronizando, setSincronizando] = useState<{ effecti: boolean; pncp: boolean }>({ effecti: false, pncp: false })
+  const [sincronizando, setSincronizando] = useState<{ effecti: boolean; pncp: boolean; comprasnet: boolean }>({ effecti: false, pncp: false, comprasnet: false })
 
-  async function handleSincronizar(portal: "effecti" | "pncp") {
+  async function handleSincronizar(portal: "effecti" | "pncp" | "comprasnet") {
     setSincronizando((prev) => ({ ...prev, [portal]: true }))
     try {
       const result: SyncResult = await sincronizarPortal(portal)
       if (result.error) {
         toast.error(`Erro na sincronização: ${result.error}`)
       } else {
-        const portalLabel = portal === "effecti" ? "Effecti" : "PNCP"
+        const nomes: Record<string, string> = { effecti: "Effecti", pncp: "PNCP", comprasnet: "ComprasNet" }
         const erroLabel = result.erros && result.erros.length > 0 ? ` | ⚠️ ${result.erros.length} erro(s)` : ""
         toast.success(
-          `✅ ${portalLabel}: ${result.inseridas ?? 0} inseridas, ${result.ignoradas ?? 0} ignoradas, ${result.encerradas ?? 0} encerradas${erroLabel}`,
+          `✅ ${nomes[portal]}: ${result.inseridas ?? 0} inseridas, ${result.ignoradas ?? 0} ignoradas, ${result.encerradas ?? 0} encerradas${erroLabel}`,
           { duration: 8000 }
         )
       }
@@ -543,17 +544,17 @@ export default function AdminClient({
     }
   }
 
-  function handleTogglePortal(portal: "effecti" | "pncp") {
+  function handleTogglePortal(portal: "effecti" | "pncp" | "comprasnet") {
     const novoValor = !portais[portal]
     setPortais((prev) => ({ ...prev, [portal]: novoValor }))
     startPortalTransition(async () => {
       const result = await salvarPortalConfig(portal, novoValor)
       if (result.error) {
         toast.error(result.error)
-        // Reverter em caso de erro
         setPortais((prev) => ({ ...prev, [portal]: !novoValor }))
       } else {
-        toast.success(`Portal ${portal === "effecti" ? "Effecti" : "PNCP"} ${novoValor ? "ativado" : "desativado"}.`)
+        const nomes: Record<string, string> = { effecti: "Effecti", pncp: "PNCP", comprasnet: "ComprasNet" }
+        toast.success(`Portal ${nomes[portal]} ${novoValor ? "ativado" : "desativado"}.`)
       }
     })
   }
@@ -1246,6 +1247,42 @@ export default function AdminClient({
                 />
               </div>
             </div>
+
+            {/* ComprasNet */}
+            <div
+              className="flex items-center justify-between rounded-xl px-5 py-4 backdrop-blur-[4px]"
+              style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 border border-violet-500/20">
+                  <Database className="h-4 w-4 text-violet-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">ComprasNet → Supabase</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    API pública do Compras.gov.br (SIASG) — licitações federais via PNCP.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {portais.comprasnet && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleSincronizar("comprasnet")}
+                    disabled={sincronizando.comprasnet}
+                    className="h-8 px-3 text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 border border-violet-500/20 gap-1.5"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${sincronizando.comprasnet ? "animate-spin" : ""}`} />
+                    {sincronizando.comprasnet ? "Sincronizando..." : "Sincronizar agora"}
+                  </Button>
+                )}
+                <AdminToggle
+                  checked={portais.comprasnet}
+                  onChange={() => handleTogglePortal("comprasnet")}
+                />
+              </div>
+            </div>
           </div>
         </TabsContent>
         {/* ── Sincronização Manual ──────────────────────────────────────── */}
@@ -1601,6 +1638,7 @@ export default function AdminClient({
                 </p>
               </div>
             </div>
+
           </div>
         </TabsContent>
       </Tabs>
