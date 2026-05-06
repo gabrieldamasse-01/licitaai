@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/alertas-urgentes",
       "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/licitacoes-comprasnet",
+      "schedule": "0 9,15,21 * * *"
     }
   ]
 }
