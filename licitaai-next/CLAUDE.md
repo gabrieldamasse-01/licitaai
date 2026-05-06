@@ -2,7 +2,9 @@
 
 ## O que é
 
-Plataforma SaaS de assessoria em licitações públicas brasileiras. Monitora editais do PNCP, analisa documentos de habilitação, faz matching empresa × licitação e alerta sobre vencimentos.
+Plataforma SaaS de assessoria em licitações públicas brasileiras. Monitora editais
+do PNCP, analisa documentos de habilitação, faz matching empresa × licitação e
+alerta sobre vencimentos.
 
 ## Stack
 
@@ -70,14 +72,19 @@ licitaai-next/
 - Supabase Server Client no servidor, Browser Client no frontend
 - RLS habilitado em todas as tabelas — nunca bypassar no frontend
 - Variáveis públicas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- Variáveis secretas (só Edge Functions): `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `FIRECRAWL_API_KEY`, `RESEND_API_KEY`
+- Variáveis secretas (só Edge Functions):
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `ANTHROPIC_API_KEY`
+  - `FIRECRAWL_API_KEY`
+  - `RESEND_API_KEY`
 
 ## Agentes disponíveis
 
 - `.claude/agents/db-architect.md` — tabelas, RLS, tipos TypeScript
 - `.claude/agents/claude-api-integrator.md` — análise de editais com Claude
 - `.claude/agents/scraping-agent.md` — coleta PNCP + Firecrawl
-- `.claude/agents/comms-agent.md` — alertas de vencimento + briefing semanal via Resend
+- `.claude/agents/comms-agent.md` — alertas de vencimento
+  - briefing semanal via Resend
 - `.claude/agents/test-writer.md` — testes Vitest e Playwright
 
 ## Idioma

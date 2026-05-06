@@ -9,3 +9,8 @@ licitaai-next/.next/
 .env*.local
 licitaai-next/.env.local
 *.log
+licitaai-next/.env.example
+licitaai-next/.env.local.example
+.env.example
+.env.local.example
+licitaai-next/local_apis/
