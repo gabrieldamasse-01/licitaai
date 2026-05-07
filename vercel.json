@@ -1,4 +1,5 @@
 {
+  "alias": ["licitaai-next.vercel.app"],
   "crons": [
     {
       "path": "/api/cron/alertas",
