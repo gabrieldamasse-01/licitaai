@@ -372,7 +372,13 @@ async function syncPncp(
 }
 
 export async function POST(req: NextRequest) {
-  const adminOk = await isAdmin()
+  // Aceita CRON_SECRET via Bearer (chamadas via terminal/script)
+  const auth = req.headers.get("authorization") ?? ""
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : auth
+  const cronOk = token === process.env.CRON_SECRET
+
+  // Ou sessão de admin via UI
+  const adminOk = cronOk || (await isAdmin())
   if (!adminOk) {
     return NextResponse.json({ error: "Acesso negado." }, { status: 403 })
   }
