@@ -51,7 +51,7 @@ export default async function AdminPage({
       .order("created_at", { ascending: false })
       .limit(100),
     admin.from("admin_users").select("*").order("created_at", { ascending: false }),
-    admin.from("companies").select("user_id, razao_social").limit(1000),
+    admin.from("companies").select("id, user_id, razao_social").limit(1000),
     admin.from("user_preferences").select("user_id, plano").limit(1000),
     admin
       .from("matches")
@@ -89,6 +89,11 @@ export default async function AdminPage({
   const companyByUserId = Object.fromEntries(
     (companies ?? []).map((c) => [c.user_id, c.razao_social as string]),
   )
+
+  // Lista de companies para o seletor de cliente na aba Licitações
+  const companiesList = (companies ?? [])
+    .filter((c) => c.razao_social)
+    .map((c) => ({ id: c.id as string, razao_social: c.razao_social as string }))
   const prefsByUserId = Object.fromEntries(
     (userPrefs ?? []).map((p) => [p.user_id, p.plano as string]),
   )
@@ -250,6 +255,7 @@ export default async function AdminPage({
       usageMetrics={usageMetrics}
       whatsappMensagensHoje={whatsappMensagensHoje ?? 0}
       zapiConectado={zapiConectado}
+      companies={companiesList}
     />
   )
 }

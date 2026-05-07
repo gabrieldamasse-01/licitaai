@@ -179,6 +179,7 @@ type AdminClientProps = {
   usageMetrics: UsageMetrics
   whatsappMensagensHoje: number
   zapiConectado: boolean
+  companies: Array<{ id: string; razao_social: string }>
 }
 
 // ─── Componente de Métrica ────────────────────────────────────────────────────
@@ -388,6 +389,7 @@ export default function AdminClient({
   usageMetrics,
   whatsappMensagensHoje,
   zapiConectado,
+  companies,
 }: AdminClientProps) {
   const router = useRouter()
 
@@ -649,7 +651,7 @@ export default function AdminClient({
     setJanelaPage(0)
   }
 
-  // Exportar CSV de licitações
+  // Exportar CSV de licitações (legado)
   const [exportandoCsv, setExportandoCsv] = useState(false)
 
   function handleExportarCsv() {
@@ -658,6 +660,111 @@ export default function AdminClient({
     link.href = "/api/exportar-licitacoes"
     link.click()
     setTimeout(() => setExportandoCsv(false), 3000)
+  }
+
+  // ── Aba Licitações — busca estilo Effecti ────────────────────────────────
+  type LicitacaoBusca = {
+    id: string
+    match_id: string | null
+    orgao: string
+    uf: string
+    objeto: string
+    valor_estimado: number | null
+    data_abertura: string | null
+    portal: string
+    modalidade: string
+    status: string
+    source_url: string | null
+    relevancia_score: number
+    keywords_matched: string[]
+  }
+
+  const [licBuscaCompany, setLicBuscaCompany] = useState<string>("todos")
+  const [licBuscaInicio, setLicBuscaInicio] = useState<string>("")
+  const [licBuscaFim, setLicBuscaFim] = useState<string>("")
+  const [licResultados, setLicResultados] = useState<LicitacaoBusca[]>([])
+  const [licLoading, setLicLoading] = useState(false)
+  const [licBuscado, setLicBuscado] = useState(false)
+  const [licPage, setLicPage] = useState(0)
+  const LIC_PAGE_SIZE = 50
+
+  function setLicAtalho(dias: number) {
+    const fim = new Date()
+    const inicio = new Date(Date.now() - dias * 24 * 60 * 60 * 1000)
+    setLicBuscaInicio(inicio.toISOString().slice(0, 10))
+    setLicBuscaFim(fim.toISOString().slice(0, 10))
+  }
+
+  async function handleLicBuscar() {
+    if (!licBuscaInicio || !licBuscaFim) {
+      toast.error("Selecione Data Início e Data Fim")
+      return
+    }
+    setLicLoading(true)
+    setLicBuscado(false)
+    setLicPage(0)
+    try {
+      const params = new URLSearchParams({
+        inicio: licBuscaInicio + "T00:00:00",
+        fim: licBuscaFim + "T23:59:59",
+      })
+      if (licBuscaCompany !== "todos") params.set("company_id", licBuscaCompany)
+      const res = await fetch(`/api/admin/licitacoes-busca?${params}`)
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error ?? "Erro ao buscar licitações")
+        return
+      }
+      setLicResultados(json.licitacoes ?? [])
+      setLicBuscado(true)
+    } catch {
+      toast.error("Erro ao conectar com o servidor")
+    } finally {
+      setLicLoading(false)
+    }
+  }
+
+  function handleLicExportarCsv() {
+    if (licResultados.length === 0) return
+    const headers = ["ID", "Órgão", "UF", "Objeto", "Valor Estimado", "Data Abertura", "Portal", "Modalidade", "Status", "Score"]
+    const rows = licResultados.map((l) => [
+      l.id,
+      `"${l.orgao.replace(/"/g, '""')}"`,
+      l.uf,
+      `"${l.objeto.replace(/"/g, '""')}"`,
+      l.valor_estimado != null ? l.valor_estimado.toFixed(2) : "",
+      l.data_abertura ? new Date(l.data_abertura).toLocaleDateString("pt-BR") : "",
+      l.portal,
+      l.modalidade,
+      l.status,
+      l.relevancia_score,
+    ])
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n")
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `licitacoes_${licBuscaInicio}_${licBuscaFim}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // Métricas da busca
+  const licMetricas = {
+    total: licResultados.length,
+    valorTotal: licResultados.reduce((acc, l) => acc + (l.valor_estimado ?? 0), 0),
+    ufsDistintas: new Set(licResultados.map((l) => l.uf).filter((u) => u && u !== "—")).size,
+    portaisDistintos: new Set(licResultados.map((l) => l.portal).filter((p) => p && p !== "—")).size,
+  }
+
+  const licPageCount = Math.max(1, Math.ceil(licResultados.length / LIC_PAGE_SIZE))
+  const licPaginados = licResultados.slice(licPage * LIC_PAGE_SIZE, (licPage + 1) * LIC_PAGE_SIZE)
+
+  function formatValor(v: number | null): string {
+    if (v == null) return "—"
+    if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1)}M`
+    if (v >= 1_000) return `R$ ${(v / 1_000).toFixed(0)}K`
+    return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
   }
 
   // Impersonar cliente
@@ -1164,72 +1271,243 @@ export default function AdminClient({
           </div>
         </TabsContent>
 
-        {/* ── Licitações ───────────────────────────────────────────────────── */}
-        <TabsContent value="licitacoes" className="mt-6">
-          <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-white">Oportunidades salvas recentes</h2>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-500">{licitacoes.length} registros</span>
-                <Button
-                  size="sm"
-                  onClick={handleExportarCsv}
-                  disabled={exportandoCsv}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 h-8"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  {exportandoCsv ? "Exportando..." : "Exportar CSV"}
-                </Button>
+        {/* ── Licitações — layout estilo Effecti ──────────────────────────── */}
+        <TabsContent value="licitacoes" className="mt-6 space-y-5">
+
+          {/* Filtros */}
+          <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-white">Buscar Licitações</h2>
+
+            {/* Linha 1: seletor de cliente + datas */}
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1 min-w-[220px] flex-1">
+                <label className="text-xs text-slate-400">Cliente</label>
+                <Select value={licBuscaCompany} onValueChange={setLicBuscaCompany}>
+                  <SelectTrigger className="bg-slate-900/60 border-slate-600 text-white h-9 text-sm">
+                    <SelectValue placeholder="Todos os clientes" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                    <SelectItem value="todos">Todos os clientes</SelectItem>
+                    {companies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.razao_social}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-slate-400">Data Início</label>
+                <Input
+                  type="date"
+                  value={licBuscaInicio}
+                  onChange={(e) => setLicBuscaInicio(e.target.value)}
+                  className="bg-slate-900/60 border-slate-600 text-white h-9 text-sm w-[160px]"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-slate-400">Data Fim</label>
+                <Input
+                  type="date"
+                  value={licBuscaFim}
+                  onChange={(e) => setLicBuscaFim(e.target.value)}
+                  className="bg-slate-900/60 border-slate-600 text-white h-9 text-sm w-[160px]"
+                />
+              </div>
+              <Button
+                onClick={handleLicBuscar}
+                disabled={licLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-5 gap-1.5"
+              >
+                <Search className="h-3.5 w-3.5" />
+                {licLoading ? "Buscando..." : "Buscar"}
+              </Button>
+              <Button
+                onClick={handleLicExportarCsv}
+                disabled={licResultados.length === 0}
+                variant="outline"
+                className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700/50 h-9 gap-1.5"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Exportar CSV
+              </Button>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-700/50 hover:bg-transparent">
-                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Empresa</TableHead>
-                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Órgão</TableHead>
-                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Objeto</TableHead>
-                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-center">Score</TableHead>
-                  <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Data</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {licitacoes.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-slate-500 py-8">
-                      Nenhuma licitação salva ainda.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  licitacoes.map((lic) => (
-                    <TableRow
-                      key={lic.id}
-                      className="border-slate-700/30 hover:bg-white/[0.02] transition-colors"
-                    >
-                      <TableCell className="text-white font-medium text-sm max-w-[140px] truncate">
-                        {lic.razao_social}
-                      </TableCell>
-                      <TableCell className="text-slate-400 text-sm hidden md:table-cell max-w-[160px] truncate">
-                        {lic.orgao}
-                      </TableCell>
-                      <TableCell className="text-slate-300 text-sm max-w-[240px]">
-                        {truncate(lic.objeto, 60)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant="outline"
-                          className={`text-xs tabular-nums ${scoreColor(lic.relevancia_score)}`}
-                        >
-                          {lic.relevancia_score}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-slate-500 tabular-nums text-sm">
-                        {formatDate(lic.created_at)}
-                      </TableCell>
+
+            {/* Atalhos de período */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-slate-500">Atalhos:</span>
+              {[
+                { label: "24h", dias: 1 },
+                { label: "48h", dias: 2 },
+                { label: "4 dias", dias: 4 },
+                { label: "7 dias", dias: 7 },
+                { label: "14 dias", dias: 14 },
+                { label: "30 dias", dias: 30 },
+              ].map(({ label, dias }) => (
+                <button
+                  key={dias}
+                  onClick={() => setLicAtalho(dias)}
+                  className="px-2.5 py-1 text-xs rounded-md border border-slate-600 text-slate-400
+                             hover:border-blue-500/60 hover:text-blue-300 hover:bg-blue-500/10
+                             transition-colors"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cards de métricas — exibir só após busca */}
+          {licBuscado && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "Total Licitações", value: licMetricas.total.toLocaleString("pt-BR") },
+                { label: "Valor Estimado Total", value: formatValor(licMetricas.valorTotal) },
+                { label: "UFs Distintas", value: licMetricas.ufsDistintas.toString() },
+                { label: "Portais Distintos", value: licMetricas.portaisDistintos.toString() },
+              ].map((m) => (
+                <div
+                  key={m.label}
+                  className="rounded-xl p-4 backdrop-blur-[4px]"
+                  style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}
+                >
+                  <p className="text-xs text-slate-400 mb-1">{m.label}</p>
+                  <p className="text-2xl font-bold text-white tabular-nums">{m.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tabela de resultados */}
+          <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 overflow-hidden">
+            {/* Estado: loading skeleton */}
+            {licLoading && (
+              <div className="p-6 space-y-3">
+                <p className="text-xs text-slate-400 text-center mb-4">Buscando licitações...</p>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="h-8 rounded-md bg-slate-700/40 animate-pulse" />
+                ))}
+              </div>
+            )}
+
+            {/* Estado: vazio inicial */}
+            {!licLoading && !licBuscado && (
+              <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+                <Search className="h-10 w-10 mb-3 opacity-30" />
+                <p className="text-sm">Selecione um cliente e período para buscar</p>
+              </div>
+            )}
+
+            {/* Estado: busca sem resultados */}
+            {!licLoading && licBuscado && licResultados.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+                <ClipboardList className="h-10 w-10 mb-3 opacity-30" />
+                <p className="text-sm">Nenhuma licitação encontrada para o período selecionado</p>
+              </div>
+            )}
+
+            {/* Tabela */}
+            {!licLoading && licResultados.length > 0 && (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-slate-700/50 hover:bg-transparent">
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider w-8">#</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Órgão</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider w-12">UF</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider">Objeto</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider text-right">Valor Est.</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden lg:table-cell">Data Abertura</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden md:table-cell">Portal</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden xl:table-cell">Modalidade</TableHead>
+                      <TableHead className="text-slate-500 font-medium text-xs uppercase tracking-wider hidden xl:table-cell">Status</TableHead>
                     </TableRow>
-                  ))
+                  </TableHeader>
+                  <TableBody>
+                    {licPaginados.map((lic, idx) => (
+                      <TableRow
+                        key={lic.id}
+                        className="border-slate-700/30 hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                        onClick={() => lic.source_url && window.open(lic.source_url, "_blank")}
+                      >
+                        <TableCell className="text-slate-600 text-xs tabular-nums">
+                          {licPage * LIC_PAGE_SIZE + idx + 1}
+                        </TableCell>
+                        <TableCell className="text-slate-300 text-xs max-w-[160px] truncate" title={lic.orgao}>
+                          {lic.orgao}
+                        </TableCell>
+                        <TableCell className="text-slate-400 text-xs font-mono">
+                          {lic.uf}
+                        </TableCell>
+                        <TableCell className="text-slate-200 text-xs max-w-[280px]">
+                          <span title={lic.objeto} className="group-hover:text-white transition-colors">
+                            {truncate(lic.objeto, 80)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums text-xs text-slate-300 whitespace-nowrap">
+                          {formatValor(lic.valor_estimado)}
+                        </TableCell>
+                        <TableCell className="text-slate-500 text-xs tabular-nums hidden lg:table-cell">
+                          {lic.data_abertura ? new Date(lic.data_abertura).toLocaleDateString("pt-BR") : "—"}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] border-slate-600 text-slate-400 capitalize"
+                          >
+                            {lic.portal}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-slate-500 text-xs hidden xl:table-cell max-w-[120px] truncate">
+                          {lic.modalidade}
+                        </TableCell>
+                        <TableCell className="hidden xl:table-cell">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] ${
+                              lic.status === "ativa"
+                                ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
+                                : lic.status === "encerrada"
+                                ? "border-slate-600 text-slate-500"
+                                : "border-amber-500/30 text-amber-400 bg-amber-500/10"
+                            }`}
+                          >
+                            {lic.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Paginação */}
+                {licPageCount > 1 && (
+                  <div className="flex items-center justify-between px-5 py-3 border-t border-slate-700/50">
+                    <span className="text-xs text-slate-500">
+                      Página {licPage + 1} / {licPageCount} — {licResultados.length.toLocaleString("pt-BR")} licitações
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={licPage === 0}
+                        onClick={() => setLicPage((p) => p - 1)}
+                        className="h-7 px-2 text-slate-400 hover:text-white disabled:opacity-30"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={licPage >= licPageCount - 1}
+                        onClick={() => setLicPage((p) => p + 1)}
+                        className="h-7 px-2 text-slate-400 hover:text-white disabled:opacity-30"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </>
+            )}
           </div>
         </TabsContent>
 
