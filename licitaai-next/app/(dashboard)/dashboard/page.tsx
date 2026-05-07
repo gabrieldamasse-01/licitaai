@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles } from "lucide-react"
-import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
+import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, TrendingUp } from "lucide-react"
+import { GraficoDashboard } from "@/components/domain/grafico-dashboard"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -47,6 +47,16 @@ function formatDate(dateStr: string | null) {
   }
 }
 
+function formatCurrency(value: number): string {
+  if (value >= 1_000_000) {
+    return `R$ ${(value / 1_000_000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}M`
+  }
+  if (value >= 1_000) {
+    return `R$ ${(value / 1_000).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}K`
+  }
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+}
+
 function getDocStatusBadge(dataValidade: string | null) {
   if (!dataValidade) return { label: "Sem data", cls: "bg-slate-700 text-slate-400 border-slate-600" }
   const validade = new Date(dataValidade + "T00:00:00")
@@ -75,44 +85,103 @@ async function getMetrics(userId: string | null) {
   const em30Str = em30.toISOString().split("T")[0]
 
   if (userId) {
-    // Impersonando — usar service client com filtro explícito
     const service = createServiceClient()
     const companyIds = await getCompanyIds(userId)
 
     if (companyIds.length === 0) {
-      return { totalClientes: 0, licitacoesSalvas: 0, documentosVencendo: 0, documentosExpirados: 0 }
+      return { totalClientes: 0, licitacoesSalvas: 0, documentosVencendo: 0, documentosExpirados: 0, valorTotal: 0 }
     }
 
     const [companies, matches, docsVencendo, docsExpirados] = await Promise.all([
       service.from("companies").select("*", { count: "exact", head: true }).eq("user_id", userId).eq("ativo", true),
-      service.from("matches").select("*", { count: "exact", head: true }).in("company_id", companyIds),
+      service.from("matches").select("id, licitacoes(valor_estimado)").in("company_id", companyIds),
       service.from("documents").select("*", { count: "exact", head: true }).in("company_id", companyIds).gte("data_validade", hoje).lte("data_validade", em30Str),
       service.from("documents").select("*", { count: "exact", head: true }).in("company_id", companyIds).lt("data_validade", hoje),
     ])
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const valorTotal = (matches.data ?? []).reduce((acc: number, m: any) => {
+      const lics = Array.isArray(m.licitacoes) ? m.licitacoes : m.licitacoes ? [m.licitacoes] : []
+      return acc + lics.reduce((s: number, l: { valor_estimado: number | null }) => s + (l.valor_estimado ?? 0), 0)
+    }, 0)
+
     return {
       totalClientes: companies.count ?? 0,
-      licitacoesSalvas: matches.count ?? 0,
+      licitacoesSalvas: matches.data?.length ?? 0,
       documentosVencendo: docsVencendo.count ?? 0,
       documentosExpirados: docsExpirados.count ?? 0,
+      valorTotal,
     }
   }
 
-  // Normal — usar client com RLS
   const supabase = await createClient()
   const [companies, matches, docsVencendo, docsExpirados] = await Promise.all([
     supabase.from("companies").select("*", { count: "exact", head: true }).eq("ativo", true),
-    supabase.from("matches").select("*", { count: "exact", head: true }),
+    supabase.from("matches").select("id, licitacoes(valor_estimado)"),
     supabase.from("documents").select("*", { count: "exact", head: true }).gte("data_validade", hoje).lte("data_validade", em30Str),
     supabase.from("documents").select("*", { count: "exact", head: true }).lt("data_validade", hoje),
   ])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const valorTotal = (matches.data ?? []).reduce((acc: number, m: any) => {
+    const lics = Array.isArray(m.licitacoes) ? m.licitacoes : m.licitacoes ? [m.licitacoes] : []
+    return acc + lics.reduce((s: number, l: { valor_estimado: number | null }) => s + (l.valor_estimado ?? 0), 0)
+  }, 0)
+
   return {
     totalClientes: companies.count ?? 0,
-    licitacoesSalvas: matches.count ?? 0,
+    licitacoesSalvas: matches.data?.length ?? 0,
     documentosVencendo: docsVencendo.count ?? 0,
     documentosExpirados: docsExpirados.count ?? 0,
+    valorTotal,
   }
+}
+
+// ─── Gráfico: matches por mês (últimos 6) ─────────────────────────────────────
+
+async function getMatchesPorMes(userId: string | null) {
+  const hoje = new Date()
+  const sixMonthsAgo = new Date(hoje)
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+  sixMonthsAgo.setDate(1)
+  sixMonthsAgo.setHours(0, 0, 0, 0)
+
+  let rawMatches: { created_at: string }[] = []
+
+  if (userId) {
+    const service = createServiceClient()
+    const companyIds = await getCompanyIds(userId)
+    if (companyIds.length > 0) {
+      const { data } = await service
+        .from("matches")
+        .select("created_at")
+        .in("company_id", companyIds)
+        .gte("created_at", sixMonthsAgo.toISOString())
+      rawMatches = data ?? []
+    }
+  } else {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from("matches")
+      .select("created_at")
+      .gte("created_at", sixMonthsAgo.toISOString())
+    rawMatches = data ?? []
+  }
+
+  const por_mes: Record<string, number> = {}
+  for (const m of rawMatches) {
+    const d = new Date(m.created_at)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    por_mes[key] = (por_mes[key] ?? 0) + 1
+  }
+
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(hoje)
+    d.setMonth(d.getMonth() - (5 - i))
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    const mes = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")
+    return { mes: mes.charAt(0).toUpperCase() + mes.slice(1), total: por_mes[key] ?? 0 }
+  })
 }
 
 // ─── Documentos vencendo ──────────────────────────────────────────────────────
@@ -153,7 +222,7 @@ async function getUltimasOportunidades(userId: string | null) {
     if (companyIds.length === 0) return []
     const { data } = await service
       .from("matches")
-      .select("id, licitacao_id, relevancia_score, status, created_at, licitacoes(objeto, orgao)")
+      .select("id, licitacao_id, relevancia_score, status, created_at, licitacoes(objeto, orgao, valor_estimado)")
       .in("company_id", companyIds)
       .order("created_at", { ascending: false })
       .limit(5)
@@ -163,7 +232,7 @@ async function getUltimasOportunidades(userId: string | null) {
   const supabase = await createClient()
   const { data } = await supabase
     .from("matches")
-    .select("id, licitacao_id, relevancia_score, status, created_at, licitacoes(objeto, orgao)")
+    .select("id, licitacao_id, relevancia_score, status, created_at, licitacoes(objeto, orgao, valor_estimado)")
     .order("created_at", { ascending: false })
     .limit(5)
   return data ?? []
@@ -179,6 +248,7 @@ const metricCards = [
     icon: Building2,
     iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
     iconColor: "text-white",
+    format: (v: number) => v.toLocaleString("pt-BR"),
   },
   {
     key: "licitacoesSalvas" as const,
@@ -187,6 +257,7 @@ const metricCards = [
     icon: Search,
     iconBg: "bg-gradient-to-br from-emerald-400 to-emerald-500",
     iconColor: "text-white",
+    format: (v: number) => v.toLocaleString("pt-BR"),
   },
   {
     key: "documentosVencendo" as const,
@@ -195,6 +266,7 @@ const metricCards = [
     icon: Clock,
     iconBg: "bg-gradient-to-br from-amber-400 to-amber-500",
     iconColor: "text-white",
+    format: (v: number) => v.toLocaleString("pt-BR"),
   },
   {
     key: "documentosExpirados" as const,
@@ -203,17 +275,18 @@ const metricCards = [
     icon: AlertTriangle,
     iconBg: "bg-gradient-to-br from-red-400 to-red-500",
     iconColor: "text-white",
+    format: (v: number) => v.toLocaleString("pt-BR"),
   },
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
-  // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades] = await Promise.all([
+  const [metrics, matchesPorMes, documentosVencendo, ultimasOportunidades] = await Promise.all([
     getMetrics(impersonatingUserId),
+    getMatchesPorMes(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
   ])
@@ -233,7 +306,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/oportunidades"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-600/25 hover:shadow-violet-600/30 hover:scale-[1.02] transition-all active:scale-95 whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:scale-[1.02] transition-all active:scale-95 whitespace-nowrap"
         >
           Ver Oportunidades
           <ArrowRight className="h-4 w-4" />
@@ -242,10 +315,10 @@ export default async function DashboardPage() {
 
       {/* Cards de métricas */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        {metricCards.map(({ key, title, description, icon: Icon, iconBg, iconColor }) => (
+        {metricCards.map(({ key, title, description, icon: Icon, iconBg, iconColor, format }) => (
           <div
             key={key}
-            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-sm transition-all hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] backdrop-blur-[4px]"
+            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-sm transition-all hover:shadow-[0_8px_30px_rgba(59,130,246,0.15)] backdrop-blur-[4px]"
             style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
             <div className="flex flex-col gap-3">
@@ -257,7 +330,7 @@ export default async function DashboardPage() {
               </div>
               <div>
                 <p className="text-3xl md:text-4xl font-black tracking-tight text-white">
-                  {metrics[key].toLocaleString("pt-BR")}
+                  {format(metrics[key])}
                 </p>
                 <p className="text-[10px] md:text-xs text-slate-500 mt-1 truncate">{description}</p>
               </div>
@@ -266,13 +339,32 @@ export default async function DashboardPage() {
         ))}
       </div>
 
+      {/* Banner: Valor Total das Licitações */}
+      {metrics.valorTotal > 0 && (
+        <div
+          className="rounded-2xl border border-blue-500/20 p-5 md:p-6 flex items-center gap-5 backdrop-blur-[4px]"
+          style={{ background: "rgba(30,41,59,0.7)" }}
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-900/40">
+            <TrendingUp className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">Valor Total Monitorado</p>
+            <p className="text-3xl md:text-4xl font-black text-white mt-0.5">
+              {formatCurrency(metrics.valorTotal)}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">Soma das licitações salvas com valor estimado</p>
+          </div>
+        </div>
+      )}
+
       {/* Gráfico */}
       <div className="rounded-2xl border border-white/[0.07] p-6 shadow-sm backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
         <div className="mb-5">
-          <h2 className="text-base font-semibold text-white">Licitações por Mês</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Últimos 6 meses · dados ilustrativos</p>
+          <h2 className="text-base font-semibold text-white">Oportunidades Salvas por Mês</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Últimos 6 meses · dados reais</p>
         </div>
-        <GraficoLicitacoes />
+        <GraficoDashboard data={matchesPorMes} />
       </div>
 
       {/* Documentos Vencendo + Últimas Oportunidades */}
@@ -361,17 +453,27 @@ export default async function DashboardPage() {
           ) : (
             <ul className="flex flex-col divide-y divide-white/[0.05]">
               {ultimasOportunidades.map((match) => {
-                const licitacao = (match as { licitacoes: LicitacaoRelation }).licitacoes
-                const objeto = getObjeto(licitacao)
-                const orgao = getOrgao(licitacao)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const licitacao = (match as any).licitacoes
+                const lics = Array.isArray(licitacao) ? licitacao : licitacao ? [licitacao] : []
+                const lic = lics[0]
+                const objeto = lic?.objeto ?? "—"
+                const orgao = lic?.orgao ?? "—"
+                const valor = lic?.valor_estimado ?? null
                 const titulo = objeto !== "—" ? objeto : `Licitação #${match.licitacao_id}`
 
                 return (
                   <li key={match.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                     <div className="flex flex-1 min-w-0 flex-col gap-0.5">
                       <p className="line-clamp-2 text-sm font-semibold text-white leading-snug">{titulo}</p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <p className="truncate text-xs text-slate-400">{orgao}</p>
+                        {valor && (
+                          <>
+                            <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+                            <p className="text-xs text-blue-400 font-medium shrink-0">{formatCurrency(valor)}</p>
+                          </>
+                        )}
                         <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
                         <p className="text-xs text-slate-500 shrink-0">
                           {formatDate((match.created_at as string).split("T")[0])}
@@ -379,7 +481,7 @@ export default async function DashboardPage() {
                       </div>
                     </div>
                     {match.relevancia_score != null && match.relevancia_score > 0 && (
-                      <span className="shrink-0 text-[11px] font-bold text-violet-400 bg-violet-900/30 border border-violet-800/50 px-2 py-0.5 rounded-full">
+                      <span className="shrink-0 text-[11px] font-bold text-blue-400 bg-blue-900/30 border border-blue-800/50 px-2 py-0.5 rounded-full">
                         {match.relevancia_score}%
                       </span>
                     )}
