@@ -4,7 +4,11 @@ import Link from "next/link"
 import { motion } from "motion/react"
 import { ArrowRight, Shield, Target, Search, Bot } from "lucide-react"
 
-export function LandingHero() {
+export function LandingHero({ totalLicitacoes = 0 }: { totalLicitacoes?: number }) {
+  const count = totalLicitacoes > 0
+    ? totalLicitacoes.toLocaleString("pt-BR")
+    : "13.000+"
+
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-[#050D1A]">
       {/* Animated radial gradient */}
@@ -61,7 +65,7 @@ export function LandingHero() {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card border border-blue-500/30 text-blue-300 text-sm font-medium mb-8"
           >
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)] animate-pulse" />
-            13.411 licitações monitoradas agora
+            {count} licitações monitoradas agora
           </motion.div>
 
           {/* Headline */}

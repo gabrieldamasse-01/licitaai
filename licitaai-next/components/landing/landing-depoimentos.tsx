@@ -8,6 +8,9 @@ const testimonials = [
     content:
       "Antes do LicitaAI nossa equipe perdia 4 horas diárias lendo diários oficiais. Hoje recebemos as oportunidades filtradas logo cedo, com alta precisão. Aumentamos nossas vitórias em 45%.",
     rating: 5,
+    avatarFrom: "from-blue-500",
+    avatarTo: "to-cyan-400",
+    shadowColor: "shadow-blue-500/30",
   },
   {
     author: "Mariana Costa",
@@ -16,6 +19,9 @@ const testimonials = [
     content:
       "O Score de Relevância é um divisor de águas. Não só encontra o edital, como rankeia as licitações onde temos mais chances de vencer. O painel é super intuitivo.",
     rating: 5,
+    avatarFrom: "from-violet-500",
+    avatarTo: "to-fuchsia-400",
+    shadowColor: "shadow-violet-500/30",
   },
   {
     author: "Roberto Almeida",
@@ -24,6 +30,9 @@ const testimonials = [
     content:
       "Como pequena empresa, não tínhamos braço para monitorar o Brasil inteiro. O LicitaAI democratizou nosso acesso — fechamos nosso primeiro grande pregão federal graças ao alerta instantâneo.",
     rating: 5,
+    avatarFrom: "from-emerald-500",
+    avatarTo: "to-teal-400",
+    shadowColor: "shadow-emerald-500/30",
   },
 ]
 
@@ -61,7 +70,7 @@ export function LandingDepoimentos() {
               </div>
 
               <div className="flex items-center gap-4 pt-6 border-t border-white/10">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-400 flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0">
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${testimonial.avatarFrom} ${testimonial.avatarTo} flex items-center justify-center text-white font-bold text-lg shadow-lg ${testimonial.shadowColor} shrink-0`}>
                   {testimonial.author.charAt(0)}
                 </div>
                 <div>

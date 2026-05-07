@@ -50,7 +50,7 @@ export default async function Home() {
   return (
     <main className="bg-[#050D1A]">
       <LandingNavbar isLoggedIn={false} />
-      <LandingHero />
+      <LandingHero totalLicitacoes={totalLicitacoes} />
       <LandingProblema />
       <LandingBeneficios />
       <LandingNumeros totalLicitacoes={totalLicitacoes} totalUfs={totalUfs} />

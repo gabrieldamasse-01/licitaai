@@ -85,9 +85,11 @@ function AnimatedStat({
   return (
     <div
       ref={containerRef}
-      className="text-center p-8 rounded-2xl border border-white/5 bg-white/[0.02]"
+      className="relative text-center p-8 rounded-2xl border border-blue-500/20 bg-gradient-to-b from-blue-900/10 to-transparent hover:border-blue-500/40 hover:from-blue-900/20 transition-all duration-300 group overflow-hidden"
     >
-      <div className="text-4xl md:text-5xl font-black text-white mb-2 tabular-nums">
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{ boxShadow: "inset 0 0 40px rgba(59,130,246,0.06)" }} />
+      <div className="text-4xl md:text-5xl font-black mb-2 tabular-nums bg-gradient-to-br from-white to-blue-200 bg-clip-text text-transparent">
         {display}
       </div>
       <div className="text-base font-semibold text-slate-200 mb-1">{label}</div>

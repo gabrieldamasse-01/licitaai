@@ -233,7 +233,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/oportunidades"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all active:scale-95 whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-600/25 hover:shadow-violet-600/30 hover:scale-[1.02] transition-all active:scale-95 whitespace-nowrap"
         >
           Ver Oportunidades
           <ArrowRight className="h-4 w-4" />
@@ -267,7 +267,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Gráfico */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm">
+      <div className="rounded-2xl border border-white/[0.07] p-6 shadow-sm backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
         <div className="mb-5">
           <h2 className="text-base font-semibold text-white">Licitações por Mês</h2>
           <p className="text-xs text-slate-500 mt-0.5">Últimos 6 meses · dados ilustrativos</p>
@@ -279,7 +279,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
         {/* Documentos com Vencimento Próximo */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
+        <div className="rounded-2xl border border-white/[0.07] p-5 md:p-6 shadow-sm backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex bg-amber-900/30 p-1.5 rounded-lg">
@@ -304,7 +304,7 @@ export default async function DashboardPage() {
               <p className="text-xs text-slate-500 mt-1">Documentos com validade próxima aparecerão aqui.</p>
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-slate-700">
+            <ul className="flex flex-col divide-y divide-white/[0.05]">
               {documentosVencendo.map((doc) => {
                 const badge = getDocStatusBadge(doc.data_validade)
                 const company = getRazaoSocial((doc as { companies: CompanyRelation }).companies)
@@ -334,7 +334,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Últimas Oportunidades Salvas */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
+        <div className="rounded-2xl border border-white/[0.07] p-5 md:p-6 shadow-sm backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex bg-blue-900/30 p-1.5 rounded-lg">
@@ -359,7 +359,7 @@ export default async function DashboardPage() {
               <p className="text-xs text-slate-500 mt-1">Licitações salvas aparecerão aqui.</p>
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-slate-700">
+            <ul className="flex flex-col divide-y divide-white/[0.05]">
               {ultimasOportunidades.map((match) => {
                 const licitacao = (match as { licitacoes: LicitacaoRelation }).licitacoes
                 const objeto = getObjeto(licitacao)
