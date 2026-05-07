@@ -478,12 +478,12 @@ export function DocumentosClient({
 
       {/* Abas */}
       {tiposNicho.length > 0 && (
-        <div className="flex gap-1 rounded-lg border border-slate-700 bg-slate-800/50 p-1 w-fit">
+        <div className="flex gap-1 rounded-lg border border-white/[0.08] p-1 w-fit backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)" }}>
           <button
             onClick={() => setAbaAtiva("todos")}
             className={`rounded px-4 py-1.5 text-sm font-medium transition-colors ${
               abaAtiva === "todos"
-                ? "bg-blue-600 text-white"
+                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -493,7 +493,7 @@ export function DocumentosClient({
             onClick={() => setAbaAtiva("nicho")}
             className={`flex items-center gap-2 rounded px-4 py-1.5 text-sm font-medium transition-colors ${
               abaAtiva === "nicho"
-                ? "bg-blue-600 text-white"
+                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -510,13 +510,13 @@ export function DocumentosClient({
 
       {/* Aba Nicho */}
       {abaAtiva === "nicho" && tiposNicho.length > 0 && (
-        <div className="rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
-          <div className="border-b border-slate-700 px-5 py-3">
+        <div className="rounded-xl border border-white/[0.07] overflow-hidden backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
+          <div className="border-b border-white/[0.06] px-5 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Documentos de Nicho ({statusNicho.filter((s) => s.situacao === "ok").length}/{tiposNicho.length} em dia)
             </p>
           </div>
-          <ul className="divide-y divide-slate-700">
+          <ul className="divide-y divide-white/[0.05]">
             {statusNicho.map(({ tipo, situacao }) => (
               <li key={tipo.id} className="flex items-center justify-between px-5 py-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -565,7 +565,7 @@ export function DocumentosClient({
             className="pl-9 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400"
           />
         </div>
-        <Button onClick={abrirNovo} className="bg-blue-600 hover:bg-blue-700 shrink-0">
+        <Button onClick={abrirNovo} className="shrink-0">
           <Plus className="h-4 w-4 mr-2" />
           Novo Documento
         </Button>
@@ -575,7 +575,7 @@ export function DocumentosClient({
 
       {/* Habilitação */}
       {companies.length > 0 && (
-        <div className="rounded-xl border border-slate-700 bg-slate-800/50">
+        <div className="rounded-xl border border-white/[0.07] backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.5)" }}>
           <button
             className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
             onClick={() => setChecklistOpen((v) => !v)}
@@ -587,7 +587,7 @@ export function DocumentosClient({
             <span className="text-xs text-slate-500">{checklistOpen ? "Fechar" : "Ver"}</span>
           </button>
           {checklistOpen && (
-            <div className="px-5 pb-5 space-y-4 border-t border-slate-700">
+            <div className="px-5 pb-5 space-y-4 border-t border-white/[0.06]">
               <div className="pt-4">
                 <Select value={checklistEmpresaId} onValueChange={setChecklistEmpresaId}>
                   <SelectTrigger className="w-full sm:w-72 bg-slate-800 border-slate-600 text-white">
@@ -635,10 +635,10 @@ export function DocumentosClient({
       ) : (
         <>
           {/* Tabela — desktop */}
-          <div className="hidden md:block rounded-xl border border-slate-700 bg-slate-800 overflow-hidden">
+          <div className="hidden md:block rounded-xl border border-white/[0.07] overflow-hidden backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-800 border-white/[0.04]">
+                <TableRow className="border-white/[0.04]" style={{ background: "rgba(15,23,42,0.5)" }}>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Tipo</TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Empresa</TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Nome do Arquivo</TableHead>
@@ -653,7 +653,7 @@ export function DocumentosClient({
                   const temArquivo = !!doc.arquivo_url
                   const ehPdf = temArquivo && isPdf(doc.arquivo_url!)
                   return (
-                    <TableRow key={doc.id} className="border-white/[0.04] hover:bg-white/[0.02] transition-colors duration-150">
+                    <TableRow key={doc.id} className="border-white/[0.04] hover:bg-blue-500/[0.04] transition-colors duration-150">
                       <TableCell className="font-medium text-white">{doc.tipo}</TableCell>
                       <TableCell className="text-slate-400">
                         {getRazaoSocial(doc.companies)}

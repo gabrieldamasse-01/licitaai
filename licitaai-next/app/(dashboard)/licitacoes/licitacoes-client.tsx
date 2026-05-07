@@ -90,23 +90,23 @@ function getPortalClass(portal: string): string {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800 p-5 space-y-4 animate-pulse">
+    <div className="rounded-xl border border-white/[0.07] p-5 space-y-4 animate-pulse backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
       <div className="flex gap-2">
-        <div className="h-5 w-10 rounded-full bg-slate-700" />
-        <div className="h-5 w-28 rounded-full bg-slate-700" />
-        <div className="h-5 w-20 rounded-full bg-slate-700" />
+        <div className="h-5 w-10 rounded-full bg-slate-700/60" />
+        <div className="h-5 w-28 rounded-full bg-slate-700/60" />
+        <div className="h-5 w-20 rounded-full bg-slate-700/60" />
       </div>
       <div className="space-y-2">
-        <div className="h-4 bg-slate-700 rounded w-full" />
-        <div className="h-4 bg-slate-700 rounded w-4/5" />
+        <div className="h-4 bg-slate-700/60 rounded w-full" />
+        <div className="h-4 bg-slate-700/60 rounded w-4/5" />
       </div>
-      <div className="h-3 bg-slate-700 rounded w-3/5" />
-      <div className="flex justify-between items-center pt-2 border-t border-slate-700">
+      <div className="h-3 bg-slate-700/60 rounded w-3/5" />
+      <div className="flex justify-between items-center pt-2 border-t border-white/[0.05]">
         <div className="space-y-1.5">
-          <div className="h-4 bg-slate-700 rounded w-28" />
-          <div className="h-3 bg-slate-700 rounded w-20" />
+          <div className="h-4 bg-slate-700/60 rounded w-28" />
+          <div className="h-3 bg-slate-700/60 rounded w-20" />
         </div>
-        <div className="h-8 w-28 bg-slate-700 rounded-md" />
+        <div className="h-8 w-28 bg-slate-700/60 rounded-md" />
       </div>
     </div>
   )
@@ -120,10 +120,10 @@ function LicitacaoCard({
   onVerDetalhes: () => void
 }) {
   return (
-    <article className="group flex flex-col gap-3 rounded-xl border border-slate-700 bg-slate-800 p-5 shadow-sm hover:shadow-md hover:border-slate-600 transition-all duration-200">
+    <article className="group flex flex-col gap-3 rounded-xl border border-white/[0.07] p-5 shadow-sm hover:shadow-[0_4px_20px_rgba(99,102,241,0.12)] hover:border-blue-500/20 transition-all duration-200 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
-        <Badge variant="outline" className="text-[11px] px-2 py-0.5 font-bold bg-slate-700 text-slate-300 border-slate-600">
+        <Badge variant="outline" className="text-[11px] px-2 py-0.5 font-bold bg-slate-700/60 text-slate-300 border-white/10">
           {lic.uf || "—"}
         </Badge>
         {lic.modalidade && (
@@ -149,7 +149,7 @@ function LicitacaoCard({
       </p>
 
       {/* Rodapé */}
-      <div className="flex items-end justify-between gap-3 pt-3 border-t border-slate-700">
+      <div className="flex items-end justify-between gap-3 pt-3 border-t border-white/[0.06]">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-white">
             {formatCurrency(lic.valorTotalEstimado)}
@@ -161,7 +161,7 @@ function LicitacaoCard({
         <Button
           size="sm"
           onClick={onVerDetalhes}
-          className="shrink-0 bg-[#1A5276] hover:bg-[#154360] text-white text-xs h-8 px-3 gap-1.5"
+          className="shrink-0 bg-gradient-to-r from-blue-600 to-violet-600 hover:shadow-[0_2px_12px_rgba(99,102,241,0.4)] text-white text-xs h-8 px-3 gap-1.5 transition-all"
         >
           Ver detalhes
           <ExternalLink className="h-3 w-3" />

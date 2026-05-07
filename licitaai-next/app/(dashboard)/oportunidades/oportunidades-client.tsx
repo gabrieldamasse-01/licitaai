@@ -86,20 +86,20 @@ function SkeletonCard() {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 animate-pulse space-y-3">
       <div className="flex gap-2">
-        <div className="h-5 w-24 rounded-full bg-slate-700" />
-        <div className="h-5 w-10 rounded-full bg-slate-700" />
-        <div className="h-5 w-20 rounded-full bg-slate-700" />
+        <div className="h-5 w-24 rounded-full bg-slate-700/60" />
+        <div className="h-5 w-10 rounded-full bg-slate-700/60" />
+        <div className="h-5 w-20 rounded-full bg-slate-700/60" />
       </div>
-      <div className="h-4 w-3/4 rounded bg-slate-700" />
-      <div className="h-4 w-1/2 rounded bg-slate-700" />
-      <div className="h-3 w-2/3 rounded bg-slate-700" />
+      <div className="h-4 w-3/4 rounded bg-slate-700/60" />
+      <div className="h-4 w-1/2 rounded bg-slate-700/60" />
+      <div className="h-3 w-2/3 rounded bg-slate-700/60" />
       <div className="flex justify-between pt-1">
-        <div className="h-3 w-1/3 rounded bg-slate-700" />
-        <div className="h-3 w-1/4 rounded bg-slate-700" />
+        <div className="h-3 w-1/3 rounded bg-slate-700/60" />
+        <div className="h-3 w-1/4 rounded bg-slate-700/60" />
       </div>
       <div className="flex gap-2 pt-1">
-        <div className="h-8 flex-1 rounded-lg bg-slate-700" />
-        <div className="h-8 w-10 rounded-lg bg-slate-700" />
+        <div className="h-8 flex-1 rounded-lg bg-slate-700/60" />
+        <div className="h-8 w-10 rounded-lg bg-slate-700/60" />
       </div>
     </div>
   )
@@ -121,12 +121,12 @@ function OportunidadeCard({
   onSalvar: () => void
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow hover:shadow-lg hover:border-white/20 transition-all flex flex-col gap-3 p-5">
+    <div className="rounded-xl border border-white/[0.07] backdrop-blur-[4px] shadow hover:shadow-[0_4px_20px_rgba(99,102,241,0.12)] hover:border-blue-500/20 transition-all flex flex-col gap-3 p-5" style={{ background: "rgba(30,41,59,0.7)" }}>
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         <ScoreBadge score={op.score} label={op.scoreLabel} />
         {op.uf && (
-          <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-700 px-2 py-0.5 text-xs text-slate-300">
+          <span className="inline-flex items-center rounded-full border border-white/10 bg-slate-700/60 px-2 py-0.5 text-xs text-slate-300">
             {op.uf}
           </span>
         )}
@@ -168,7 +168,7 @@ function OportunidadeCard({
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-xs border-slate-600 text-slate-200 hover:bg-slate-700"
+          className="flex-1 text-xs border-slate-600 text-slate-200 hover:bg-slate-700/60"
           onClick={onVerDetalhes}
         >
           Ver detalhes
@@ -177,10 +177,9 @@ function OportunidadeCard({
         <Button
           size="sm"
           variant={salvo ? "outline" : "default"}
-          className="text-xs px-3"
           disabled={salvo || salvando}
           onClick={onSalvar}
-          style={!salvo ? { backgroundColor: "#1A5276" } : undefined}
+          className={!salvo ? "text-xs px-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:shadow-[0_2px_12px_rgba(99,102,241,0.4)] transition-all" : "text-xs px-3"}
           title={salvo ? "Já salva" : "Salvar oportunidade"}
         >
           {salvo ? (
