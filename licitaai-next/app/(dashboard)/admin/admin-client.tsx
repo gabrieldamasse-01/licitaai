@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition, useCallback } from "react"
+import EffectiTab from "./effecti-tab"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import {
@@ -1002,6 +1003,7 @@ export default function AdminClient({
             { value: "portais", label: "Portais de Dados" },
             { value: "sincronizacao", label: "Sincronização" },
             { value: "metricas", label: "Métricas" },
+            { value: "effecti", label: "Effecti" },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -2280,6 +2282,10 @@ export default function AdminClient({
             </div>
 
           </div>
+        </TabsContent>
+
+        <TabsContent value="effecti" className="mt-6">
+          <EffectiTab />
         </TabsContent>
       </Tabs>
     </div>
