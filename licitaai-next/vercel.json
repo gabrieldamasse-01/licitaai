@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/licitacoes",
-      "schedule": "0 9,15,21 * * *"
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/cron/notificacoes-licitacoes",

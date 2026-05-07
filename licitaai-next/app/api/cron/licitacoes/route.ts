@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { fetchEffectiLicitacoes } from "@/lib/effecti"
 
-// Cron de sincronização de licitações — executa 3x/dia via Vercel Cron
-// Schedule: 0 9,15,21 * * * (UTC) — equivale a 6h, 12h, 18h BRT
-// Janela: últimos 5 dias (máximo permitido pela API Effecti)
+// Cron de sincronização de licitações — executa a cada hora via Vercel Cron
+// Schedule: 0 * * * * (UTC)
+// Janela: últimas 2 dias (overlap seguro entre execuções horárias; API Effecti limita 5 dias por req)
 // Aceita GET (Vercel Cron) e POST (chamada manual) com Authorization: Bearer <CRON_SECRET>
 
 export const maxDuration = 300 // 5 min — necessário para percorrer muitas páginas
@@ -29,8 +29,8 @@ async function executar(req: NextRequest): Promise<NextResponse> {
   const supabase = createServiceClient()
   const agora = new Date()
 
-  // Janela: 5 dias para trás (limite máximo da Effecti)
-  const inicio = new Date(agora.getTime() - 5 * 24 * 60 * 60 * 1000)
+  // Janela: 2 dias para trás (overlap entre execuções horárias; API Effecti limita 5 dias/req)
+  const inicio = new Date(agora.getTime() - 2 * 24 * 60 * 60 * 1000)
   const beginISO = inicio.toISOString().slice(0, 19)  // "2026-04-02T00:00:00"
   const endISO = agora.toISOString().slice(0, 19)
 
@@ -41,13 +41,12 @@ async function executar(req: NextRequest): Promise<NextResponse> {
   let totalPaginas = 1
   let pagina = 0
   const erros: string[] = []
-  const MAX_PAGINAS = 50  // proteção contra loop infinito
 
   console.log(`[cron/licitacoes] Iniciando — janela: ${beginISO} → ${endISO}`)
 
   // ─── Percorre todas as páginas da Effecti ──────────────────────────────────
 
-  while (pagina < totalPaginas && pagina < MAX_PAGINAS) {
+  while (pagina < totalPaginas) {
     const result = await fetchEffectiLicitacoes({
       begin: beginISO,
       end: endISO,
