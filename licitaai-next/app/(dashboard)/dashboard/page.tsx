@@ -3,6 +3,8 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
 import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck } from "lucide-react"
 import { GraficoLicitacoes } from "@/components/domain/grafico-licitacoes"
+import { GraficoMonitoramento } from "@/components/domain/grafico-monitoramento"
+import type { DadosMonitoramento } from "@/components/domain/grafico-monitoramento"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -137,7 +139,6 @@ async function getMetrics(userId: string | null) {
   const em30Str = em30.toISOString().split("T")[0]
 
   if (userId) {
-    // Impersonando — usar service client com filtro explícito
     const service = createServiceClient()
     const companyIds = await getCompanyIds(userId)
 
@@ -160,7 +161,6 @@ async function getMetrics(userId: string | null) {
     }
   }
 
-  // Normal — usar client com RLS
   const supabase = await createClient()
   const [companies, matches, docsVencendo, docsExpirados] = await Promise.all([
     supabase.from("companies").select("*", { count: "exact", head: true }).eq("ativo", true),
@@ -229,6 +229,85 @@ async function getUltimasOportunidades(userId: string | null) {
     .order("created_at", { ascending: false })
     .limit(5)
   return data ?? []
+}
+
+// ─── Dados de monitoramento (gráfico financeiro) ──────────────────────────────
+
+async function getDadosMonitoramento(userId: string | null): Promise<DadosMonitoramento> {
+  const CORES = ["#3b82f6", "#22c55e", "#a855f7", "#f59e0b", "#ef4444", "#06b6d4"]
+
+  const fetchMatches = async () => {
+    if (userId) {
+      const service = createServiceClient()
+      const companyIds = await getCompanyIds(userId)
+      if (companyIds.length === 0) return []
+      const { data } = await service
+        .from("matches")
+        .select("created_at, licitacoes(valor_estimado, modalidade)")
+        .in("company_id", companyIds)
+      return data ?? []
+    }
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from("matches")
+      .select("created_at, licitacoes(valor_estimado, modalidade)")
+    return data ?? []
+  }
+
+  const fetchTotalArea = async () => {
+    if (userId) {
+      const service = createServiceClient()
+      const { count } = await service.from("licitacoes").select("*", { count: "exact", head: true })
+      return count ?? 0
+    }
+    const supabase = await createClient()
+    const { count } = await supabase.from("licitacoes").select("*", { count: "exact", head: true })
+    return count ?? 0
+  }
+
+  const [matchesRaw, totalArea] = await Promise.all([fetchMatches(), fetchTotalArea()])
+
+  let valorTotal = 0
+  const porModalidade: Record<string, number> = {}
+  const porMes: Record<string, number> = {}
+
+  for (const m of matchesRaw) {
+    const lic = Array.isArray(m.licitacoes) ? m.licitacoes[0] : m.licitacoes
+    const valor = (lic as { valor_estimado?: number } | null)?.valor_estimado ?? 0
+    const modalidade = (lic as { modalidade?: string } | null)?.modalidade ?? "Outros"
+    valorTotal += valor
+    porModalidade[modalidade] = (porModalidade[modalidade] ?? 0) + valor
+
+    const mes = m.created_at
+      ? new Date(m.created_at as string).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" })
+      : "?"
+    porMes[mes] = (porMes[mes] ?? 0) + valor
+  }
+
+  const entradasModalidade = Object.entries(porModalidade).sort((a, b) => b[1] - a[1])
+  const top5 = entradasModalidade.slice(0, 5)
+  const resto = entradasModalidade.slice(5).reduce((acc, [, v]) => acc + v, 0)
+  const pizza = [
+    ...top5.map(([area, valor], i) => ({ area, valor, cor: CORES[i] })),
+    ...(resto > 0 ? [{ area: "Outros", valor: resto, cor: "#475569" }] : []),
+  ]
+
+  const barras = Object.entries(porMes)
+    .slice(-6)
+    .map(([mes, valor]) => ({ mes, valor }))
+
+  if (barras.length === 0) {
+    const meses = ["Out", "Nov", "Dez", "Jan", "Fev", "Mar"]
+    meses.forEach((mes) => barras.push({ mes, valor: 0 }))
+  }
+
+  return {
+    valorTotalMonitorado: valorTotal,
+    totalLicitacoesArea: totalArea,
+    totalLicitacoesSalvas: matchesRaw.length,
+    barras,
+    pizza: pizza.length > 0 ? pizza : [{ area: "Sem dados", valor: 1, cor: "#475569" }],
+  }
 }
 
 // ─── Entrevista de perfil ─────────────────────────────────────────────────────
@@ -315,16 +394,16 @@ const metricCards = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
-  // Verifica se admin está impersonando um cliente
   const impersonatingUserId = await getImpersonatingUserId()
 
-  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado] = await Promise.all([
+  const [metrics, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado, dadosMonitoramento] = await Promise.all([
     getMetrics(impersonatingUserId),
     getDocumentosVencendo(impersonatingUserId),
     getUltimasOportunidades(impersonatingUserId),
     getEngajamento(impersonatingUserId),
     getEntrevistaConcluida(impersonatingUserId),
     getPerfilValidado(impersonatingUserId),
+    getDadosMonitoramento(impersonatingUserId),
   ])
 
   return (
@@ -375,7 +454,10 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Gráfico */}
+      {/* Monitoramento financeiro */}
+      <GraficoMonitoramento dados={dadosMonitoramento} />
+
+      {/* Gráfico legado */}
       <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm">
         <div className="mb-5">
           <h2 className="text-base font-semibold text-white">Licitações por Mês</h2>
@@ -540,7 +622,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Card Validar Perfil — visível somente quando entrevista concluída mas perfil não validado */}
+      {/* Card Validar Perfil */}
       {entrevistaConcluida && !perfilValidado && (
         <div className="rounded-2xl border border-amber-800/50 bg-amber-950/30 p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-900/50">
