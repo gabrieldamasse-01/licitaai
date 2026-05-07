@@ -1,0 +1,25 @@
+{
+  "alias": ["licitaai-next.vercel.app"],
+  "crons": [
+    {
+      "path": "/api/cron/alertas",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/licitacoes",
+      "schedule": "0 9,15,21 * * *"
+    },
+    {
+      "path": "/api/cron/notificacoes-licitacoes",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/alertas-urgentes",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/licitacoes-comprasnet",
+      "schedule": "0 9,15,21 * * *"
+    }
+  ]
+}
