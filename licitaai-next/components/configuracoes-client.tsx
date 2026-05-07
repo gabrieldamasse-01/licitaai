@@ -407,6 +407,9 @@ function PreferenciasSection({ prefs }: { prefs: Prefs }) {
         <input type="hidden" name="alertas_email" value={String(alertasEmail)} />
         <input type="hidden" name="alert_days" value={alertDays} />
 
+        {/* Heading da seção */}
+        <h3 className="text-sm font-semibold text-white">Preferências de Notificação</h3>
+
         {/* Toggle alertas */}
         <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-700 p-3">
           <div>

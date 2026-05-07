@@ -205,6 +205,7 @@ function DetalheConteudo({
         {/* Grid de campos */}
         <div className="grid grid-cols-2 gap-3">
           {[
+            { label: "Objeto", value: lic.objetoSemTags },
             { label: "Órgão", value: lic.orgao },
             { label: "Processo", value: lic.processo },
             { label: "Publicação", value: formatDate(lic.dataPublicacao) },

@@ -307,7 +307,7 @@ export async function sincronizarPortal(
       ignoradas: json.ignoradas ?? 0,
       encerradas: json.encerradas ?? 0,
       buscadas: json.buscadas ?? 0,
-      erros: json.erros,
+      erros: json.erros ?? [],
     }
   } catch (err) {
     return { error: String(err) }
