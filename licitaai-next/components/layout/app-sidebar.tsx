@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  UserCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -31,7 +32,8 @@ const mainNav = [
 ]
 
 const secondaryNav = [
-  { href: "/feedback",     label: "Feedback",      icon: MessageSquare, iconColor: "text-violet-400" },
+  { href: "/perfil",        label: "Meu Perfil",    icon: UserCircle,    iconColor: "text-blue-400" },
+  { href: "/feedback",      label: "Feedback",      icon: MessageSquare, iconColor: "text-violet-400" },
   { href: "/configuracoes", label: "Configurações", icon: Settings,      iconColor: "text-slate-400" },
 ]
 
@@ -217,12 +219,14 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
       <div className="border-t border-white/[0.06] p-3 shrink-0">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
-            <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-[13px] font-bold text-white shadow"
-              title={email || "usuario@licitaai.com.br"}
+            <Link
+              href="/perfil"
+              title="Meu Perfil"
+              onClick={onNavigate}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-[13px] font-bold text-white shadow hover:shadow-md hover:scale-105 transition-all"
             >
               {initial}
-            </div>
+            </Link>
             <button
               onClick={handleLogout}
               className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -233,15 +237,20 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
           </div>
         ) : (
           <div className="flex items-center justify-between gap-2 px-1">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-[13px] font-bold text-white shadow">
+            <Link
+              href="/perfil"
+              onClick={onNavigate}
+              className="flex items-center gap-3 min-w-0 group"
+              title="Meu Perfil"
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-[13px] font-bold text-white shadow group-hover:shadow-md group-hover:scale-105 transition-all">
                 {initial}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-white truncate leading-tight">{firstName}</p>
+                <p className="text-sm font-semibold text-white truncate leading-tight group-hover:text-blue-300 transition-colors">{firstName}</p>
                 <p className="text-[11px] text-slate-500 truncate leading-tight">{email || "usuario@licitai.com.br"}</p>
               </div>
-            </div>
+            </Link>
             <button
               onClick={handleLogout}
               className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
