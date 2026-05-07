@@ -8,7 +8,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { motion, useInView, useSpring, useTransform } from "motion/react"
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +21,12 @@ export interface DadosMonitoramento {
 
 // ─── Número animado ───────────────────────────────────────────────────────────
 
+function formatVal(v: number, prefixo: string, sufixo: string): string {
+  if (v >= 1_000_000) return `${prefixo}${(v / 1_000_000).toFixed(1)}M${sufixo}`
+  if (v >= 1_000) return `${prefixo}${(v / 1_000).toFixed(0)}K${sufixo}`
+  return `${prefixo}${Math.round(v).toLocaleString("pt-BR")}${sufixo}`
+}
+
 function NumeroAnimado({ valor, prefixo = "", sufixo = "", className = "" }: {
   valor: number
   prefixo?: string
@@ -29,23 +34,39 @@ function NumeroAnimado({ valor, prefixo = "", sufixo = "", className = "" }: {
   className?: string
 }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true })
-  const spring = useSpring(0, { stiffness: 60, damping: 20 })
-  const display = useTransform(spring, (v) => {
-    if (v >= 1_000_000) return `${prefixo}${(v / 1_000_000).toFixed(1)}M${sufixo}`
-    if (v >= 1_000) return `${prefixo}${(v / 1_000).toFixed(0)}K${sufixo}`
-    return `${prefixo}${Math.round(v).toLocaleString("pt-BR")}${sufixo}`
-  })
+  const [display, setDisplay] = useState(formatVal(0, prefixo, sufixo))
+  const rafRef = useRef<number>(0)
+  const startRef = useRef<number | null>(null)
+  const hasAnimated = useRef(false)
 
   useEffect(() => {
-    if (inView) spring.set(valor)
-  }, [inView, valor, spring])
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true
+          const duration = 1200
+          const animate = (ts: number) => {
+            if (!startRef.current) startRef.current = ts
+            const p = Math.min((ts - startRef.current) / duration, 1)
+            const eased = 1 - Math.pow(1 - p, 3)
+            setDisplay(formatVal(valor * eased, prefixo, sufixo))
+            if (p < 1) rafRef.current = requestAnimationFrame(animate)
+          }
+          rafRef.current = requestAnimationFrame(animate)
+        }
+      },
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(rafRef.current)
+    }
+  }, [valor, prefixo, sufixo])
 
-  return (
-    <motion.span ref={ref} className={className}>
-      {display}
-    </motion.span>
-  )
+  return <span ref={ref} className={className}>{display}</span>
 }
 
 // ─── Tooltip pizza ────────────────────────────────────────────────────────────
@@ -63,26 +84,15 @@ function TooltipPizza({ active, payload }: { active?: boolean; payload?: { paylo
   )
 }
 
-// ─── Tooltip barra ────────────────────────────────────────────────────────────
-
-function TooltipBarra({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="rounded-xl border border-white/10 bg-slate-900/95 px-3 py-2 text-sm shadow-xl">
-      <p className="text-slate-400 text-xs">{label}</p>
-      <p className="font-semibold text-white">
-        {payload[0].value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })}
-      </p>
-    </div>
-  )
-}
-
 // ─── Gráfico de barras estilo trade com fio animado ───────────────────────────
 
 function GraficoTrade({ barras }: { barras: { mes: string; valor: number }[] }) {
-  const ref = useRef<SVGSVGElement>(null)
-  const inView = useInView(ref, { once: true })
+  const svgRef = useRef<SVGSVGElement>(null)
+  const pathRef = useRef<SVGPathElement>(null)
   const [progresso, setProgresso] = useState(0)
+  const [pathLen, setPathLen] = useState(1000)
+  const hasAnimated = useRef(false)
+  const rafRef = useRef<number>(0)
 
   const WIDTH = 600
   const HEIGHT = 180
@@ -95,15 +105,13 @@ function GraficoTrade({ barras }: { barras: { mes: string; valor: number }[] }) 
   const barWidth = (WIDTH - PAD_LEFT - PAD_RIGHT) / barras.length
   const chartH = HEIGHT - PAD_TOP - PAD_BOTTOM
 
-  // pontos de topo de cada barra (centro X, topo Y)
   const pontos = barras.map((b, i) => {
     const x = PAD_LEFT + i * barWidth + barWidth / 2
     const h = (b.valor / maxVal) * chartH
     const y = PAD_TOP + chartH - h
-    return { x, y, valor: b.valor, mes: b.mes }
+    return { x, y, valor: b.valor }
   })
 
-  // path do fio
   const path = pontos.reduce((acc, p, i) => {
     if (i === 0) return `M ${p.x} ${p.y}`
     const prev = pontos[i - 1]
@@ -111,33 +119,47 @@ function GraficoTrade({ barras }: { barras: { mes: string; valor: number }[] }) 
     return `${acc} C ${cx} ${prev.y}, ${cx} ${p.y}, ${p.x} ${p.y}`
   }, "")
 
+  // medir comprimento após render
   useEffect(() => {
-    if (!inView) return
-    let frame: number
-    let start: number | null = null
-    const duration = 1400
-    const animate = (ts: number) => {
-      if (!start) start = ts
-      const p = Math.min((ts - start) / duration, 1)
-      setProgresso(p)
-      if (p < 1) frame = requestAnimationFrame(animate)
+    if (pathRef.current) {
+      const len = pathRef.current.getTotalLength()
+      if (len > 0) setPathLen(len)
     }
-    frame = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(frame)
-  }, [inView])
+  })
 
-  // stroke-dashoffset trick: medir comprimento do path
-  const pathRef = useRef<SVGPathElement>(null)
-  const [pathLen, setPathLen] = useState(1000)
+  // animar ao entrar na viewport
   useEffect(() => {
-    if (pathRef.current) setPathLen(pathRef.current.getTotalLength())
-  }, [barras])
+    const el = svgRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true
+          const duration = 1400
+          let start: number | null = null
+          const animate = (ts: number) => {
+            if (!start) start = ts
+            const p = Math.min((ts - start) / duration, 1)
+            setProgresso(p)
+            if (p < 1) rafRef.current = requestAnimationFrame(animate)
+          }
+          rafRef.current = requestAnimationFrame(animate)
+        }
+      },
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(rafRef.current)
+    }
+  }, [])
 
   const dashOffset = pathLen * (1 - progresso)
 
   return (
     <svg
-      ref={ref}
+      ref={svgRef}
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       className="w-full"
       style={{ height: HEIGHT }}
@@ -189,7 +211,6 @@ function GraficoTrade({ barras }: { barras: { mes: string; valor: number }[] }) 
               fill={cor}
               fillOpacity={0.9}
             />
-            {/* label mês */}
             <text
               x={p.x}
               y={HEIGHT - 8}
@@ -203,7 +224,7 @@ function GraficoTrade({ barras }: { barras: { mes: string; valor: number }[] }) 
         )
       })}
 
-      {/* Fio animado */}
+      {/* Fio sombra */}
       <path
         ref={pathRef}
         d={path}
@@ -265,7 +286,7 @@ export function GraficoMonitoramento({ dados }: { dados: DadosMonitoramento }) {
           <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Valor Total Monitorado</p>
           <div className="mt-3">
             <p className="text-5xl font-black text-white leading-none">
-              <NumeroAnimado valor={dados.valorTotalMonitorado / 1_000_000} prefixo="R$" sufixo="M" />
+              <NumeroAnimado valor={dados.valorTotalMonitorado} prefixo="R$ " />
             </p>
             <p className="text-sm text-slate-400 mt-2">Soma das licitações salvas com valor estimado</p>
           </div>
@@ -278,7 +299,7 @@ export function GraficoMonitoramento({ dados }: { dados: DadosMonitoramento }) {
             </div>
             <div className="rounded-xl bg-slate-800/60 p-3">
               <p className="text-xl font-bold text-rose-400">
-                <NumeroAnimado valor={dados.totalLicitacoesArea - dados.totalLicitacoesSalvas} />
+                <NumeroAnimado valor={Math.max(dados.totalLicitacoesArea - dados.totalLicitacoesSalvas, 0)} />
               </p>
               <p className="text-[11px] text-slate-500 mt-0.5">Não capturadas na área</p>
             </div>
@@ -287,13 +308,11 @@ export function GraficoMonitoramento({ dados }: { dados: DadosMonitoramento }) {
 
         {/* Gráfico pizza */}
         <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Distribuição por Área</p>
-              <p className="text-sm text-slate-400 mt-0.5">
-                {pctCapturado}% capturado · {100 - pctCapturado}% não monitorado
-              </p>
-            </div>
+          <div className="mb-2">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Distribuição por Modalidade</p>
+            <p className="text-sm text-slate-400 mt-0.5">
+              {pctCapturado}% capturado · {100 - pctCapturado}% não monitorado
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="h-[140px] w-[140px] shrink-0">
@@ -318,7 +337,7 @@ export function GraficoMonitoramento({ dados }: { dados: DadosMonitoramento }) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex flex-col gap-2 min-w-0">
+            <div className="flex flex-col gap-2 min-w-0 flex-1">
               {dados.pizza.map((entry, i) => (
                 <div key={i} className="flex items-center gap-2 min-w-0">
                   <div className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: entry.cor }} />
@@ -326,19 +345,22 @@ export function GraficoMonitoramento({ dados }: { dados: DadosMonitoramento }) {
                   <span className="ml-auto shrink-0 text-xs font-semibold text-white">
                     {entry.valor >= 1_000_000
                       ? `R$ ${(entry.valor / 1_000_000).toFixed(1)}M`
-                      : `R$ ${(entry.valor / 1_000).toFixed(0)}K`}
+                      : entry.valor >= 1_000
+                      ? `R$ ${(entry.valor / 1_000).toFixed(0)}K`
+                      : `R$ ${entry.valor.toLocaleString("pt-BR")}`}
                   </span>
                 </div>
               ))}
-              {/* Valor perdido */}
-              <div className="mt-1 rounded-lg bg-rose-950/40 border border-rose-800/30 px-3 py-2">
-                <p className="text-[11px] text-rose-400 font-semibold">Potencial não capturado</p>
-                <p className="text-xs text-rose-300 font-bold">
-                  {valorPerdido >= 1_000_000
-                    ? `R$ ${(valorPerdido / 1_000_000).toFixed(1)}M`
-                    : `R$ ${(valorPerdido / 1_000).toFixed(0)}K`}
-                </p>
-              </div>
+              {valorPerdido > 0 && (
+                <div className="mt-1 rounded-lg bg-rose-950/40 border border-rose-800/30 px-3 py-2">
+                  <p className="text-[11px] text-rose-400 font-semibold">Potencial não capturado</p>
+                  <p className="text-xs text-rose-300 font-bold">
+                    {valorPerdido >= 1_000_000
+                      ? `R$ ${(valorPerdido / 1_000_000).toFixed(1)}M`
+                      : `R$ ${(valorPerdido / 1_000).toFixed(0)}K`}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
