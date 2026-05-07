@@ -1,12 +1,13 @@
 "use client"
 
 import React from "react"
+import Link from "next/link"
 
 export interface EmptyStateProps {
   icon: "search" | "document" | "opportunity" | "proposal"
   title: string
   description: string
-  action?: { label: string; onClick: () => void }
+  action?: { label: string; onClick?: () => void; href?: string }
 }
 
 function Icon({ type }: { type: EmptyStateProps["icon"] }) {
@@ -82,9 +83,15 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
       <h3 className="text-lg font-semibold text-white">{title}</h3>
       <p className="text-sm text-slate-400 max-w-xl">{description}</p>
       {action && (
-        <button onClick={action.onClick} className="mt-2 btn-primary-gradient px-4 py-2 rounded-md">
-          {action.label}
-        </button>
+        action.href ? (
+          <Link href={action.href} className="mt-2 btn-primary-gradient px-4 py-2 rounded-md inline-block">
+            {action.label}
+          </Link>
+        ) : (
+          <button onClick={action.onClick} className="mt-2 btn-primary-gradient px-4 py-2 rounded-md">
+            {action.label}
+          </button>
+        )
       )}
     </div>
   )

@@ -10,6 +10,7 @@ import { LandingComoFunciona } from "@/components/landing/landing-como-funciona"
 import { LandingDepoimentos } from "@/components/landing/landing-depoimentos"
 import { LandingPlanos } from "@/components/landing/landing-planos"
 import { LandingCTA } from "@/components/landing/landing-cta"
+import { LandingFaq } from "@/components/landing/landing-faq"
 import { LandingFooter } from "@/components/landing/landing-footer"
 
 async function getLicitacoesStats() {
@@ -49,7 +50,7 @@ export default async function Home() {
   return (
     <main className="bg-[#050D1A]">
       <LandingNavbar isLoggedIn={false} />
-      <LandingHero totalLicitacoes={totalLicitacoes} />
+      <LandingHero />
       <LandingProblema />
       <LandingBeneficios />
       <LandingNumeros totalLicitacoes={totalLicitacoes} totalUfs={totalUfs} />
@@ -57,6 +58,7 @@ export default async function Home() {
       <LandingDepoimentos />
       <LandingPlanos />
       <LandingCTA />
+      <LandingFaq />
       <LandingFooter />
     </main>
   )

@@ -533,9 +533,9 @@ export function OportunidadesClient({ empresas }: { empresas: Empresa[] }) {
           ) : (
             <EmptyState
               icon="opportunity"
-              title="Nenhuma oportunidade relevante encontrada"
-              description={`Tente atualizar o CNAE ou o perfil da empresa em Clientes.`}
-              action={analisadas > 0 ? { label: `${analisadas} licitações analisadas`, onClick: () => {} } : undefined}
+              title="Nenhuma oportunidade encontrada"
+              description="Configure o CNAE da sua empresa nas configurações para receber matches personalizados."
+              action={{ label: "Configurar empresa", href: "/configuracoes" }}
             />
           )}
         </>

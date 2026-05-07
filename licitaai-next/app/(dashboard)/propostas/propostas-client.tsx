@@ -75,9 +75,9 @@ export function PropostasClient({ propostas }: { propostas: PropostaRow[] }) {
       {propostas.length === 0 && (
         <EmptyState
           icon="proposal"
-          title="Nenhuma proposta gerada ainda"
-          description={"Acesse uma licitação e clique em \"Gerar Proposta com IA\""}
-          action={{ label: "Ver licitações", onClick: () => { window.location.href = '/licitacoes' } }}
+          title="Nenhuma proposta criada"
+          description="Crie propostas a partir das oportunidades que você marcou como interessante."
+          action={{ label: "Ver oportunidades", href: "/oportunidades" }}
         />
       )}
 
