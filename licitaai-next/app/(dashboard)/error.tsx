@@ -11,7 +11,7 @@ interface DashboardErrorProps {
 }
 
 export default function DashboardError({ error, reset }: DashboardErrorProps) {
-  const isAuthError = error.message.includes("auth") || error.message.includes("session") || error.message.includes("user");
+  const isAuthError = error.message.includes("auth") || error.message.includes("session");
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-background">

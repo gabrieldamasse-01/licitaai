@@ -16,12 +16,12 @@ export default async function ConfiguracoesPage() {
       .from('companies')
       .select('id, razao_social, cnpj, email_contato, contato, cnae')
       .eq('user_id', user.id)
-      .single(),
+      .maybeSingle(),
     sb
       .from('user_preferences')
       .select('alertas_email, alert_days, alert_email, plano, plano_expira_em, two_factor_enabled, keywords')
       .eq('user_id', user.id)
-      .single(),
+      .maybeSingle(),
     sb
       .from('perfis_validados')
       .select('validado_em')
