@@ -14,7 +14,7 @@ const TAMANHO_PAGINA = 50  // máximo permitido pela API PNCP
 const MAX_PAGINAS = 20     // 20 × 50 = 1.000 licitações por modalidade por execução
 
 // Modalidades padrão do PNCP
-const MODALIDADES = [6, 8, 9, 4, 5, 12] // Pregão Eletr., Dispensa, Inexig., Concorr. Eletr., Concorr. Presencial, Credenciamento
+const MODALIDADES = [6, 8, 9, 4, 5, 12, 1, 2, 3, 7, 10, 11] // Pregão Eletr., Dispensa, Inexig., Concorr. Eletr., Concorr. Presencial, Credenciamento, Leilão Eletr., Diálogo Comp., Concurso, Pregão Presencial, Credenciamento (outro), Concorrência Pública
 
 type PncpItem = {
   numeroControlePNCP: string
