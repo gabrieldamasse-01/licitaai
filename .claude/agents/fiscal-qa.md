@@ -34,7 +34,6 @@ Após qualquer commit ou implementação, este agente:
 - [ ] oportunidades/actions.ts tem .limit(2000) ou maior
 - [ ] sync-local.ts tem INTERVAL_MS = 5 * 60 * 1000
 - [ ] sync-manual/route.ts tem função gerarJanelas5Dias e auth via isAdmin()
-- [ ] identificarTipoDocumento em documentos-client.tsx usa normalizar() com NFD
 - [ ] lib/ai-model.ts tem getModel() e getMaxTokens() para todas as tarefas
 
 ### TypeScript e Build:

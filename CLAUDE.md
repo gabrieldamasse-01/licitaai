@@ -60,7 +60,8 @@ gemini -p "@licitaai-next/lib/ @licitaai-next/app/api/ Como está implementada a
 
 ## Repositório e deploy
 - Repo: `gabrieldamasse-01/licitaai` → subfolder `licitaai-next`
-- Deploy: `npx vercel deploy --prod` da raiz `C:\Users\Pichau\LicitaAI`
+- **Deploy correto: `git push origin beta`** — Vercel monitora branch `beta` e atualiza `licitaai-next.vercel.app` automaticamente
+- **NUNCA usar `npx vercel deploy --prod`** — não atualiza o alias `licitaai-next.vercel.app`, fica preso no deploy anterior
 - Sync: `cd licitaai-next && npm run sync`
 - CRON_SECRET: `licitaai-cron-2026`
 

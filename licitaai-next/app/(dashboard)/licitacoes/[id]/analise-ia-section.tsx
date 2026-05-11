@@ -110,7 +110,6 @@ export function AnaliseIaSection({
           empresas={empresas}
           jaSalvasPorEmpresa={jaSalvasPorEmpresa}
           onAnalise={handleAnalise}
-          onGerarProposta={abrirModal}
         />
       </div>
 
