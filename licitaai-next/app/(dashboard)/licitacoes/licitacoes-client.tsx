@@ -369,6 +369,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
   const [texto, setTexto] = useState("")
   const [ufsSel, setUfsSel] = useState<Set<string>>(new Set(UFS))
   const [modsSel, setModsSel] = useState<Set<string>>(new Set(MODALIDADES))
+  const [incluirEncerradas, setIncluirEncerradas] = useState(false)
   const [filtrosOpen, setFiltrosOpen] = useState(false)
   const [detalhe, setDetalhe] = useState<Licitacao | null>(null)
   const [detalheOpen, setDetalheOpen] = useState(false)
@@ -422,6 +423,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
         uf,
         modalidades,
         busca: buscaTerm || undefined,
+        status: incluirEncerradas ? "todas" : "ativa",
       })
       setDados(result)
       setPaginaAtual(pagina)
@@ -460,6 +462,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
     setTexto("")
     setDataInicio("")
     setDataFim("")
+    setIncluirEncerradas(false)
   }
 
   const totalPaginas = dados.pagination?.total_paginas ?? 0
@@ -467,7 +470,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
   const totalBanco = dados.total_banco ?? 0
   const ufsAtivas = ufsSel.size > 0 && ufsSel.size < UFS.length ? 1 : 0
   const modsAtivas = modsSel.size > 0 && modsSel.size < MODALIDADES.length ? 1 : 0
-  const filtrosAtivos = ufsAtivas + modsAtivas + (texto ? 1 : 0) + (dataInicio ? 1 : 0) + (dataFim ? 1 : 0)
+  const filtrosAtivos = ufsAtivas + modsAtivas + (texto ? 1 : 0) + (dataInicio ? 1 : 0) + (dataFim ? 1 : 0) + (incluirEncerradas ? 1 : 0)
 
   // Painel de filtros (reutilizado em desktop + Sheet mobile)
   const painelFiltros = (
@@ -590,6 +593,31 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
             <><Search className="h-3.5 w-3.5" />Buscar</>
           )}
         </Button>
+      </div>
+
+      {/* Incluir encerradas */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setIncluirEncerradas((v) => !v)}
+          className={cn(
+            "w-full flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors",
+            incluirEncerradas
+              ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
+              : "border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500 hover:text-slate-300"
+          )}
+        >
+          <span className="font-medium">Incluir encerradas</span>
+          <span className={cn(
+            "flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors",
+            incluirEncerradas ? "border-blue-500 bg-blue-600" : "border-slate-600 bg-slate-700"
+          )}>
+            <span className={cn(
+              "h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
+              incluirEncerradas ? "translate-x-[18px]" : "translate-x-0.5"
+            )} />
+          </span>
+        </button>
       </div>
 
       {/* UF */}

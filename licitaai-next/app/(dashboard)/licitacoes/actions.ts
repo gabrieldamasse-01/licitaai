@@ -87,11 +87,14 @@ export async function fetchLicitacoes({
     const from = pagina * PAGE_SIZE
     const to = from + PAGE_SIZE - 1
 
-    // Total no banco sem filtros (para o badge)
-    const { count: totalBanco } = await supabase
+    // Total no banco (badge — considera filtro de status)
+    const totalBancoQuery = supabase
       .from("licitacoes")
       .select("id", { count: "exact", head: true })
-      .eq("status", "ativa")
+    if (!status || status !== "todas") {
+      totalBancoQuery.eq("status", "ativa")
+    }
+    const { count: totalBanco } = await totalBancoQuery
 
     // Query principal com filtros server-side
     let query = supabase
