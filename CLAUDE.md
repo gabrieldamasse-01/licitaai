@@ -21,27 +21,29 @@ Use `gemini -p` sempre que:
 
 ### Comandos prontos para o projeto
 
+> **Modelo atual:** `gemini-2.5-pro` (usar flag `--model gemini-2.5-pro`)
+
 ```bash
 # Visão geral do projeto
-gemini -p "@licitaai-next/ Me dê uma visão geral da arquitetura"
+gemini --model gemini-2.5-pro -p "@licitaai-next/ Me dê uma visão geral da arquitetura"
 
 # Verificar se feature já existe
-gemini -p "@licitaai-next/app/ @licitaai-next/components/ O empty state foi implementado? Mostre arquivos relevantes"
+gemini --model gemini-2.5-pro -p "@licitaai-next/app/ @licitaai-next/components/ O empty state foi implementado? Mostre arquivos relevantes"
 
 # Antes de mexer em autenticação
-gemini -p "@licitaai-next/app/ @licitaai-next/lib/ Como está implementada a autenticação? Liste todos os arquivos relacionados"
+gemini --model gemini-2.5-pro -p "@licitaai-next/app/ @licitaai-next/lib/ Como está implementada a autenticação? Liste todos os arquivos relacionados"
 
 # Antes de mexer em RLS/Supabase
-gemini -p "@licitaai-next/supabase/ Liste todas as políticas RLS implementadas por tabela"
+gemini --model gemini-2.5-pro -p "@licitaai-next/supabase/ Liste todas as políticas RLS implementadas por tabela"
 
 # Verificar padrões de erro/loading
-gemini -p "@licitaai-next/app/ @licitaai-next/components/ Existem skeleton loaders ou loading states implementados? Liste-os"
+gemini --model gemini-2.5-pro -p "@licitaai-next/app/ @licitaai-next/components/ Existem skeleton loaders ou loading states implementados? Liste-os"
 
 # Análise de segurança antes de deploy
-gemini -p "@licitaai-next/app/ @licitaai-next/lib/ Há endpoints de API sem validação de entrada? Mostre exemplos"
+gemini --model gemini-2.5-pro -p "@licitaai-next/app/ @licitaai-next/lib/ Há endpoints de API sem validação de entrada? Mostre exemplos"
 
 # Verificar integração com Effecti/PNCP
-gemini -p "@licitaai-next/lib/ @licitaai-next/app/api/ Como está implementada a integração com Effecti e PNCP? Liste os endpoints e funções"
+gemini --model gemini-2.5-pro -p "@licitaai-next/lib/ @licitaai-next/app/api/ Como está implementada a integração com Effecti e PNCP? Liste os endpoints e funções"
 ```
 
 > **Nota:** rodar os comandos gemini de `C:\Users\Pichau\LicitaAI` (raiz do projeto)
@@ -61,7 +63,9 @@ gemini -p "@licitaai-next/lib/ @licitaai-next/app/api/ Como está implementada a
 ## Repositório e deploy
 - Repo: `gabrieldamasse-01/licitaai` → subfolder `licitaai-next`
 - **Deploy correto: `git push origin beta`** — Vercel monitora branch `beta` e atualiza `licitaai-next.vercel.app` automaticamente
-- **NUNCA usar `npx vercel deploy --prod`** — não atualiza o alias `licitaai-next.vercel.app`, fica preso no deploy anterior
+- Deploy manual (quando necessário) — rodar em sequência da raiz `C:\Users\Pichau\LicitaAI`:
+  1. `npx vercel deploy --prod` — anotar a URL do deploy gerada (ex: `licitaai-next-abc123.vercel.app`)
+  2. `npx vercel alias <URL-gerada> licitaai-next.vercel.app` — restaurar alias fixo
 - Sync: `cd licitaai-next && npm run sync`
 - CRON_SECRET: `licitaai-cron-2026`
 
