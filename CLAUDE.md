@@ -62,10 +62,12 @@ gemini --model gemini-2.5-pro -p "@licitaai-next/lib/ @licitaai-next/app/api/ Co
 
 ## Repositório e deploy
 - Repo: `gabrieldamasse-01/licitaai` → subfolder `licitaai-next`
+- **Team Vercel:** `mgnext`
 - **Deploy correto: `git push origin beta`** — Vercel monitora branch `beta` e atualiza `licitaai-next.vercel.app` automaticamente
+- **Preview fixo (branch beta):** `https://licitaai-next-git-beta-mgnext.vercel.app`
 - Deploy manual (quando necessário) — rodar em sequência da raiz `C:\Users\Pichau\LicitaAI`:
-  1. `npx vercel deploy --prod` — anotar a URL do deploy gerada (ex: `licitaai-next-abc123.vercel.app`)
-  2. `npx vercel alias <URL-gerada> licitaai-next.vercel.app` — restaurar alias fixo
+  1. `npx vercel deploy --prod --scope mgnext` — anotar a URL do deploy gerada (ex: `licitaai-next-abc123.vercel.app`)
+  2. `npx vercel alias <URL-gerada> licitaai-next.vercel.app --scope mgnext` — restaurar alias fixo
 - Sync: `cd licitaai-next && npm run sync`
 - CRON_SECRET: `licitaai-cron-2026`
 
