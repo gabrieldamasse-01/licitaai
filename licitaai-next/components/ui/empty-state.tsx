@@ -4,7 +4,7 @@ import React from "react"
 import Link from "next/link"
 
 export interface EmptyStateProps {
-  icon: "search" | "document" | "opportunity" | "proposal"
+  icon: "search" | "document" | "opportunity" | "proposal" | "users" | "chart"
   title: string
   description: string
   action?: { label: string; onClick?: () => void; href?: string }
@@ -67,6 +67,35 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
           <rect x="14" y="12" width="36" height="40" rx="4" fill="rgba(255,255,255,0.02)" stroke="url(#g4)" strokeWidth="2" />
           <path d="M20 22h24" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
           <path d="M22 36l6 6 12-12" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    case "users":
+      return (
+        <svg className={common} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g5" x1="0" x2="1">
+              <stop offset="0" stopColor="#60A5FA" />
+              <stop offset="1" stopColor="#7C3AED" />
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="22" r="8" stroke="url(#g5)" strokeWidth="2.5" fill="rgba(255,255,255,0.02)" />
+          <path d="M8 46c0-8.837 7.163-14 16-14s16 5.163 16 14" stroke="url(#g5)" strokeWidth="2.5" strokeLinecap="round" />
+          <circle cx="44" cy="22" r="6" stroke="#94A3B8" strokeWidth="2" fill="rgba(255,255,255,0.02)" />
+          <path d="M52 44c0-6-4-10-8-10" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      )
+    case "chart":
+      return (
+        <svg className={common} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g6" x1="0" x2="1">
+              <stop offset="0" stopColor="#60A5FA" />
+              <stop offset="1" stopColor="#7C3AED" />
+            </linearGradient>
+          </defs>
+          <rect x="10" y="38" width="10" height="14" rx="2" fill="rgba(255,255,255,0.02)" stroke="url(#g6)" strokeWidth="2" />
+          <rect x="27" y="26" width="10" height="26" rx="2" fill="rgba(255,255,255,0.02)" stroke="url(#g6)" strokeWidth="2" />
+          <rect x="44" y="14" width="10" height="38" rx="2" fill="rgba(255,255,255,0.02)" stroke="url(#g6)" strokeWidth="2" />
         </svg>
       )
     default:

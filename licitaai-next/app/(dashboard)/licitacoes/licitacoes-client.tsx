@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react"
 import { toast } from "sonner"
 import {
   Search, SlidersHorizontal, ExternalLink, Loader2, X,
-  AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Scale, Clock,
+  AlertCircle, FileText, Bookmark, ChevronLeft, ChevronRight, Clock,
   ArrowUpRight, Tag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -24,6 +24,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { createClient } from "@/lib/supabase/client"
+import EmptyState from "@/components/ui/empty-state"
 import {
   type Licitacao,
   type FetchResult,
@@ -756,27 +757,21 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
 
           {/* Estado vazio */}
           {!isPending && !dados.error && dados.licitacoes.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] py-20 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800/80 border border-white/[0.06] mb-4">
-                <Scale className="h-8 w-8 text-slate-500" />
-              </div>
-              <p className="text-sm font-semibold text-slate-300">
-                {filtrosAtivos > 0
-                  ? "Nenhuma licitação corresponde aos filtros"
-                  : "Nenhuma licitação encontrada"}
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                {filtrosAtivos > 0 ? "Tente ajustar os filtros de busca" : "As licitações aparecerão aqui após a sincronização"}
-              </p>
-              {filtrosAtivos > 0 && (
-                <button
-                  onClick={limparFiltros}
-                  className="mt-4 text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Limpar filtros
-                </button>
-              )}
-            </div>
+            filtrosAtivos > 0 ? (
+              <EmptyState
+                icon="search"
+                title="Nenhuma licitação corresponde aos filtros"
+                description="Tente ajustar os filtros de busca ou limpar todos os filtros."
+                action={{ label: "Limpar filtros", onClick: limparFiltros }}
+              />
+            ) : (
+              <EmptyState
+                icon="search"
+                title="Nenhuma licitação encontrada"
+                description="Tente ajustar os filtros ou aguarde a próxima sincronização."
+                action={{ label: "Sincronizar agora", href: "/admin?tab=sincronizacao" }}
+              />
+            )
           )}
 
           {/* Cards */}

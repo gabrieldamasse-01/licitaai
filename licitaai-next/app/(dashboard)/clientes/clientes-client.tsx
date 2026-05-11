@@ -3,7 +3,7 @@
 import { useState, useTransition, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Plus, Search, Pencil, PowerOff, Power, Building2, Target } from "lucide-react"
+import { Plus, Search, Pencil, PowerOff, Power, Target } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import EmptyState from "@/components/ui/empty-state"
 import {
   criarEmpresa,
   editarEmpresa,
@@ -194,23 +195,20 @@ export function ClientesClient({ companies, isAdmin = false }: { companies: Comp
 
       {/* Tabela desktop / Cards mobile */}
       {filtradas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-20 text-center">
-          <Building2 className="h-10 w-10 text-slate-600 mb-3" />
-          <p className="text-sm font-medium text-slate-400">
-            {busca ? "Nenhuma empresa encontrada" : "Nenhuma empresa cadastrada"}
-          </p>
-          {!busca && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700"
-              onClick={abrirNova}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Cadastrar primeira empresa
-            </Button>
-          )}
-        </div>
+        busca ? (
+          <EmptyState
+            icon="users"
+            title="Nenhuma empresa encontrada"
+            description="Tente buscar por outro nome ou CNPJ."
+          />
+        ) : (
+          <EmptyState
+            icon="users"
+            title="Nenhuma empresa cadastrada"
+            description="Cadastre a primeira empresa para começar a usar o LicitaAI."
+            action={isAdmin ? { label: "Cadastrar empresa", onClick: abrirNova } : undefined}
+          />
+        )
       ) : (
         <>
           {/* Tabela — desktop */}

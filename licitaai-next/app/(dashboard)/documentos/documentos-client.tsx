@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
+import EmptyState from "@/components/ui/empty-state"
 import { criarDocumento, getSignedUrl, type DocumentoFormData } from "./actions"
 import { ChecklistHabilitacao } from "@/app/(dashboard)/oportunidades/checklist"
 
@@ -610,28 +611,20 @@ export function DocumentosClient({
 
       {/* Empty state */}
       {filtrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] py-20 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800/80 border border-white/[0.06] mb-4">
-            <FileText className="h-8 w-8 text-slate-500" />
-          </div>
-          <p className="text-sm font-semibold text-slate-300">
-            {busca ? "Nenhum documento encontrado" : "Nenhum documento cadastrado"}
-          </p>
-          <p className="text-xs text-slate-500 mt-1">
-            {busca ? "Tente buscar por outro termo" : "Adicione documentos de habilitação da sua empresa"}
-          </p>
-          {!busca && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4 border-slate-600 text-slate-300 hover:bg-slate-700"
-              onClick={abrirNovo}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar primeiro documento
-            </Button>
-          )}
-        </div>
+        busca ? (
+          <EmptyState
+            icon="document"
+            title="Nenhum documento encontrado"
+            description="Tente buscar por outro termo."
+          />
+        ) : (
+          <EmptyState
+            icon="document"
+            title="Nenhum documento cadastrado"
+            description="Faça upload dos documentos de habilitação para participar de licitações."
+            action={{ label: "Fazer upload", onClick: abrirNovo }}
+          />
+        )
       ) : (
         <>
           {/* Tabela — desktop */}
