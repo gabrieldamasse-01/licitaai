@@ -80,7 +80,7 @@ function tempoRelativo(dateStr: string): string {
 function IconeTipo({ tipo }: { tipo: string }) {
   if (tipo === 'documento_vencendo') return <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
   if (tipo === 'documento_expirado') return <AlertCircle className="h-3.5 w-3.5 text-red-400" />
-  if (tipo === 'oportunidade_salva') return <Target className="h-3.5 w-3.5 text-violet-400" />
+  if (tipo === 'oportunidade_salva') return <Target className="h-3.5 w-3.5 text-blue-400" />
   return <Sparkles className="h-3.5 w-3.5 text-blue-400" />
 }
 
@@ -193,7 +193,7 @@ export function PerfilClient({
         <div className="flex items-center gap-5">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-2xl font-black text-white shadow-lg shadow-blue-900/40">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-black text-white shadow-lg shadow-blue-900/40">
               {initials}
             </div>
             <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 border-2 border-slate-900 shadow">

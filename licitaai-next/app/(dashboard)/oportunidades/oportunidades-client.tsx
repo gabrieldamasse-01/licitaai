@@ -54,7 +54,7 @@ function getModalidadeClass(modalidade: string | null): string {
   if (!modalidade) return "bg-slate-800 text-slate-300 border-slate-700"
   if (modalidade.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (modalidade === "Dispensa") return "bg-amber-950/60 text-amber-300 border-amber-800/50"
-  if (modalidade === "Concorrência") return "bg-violet-950/60 text-violet-300 border-violet-800/50"
+  if (modalidade === "Concorrência") return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (modalidade === "Inexigibilidade") return "bg-rose-950/60 text-rose-300 border-rose-800/50"
   if (modalidade === "Credenciamento") return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
   return "bg-slate-800 text-slate-300 border-slate-700"
@@ -121,7 +121,7 @@ function OportunidadeCard({
   onSalvar: () => void
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.07] backdrop-blur-[4px] shadow hover:shadow-[0_4px_20px_rgba(99,102,241,0.12)] hover:border-blue-500/20 transition-all flex flex-col gap-3 p-5" style={{ background: "rgba(30,41,59,0.7)" }}>
+    <div className="rounded-xl border border-white/[0.08] backdrop-blur-[4px] shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_4px_16px_rgba(59,130,246,0.15)] hover:border-blue-500/20 transition-all flex flex-col gap-3 p-4" style={{ background: "rgba(30,41,59,0.7)" }}>
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         <ScoreBadge score={op.score} label={op.scoreLabel} />
@@ -179,7 +179,7 @@ function OportunidadeCard({
           variant={salvo ? "outline" : "default"}
           disabled={salvo || salvando}
           onClick={onSalvar}
-          className={!salvo ? "text-xs px-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:shadow-[0_2px_12px_rgba(99,102,241,0.4)] transition-all" : "text-xs px-3"}
+          className={!salvo ? "text-xs px-3 bg-blue-600 hover:bg-blue-500 hover:shadow-[0_2px_12px_rgba(59,130,246,0.4)] transition-all" : "text-xs px-3"}
           title={salvo ? "Já salva" : "Salvar oportunidade"}
         >
           {salvo ? (

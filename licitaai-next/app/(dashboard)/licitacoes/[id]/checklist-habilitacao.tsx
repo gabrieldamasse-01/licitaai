@@ -55,7 +55,7 @@ function situacaoLabel(s: ItemChecklist["situacao"]) {
 
 function camadaBadge(camada: ItemChecklist["camada"]) {
   if (camada === "nicho") return (
-    <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-medium bg-violet-950/50 text-violet-300 border border-violet-800/50">
+    <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-950/50 text-blue-300 border border-blue-800/50">
       Nicho
     </span>
   )
@@ -271,7 +271,7 @@ export function ChecklistHabilitacaoLicitacao({ licitacaoId, sourceUrl, empresaI
                 <button
                   onClick={extrairDocumentosEdital}
                   disabled={extraindo}
-                  className="shrink-0 inline-flex items-center gap-1 rounded border border-violet-700/50 bg-violet-950/40 px-2.5 py-1 text-xs font-medium text-violet-300 hover:bg-violet-900/60 transition-colors disabled:opacity-60"
+                  className="shrink-0 inline-flex items-center gap-1 rounded border border-blue-700/50 bg-blue-950/40 px-2.5 py-1 text-xs font-medium text-blue-300 hover:bg-blue-900/60 transition-colors disabled:opacity-60"
                 >
                   {extraindo
                     ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -291,7 +291,7 @@ export function ChecklistHabilitacaoLicitacao({ licitacaoId, sourceUrl, empresaI
           onClick={extrairDocumentosEdital}
           disabled={extraindo || !sourceUrl}
           size="sm"
-          className="w-full bg-violet-600 hover:bg-violet-700 gap-2"
+          className="w-full bg-blue-600 hover:bg-blue-500 gap-2"
         >
           {extraindo
             ? <Loader2 className="h-4 w-4 animate-spin" />

@@ -40,8 +40,8 @@ export default function FeedbackPage() {
     <div className="max-w-xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10">
-          <MessageSquare className="h-5 w-5 text-violet-400" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10">
+          <MessageSquare className="h-5 w-5 text-blue-400" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-white">Feedback</h1>

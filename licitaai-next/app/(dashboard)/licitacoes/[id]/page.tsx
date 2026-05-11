@@ -38,7 +38,7 @@ function getModalidadeClass(modalidade: string): string {
   if (modalidade === "Dispensa")
     return "bg-amber-950/60 text-amber-300 border-amber-800/50"
   if (modalidade === "Concorrência")
-    return "bg-violet-950/60 text-violet-300 border-violet-800/50"
+    return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (modalidade === "Credenciamento")
     return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
   if (modalidade === "Inexigibilidade")

@@ -272,9 +272,9 @@ export default async function RelatoriosPage() {
           label="Taxa de Habilitação"
           value={`${taxaHabilitacao}%`}
           icon={<ShieldCheck className="h-5 w-5 text-white" />}
-          iconBg="bg-gradient-to-br from-violet-500 to-violet-600"
-          borderColor="metric-card-violet"
-          valueColor="text-violet-400"
+          iconBg="bg-blue-600"
+          borderColor="metric-card-blue"
+          valueColor="text-blue-400"
           sub={`${empresasCompletas} de ${(companies ?? []).length} completa${empresasCompletas !== 1 ? "s" : ""}`}
         />
       </div>

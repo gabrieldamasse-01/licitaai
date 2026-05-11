@@ -19,11 +19,11 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
           <defs>
             <linearGradient id="g1" x1="0" x2="1">
               <stop offset="0" stopColor="#60A5FA" />
-              <stop offset="1" stopColor="#7C3AED" />
+              <stop offset="1" stopColor="#2563EB" />
             </linearGradient>
           </defs>
           <circle cx="27" cy="27" r="14" stroke="url(#g1)" strokeWidth="3" fill="rgba(255,255,255,0.02)" />
-          <path d="M41 41L54 54" stroke="rgba(124,58,237,0.8)" strokeWidth="3" strokeLinecap="round" />
+          <path d="M41 41L54 54" stroke="rgba(37,99,235,0.8)" strokeWidth="3" strokeLinecap="round" />
           <path d="M20 20L34 34" stroke="rgba(96,165,250,0.45)" strokeWidth="1" strokeLinecap="round"/>
         </svg>
       )
@@ -34,7 +34,7 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
           <defs>
             <linearGradient id="g2" x1="0" x2="1">
               <stop offset="0" stopColor="#60A5FA" />
-              <stop offset="1" stopColor="#7C3AED" />
+              <stop offset="1" stopColor="#2563EB" />
             </linearGradient>
           </defs>
           <path d="M22 22h20" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
@@ -47,7 +47,7 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
           <defs>
             <linearGradient id="g3" x1="0" x2="1">
               <stop offset="0" stopColor="#60A5FA" />
-              <stop offset="1" stopColor="#7C3AED" />
+              <stop offset="1" stopColor="#2563EB" />
             </linearGradient>
           </defs>
           <circle cx="32" cy="32" r="16" stroke="url(#g3)" strokeWidth="3" fill="rgba(255,255,255,0.02)" />
@@ -61,7 +61,7 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
           <defs>
             <linearGradient id="g4" x1="0" x2="1">
               <stop offset="0" stopColor="#60A5FA" />
-              <stop offset="1" stopColor="#7C3AED" />
+              <stop offset="1" stopColor="#2563EB" />
             </linearGradient>
           </defs>
           <rect x="14" y="12" width="36" height="40" rx="4" fill="rgba(255,255,255,0.02)" stroke="url(#g4)" strokeWidth="2" />
@@ -75,7 +75,7 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
           <defs>
             <linearGradient id="g5" x1="0" x2="1">
               <stop offset="0" stopColor="#60A5FA" />
-              <stop offset="1" stopColor="#7C3AED" />
+              <stop offset="1" stopColor="#2563EB" />
             </linearGradient>
           </defs>
           <circle cx="24" cy="22" r="8" stroke="url(#g5)" strokeWidth="2.5" fill="rgba(255,255,255,0.02)" />
@@ -90,7 +90,7 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
           <defs>
             <linearGradient id="g6" x1="0" x2="1">
               <stop offset="0" stopColor="#60A5FA" />
-              <stop offset="1" stopColor="#7C3AED" />
+              <stop offset="1" stopColor="#2563EB" />
             </linearGradient>
           </defs>
           <rect x="10" y="38" width="10" height="14" rx="2" fill="rgba(255,255,255,0.02)" stroke="url(#g6)" strokeWidth="2" />
@@ -106,7 +106,7 @@ function Icon({ type }: { type: EmptyStateProps["icon"] }) {
 export default function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
-      <div className="rounded-xl bg-gradient-to-br from-blue-800/20 to-violet-800/12 p-4">
+      <div className="rounded-xl bg-blue-800/15 p-4">
         <Icon type={icon} />
       </div>
       <h3 className="text-lg font-semibold text-white">{title}</h3>

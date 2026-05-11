@@ -329,7 +329,7 @@ export default function EffectiTab() {
             <div className="w-80">
               <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300"
+                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
                   style={{ width: `${progress.pct}%` }}
                 />
               </div>
@@ -348,7 +348,7 @@ export default function EffectiTab() {
           {[
             { label: "Total Licitações", value: allData.length, color: "text-blue-400" },
             { label: "Valor Estimado Total", value: formatBRL(totalValor), color: "text-emerald-400" },
-            { label: "UFs Distintas", value: totalUFs, color: "text-purple-400" },
+            { label: "UFs Distintas", value: totalUFs, color: "text-blue-400" },
             { label: "Com SRP", value: totalSRP, color: "text-amber-400" },
             { label: "Portais Distintos", value: totalPortais, color: "text-blue-400" },
           ].map(({ label, value, color }) => (
@@ -450,7 +450,7 @@ export default function EffectiTab() {
                         <div className="text-[11px] text-slate-500 truncate">{lic.unidadeGestora as string}</div>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
                           {(lic.uf as string) || "?"}
                         </span>
                       </td>

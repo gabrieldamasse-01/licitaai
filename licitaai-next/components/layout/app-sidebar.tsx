@@ -24,16 +24,16 @@ import { createClient } from "@/lib/supabase/client"
 
 const mainNav = [
   { href: "/dashboard",    label: "Dashboard",    icon: LayoutDashboard, iconColor: "text-blue-400" },
-  { href: "/clientes",     label: "Clientes",     icon: Building2,       iconColor: "text-indigo-400" },
+  { href: "/clientes",     label: "Clientes",     icon: Building2,       iconColor: "text-blue-400" },
   { href: "/documentos",   label: "Documentos",   icon: FileText,        iconColor: "text-amber-400" },
   { href: "/licitacoes",   label: "Licitações",   icon: Search,          iconColor: "text-emerald-400" },
-  { href: "/oportunidades",label: "Oportunidades",icon: Target,          iconColor: "text-violet-400" },
+  { href: "/oportunidades",label: "Oportunidades",icon: Target,          iconColor: "text-blue-400" },
   { href: "/relatorios",   label: "Relatórios",   icon: BarChart3,       iconColor: "text-cyan-400" },
 ]
 
 const secondaryNav = [
   { href: "/perfil",        label: "Meu Perfil",    icon: UserCircle,    iconColor: "text-blue-400" },
-  { href: "/feedback",      label: "Feedback",      icon: MessageSquare, iconColor: "text-violet-400" },
+  { href: "/feedback",      label: "Feedback",      icon: MessageSquare, iconColor: "text-blue-400" },
   { href: "/configuracoes", label: "Configurações", icon: Settings,      iconColor: "text-slate-400" },
 ]
 
@@ -64,14 +64,14 @@ function NavItem({
         "group flex items-center mx-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-h-[44px]",
         collapsed ? "justify-center px-0" : "gap-3 px-3 pl-[10px]",
         isActive
-          ? "bg-gradient-to-r from-blue-600/20 to-violet-600/10 text-blue-300 border-l-2 border-blue-500 backdrop-blur-sm shadow-[inset_0_0_12px_rgba(37,99,235,0.15)]"
+          ? "bg-blue-500/10 text-blue-300 border-l-2 border-blue-500 shadow-[inset_0_0_12px_rgba(37,99,235,0.1)]"
           : "text-slate-400 hover:bg-white/[0.07] hover:text-white border-l-2 border-transparent"
       )}
     >
       <Icon
         className={cn(
           "h-5 w-5 shrink-0 transition-all duration-200",
-          isActive ? "text-blue-300" : `${iconColor} group-hover:brightness-125 group-hover:drop-shadow-[0_0_6px_rgba(99,102,241,0.6)]`
+          isActive ? "text-blue-400 drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]" : `${iconColor} group-hover:text-blue-300 group-hover:drop-shadow-[0_0_6px_rgba(59,130,246,0.5)]`
         )}
       />
       {!collapsed && <span className="truncate font-medium">{label}</span>}
@@ -141,7 +141,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
               </div>
               <div className="leading-tight min-w-0">
                 <p className="text-[15px] font-bold text-white tracking-tight">
-                  Licita<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">AI</span>
+                  Licita<span className="text-blue-400">AI</span>
                 </p>
                 <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider font-medium">
                   Plataforma de Licitações
@@ -209,7 +209,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
           <p className="text-[10px] text-slate-600 font-medium tracking-wide">
             v1.0
           </p>
-          <span className="rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-400">
+          <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-400">
             Beta
           </span>
         </div>
@@ -223,7 +223,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
               href="/perfil"
               title="Meu Perfil"
               onClick={onNavigate}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-[13px] font-bold text-white shadow hover:shadow-md hover:scale-105 transition-all"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[13px] font-bold text-white shadow hover:shadow-md hover:scale-105 transition-all"
             >
               {initial}
             </Link>
@@ -243,7 +243,7 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
               className="flex items-center gap-3 min-w-0 group"
               title="Meu Perfil"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-[13px] font-bold text-white shadow group-hover:shadow-md group-hover:scale-105 transition-all">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[13px] font-bold text-white shadow group-hover:shadow-md group-hover:scale-105 transition-all">
                 {initial}
               </div>
               <div className="min-w-0">

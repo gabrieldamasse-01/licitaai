@@ -42,7 +42,7 @@ export function MobileHeader({ email, userId }: { email: string; userId: string 
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.2)]">
           <Scale className="h-4 w-4 text-white" />
         </div>
-        <span className="text-[15px] font-bold text-white tracking-tight">Licita<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">AI</span></span>
+        <span className="text-[15px] font-bold text-white tracking-tight">Licita<span className="text-blue-400">AI</span></span>
       </div>
 
       {/* Actions */}

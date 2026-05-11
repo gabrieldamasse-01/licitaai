@@ -71,7 +71,7 @@ function formatDate(dateStr: string | null): string {
 function getModalidadeClass(modalidade: string): string {
   if (modalidade.includes("Pregão")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (modalidade === "Dispensa") return "bg-amber-950/60 text-amber-300 border-amber-800/50"
-  if (modalidade === "Concorrência") return "bg-violet-950/60 text-violet-300 border-violet-800/50"
+  if (modalidade === "Concorrência") return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (modalidade === "Credenciamento") return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
   if (modalidade === "Inexigibilidade") return "bg-rose-950/60 text-rose-300 border-rose-800/50"
   return "bg-slate-800 text-slate-300 border-slate-700"
@@ -79,7 +79,7 @@ function getModalidadeClass(modalidade: string): string {
 
 function getPortalClass(portal: string): string {
   if (portal === "Supabase") return "bg-teal-950/60 text-teal-300 border-teal-800/50"
-  if (portal === "Effecti") return "bg-indigo-950/60 text-indigo-300 border-indigo-800/50"
+  if (portal === "Effecti") return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (portal.includes("PNCP")) return "bg-emerald-950/60 text-emerald-300 border-emerald-800/50"
   if (portal.includes("ComprasNet")) return "bg-blue-950/60 text-blue-300 border-blue-800/50"
   if (portal.includes("Compras Públicas")) return "bg-cyan-950/60 text-cyan-300 border-cyan-800/50"
@@ -121,7 +121,7 @@ function LicitacaoCard({
   onVerDetalhes: () => void
 }) {
   return (
-    <article className="group flex flex-col gap-3 rounded-xl border border-white/[0.07] p-5 shadow-sm hover:shadow-[0_4px_20px_rgba(99,102,241,0.12)] hover:border-blue-500/20 transition-all duration-200 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
+    <article className="group flex flex-col gap-3 rounded-xl border border-white/[0.08] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_4px_16px_rgba(59,130,246,0.15)] hover:border-blue-500/20 transition-all duration-200 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.7)" }}>
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         <Badge variant="outline" className="text-[11px] px-2 py-0.5 font-bold bg-slate-700/60 text-slate-300 border-white/10">
@@ -162,7 +162,7 @@ function LicitacaoCard({
         <Button
           size="sm"
           onClick={onVerDetalhes}
-          className="shrink-0 bg-gradient-to-r from-blue-600 to-violet-600 hover:shadow-[0_2px_12px_rgba(99,102,241,0.4)] text-white text-xs h-8 px-3 gap-1.5 transition-all"
+          className="shrink-0 bg-blue-600 hover:bg-blue-500 hover:shadow-[0_2px_12px_rgba(59,130,246,0.4)] text-white text-xs h-8 px-3 gap-1.5 transition-all"
         >
           Ver detalhes
           <ExternalLink className="h-3 w-3" />
@@ -249,7 +249,7 @@ function DetalheConteudo({
       {/* Ações fixas no rodapé */}
       <div className="space-y-2 pt-4 border-t border-slate-700 mt-4">
         {lic.dbId && (
-          <Button asChild className="w-full gap-2 bg-violet-700 hover:bg-violet-600 text-white">
+          <Button asChild className="w-full gap-2 bg-blue-700 hover:bg-blue-600 text-white">
             <Link href={`/licitacoes/${lic.dbId}`}>
               <ArrowUpRight className="h-4 w-4" />
               Ver página completa + Analisar com IA
@@ -543,8 +543,8 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
                         buscar(0, kw)
                       }}
                     >
-                      <Tag className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
-                      <span className="flex-1 text-sm text-indigo-300 truncate">{kw}</span>
+                      <Tag className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                      <span className="flex-1 text-sm text-blue-300 truncate">{kw}</span>
                     </div>
                   ))}
                 </>

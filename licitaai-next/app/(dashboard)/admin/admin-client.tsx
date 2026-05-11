@@ -1049,7 +1049,7 @@ export default function AdminClient({
               icon={Target}
               label="Oportunidades"
               value={metrics.totalMatches}
-              color="bg-violet-500/20 text-violet-400"
+              color="bg-blue-500/20 text-blue-400"
             />
             <MetricCard
               icon={FileText}
@@ -1061,7 +1061,7 @@ export default function AdminClient({
               icon={MessageSquare}
               label="Feedbacks"
               value={metrics.totalFeedbacks}
-              color="bg-violet-500/20 text-violet-400"
+              color="bg-blue-500/20 text-blue-400"
             />
             <MetricCard
               icon={Shield}
@@ -1837,8 +1837,8 @@ export default function AdminClient({
               style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 border border-violet-500/20">
-                  <Database className="h-4 w-4 text-violet-400" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/15 border border-blue-500/20">
+                  <Database className="h-4 w-4 text-blue-400" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">ComprasNet → Supabase</p>
@@ -1854,7 +1854,7 @@ export default function AdminClient({
                     variant="ghost"
                     onClick={() => handleSincronizar("comprasnet")}
                     disabled={sincronizando.comprasnet}
-                    className="h-8 px-3 text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 border border-violet-500/20 gap-1.5"
+                    className="h-8 px-3 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 border border-blue-500/20 gap-1.5"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${sincronizando.comprasnet ? "animate-spin" : ""}`} />
                     {sincronizando.comprasnet ? "Sincronizando..." : "Sincronizar agora"}
@@ -2151,7 +2151,7 @@ export default function AdminClient({
 
             <div className="rounded-xl p-5 backdrop-blur-[4px]" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/20 text-violet-400">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
                   <ClipboardList className="h-4 w-4" />
                 </div>
                 <span className="text-sm text-slate-400">Total propostas</span>

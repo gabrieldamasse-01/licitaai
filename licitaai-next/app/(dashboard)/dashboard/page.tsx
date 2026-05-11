@@ -695,8 +695,8 @@ export default async function DashboardPage() {
       {/* Card de Engajamento */}
       <div className="rounded-2xl border border-slate-700 bg-slate-800 p-5 md:p-6 shadow-sm">
         <div className="mb-5 flex items-center gap-2">
-          <div className="flex bg-violet-900/30 p-1.5 rounded-lg">
-            <Activity className="h-4 w-4 text-violet-400" />
+          <div className="flex bg-blue-900/30 p-1.5 rounded-lg">
+            <Activity className="h-4 w-4 text-blue-400" />
           </div>
           <h2 className="text-base font-semibold text-white">Seu engajamento</h2>
         </div>
@@ -716,7 +716,7 @@ export default async function DashboardPage() {
             <p className="text-xs text-slate-400 mt-1">Documentos em dia</p>
           </div>
           <div className="rounded-xl bg-slate-700/50 p-4 text-center">
-            <p className="text-2xl font-bold text-violet-400">{engajamento.notifHorario}</p>
+            <p className="text-2xl font-bold text-blue-400">{engajamento.notifHorario}</p>
             <p className="text-xs text-slate-400 mt-1">Próximo alerta diário</p>
           </div>
         </div>

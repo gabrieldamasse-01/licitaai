@@ -56,7 +56,7 @@ export function PwaRegister() {
   return (
     <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-3 bg-slate-900 border-t border-slate-700 px-4 py-3 shadow-lg">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-white font-bold text-sm">
+        <div className="shrink-0 w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
           L
         </div>
         <p className="text-sm text-slate-300 truncate">

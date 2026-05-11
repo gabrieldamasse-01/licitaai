@@ -115,11 +115,11 @@ export function AnaliseIaSection({
 
       {/* Card de Análise de IA — aparece após análise */}
       {analise && (
-        <div className="lg:col-span-3 rounded-xl border border-violet-800/50 bg-violet-950/30 p-5 space-y-3">
+        <div className="lg:col-span-3 rounded-xl border border-blue-800/50 bg-blue-950/20 p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-violet-400" />
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-400">
+              <Sparkles className="h-4 w-4 text-blue-400" />
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-blue-400">
                 Análise de IA
               </p>
             </div>
@@ -130,7 +130,7 @@ export function AnaliseIaSection({
                 className={
                   fromCache
                     ? "bg-slate-800 text-slate-300 border-slate-600 text-xs"
-                    : "bg-violet-900/60 text-violet-300 border-violet-700/50 text-xs"
+                    : "bg-blue-900/60 text-blue-300 border-blue-700/50 text-xs"
                 }
               >
                 {fromCache ? "Cache" : "Novo"}

@@ -69,13 +69,13 @@ export default async function DashboardLayout({
         {isImpersonating ? (
           <ImpersonationBanner email={impersonatedEmail!} />
         ) : (
-          <div className="shrink-0 px-4 py-2 flex items-center justify-center gap-3 backdrop-blur-sm border-b" style={{ background: "rgba(109,40,217,0.15)", borderColor: "rgba(139,92,246,0.25)" }}>
-            <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-400">
+          <div className="shrink-0 px-4 py-2 flex items-center justify-center gap-3 backdrop-blur-sm border-b" style={{ background: "rgba(37,99,235,0.08)", borderColor: "rgba(59,130,246,0.15)" }}>
+            <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-400">
               Beta
             </span>
             <p className="text-xs text-slate-400">
               Você está usando uma versão beta do LicitaAI.{" "}
-              <Link href="/feedback" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">
+              <Link href="/feedback" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">
                 Envie seu feedback
               </Link>
             </p>

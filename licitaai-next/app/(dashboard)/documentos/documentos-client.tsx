@@ -484,7 +484,7 @@ export function DocumentosClient({
             onClick={() => setAbaAtiva("todos")}
             className={`rounded px-4 py-1.5 text-sm font-medium transition-colors ${
               abaAtiva === "todos"
-                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]"
+                ? "bg-blue-600 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -494,7 +494,7 @@ export function DocumentosClient({
             onClick={() => setAbaAtiva("nicho")}
             className={`flex items-center gap-2 rounded px-4 py-1.5 text-sm font-medium transition-colors ${
               abaAtiva === "nicho"
-                ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]"
+                ? "bg-blue-600 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -981,7 +981,7 @@ export function DocumentosClient({
                   setForm((f) => ({ ...f, nome_arquivo: e.target.value }))
                 }}
                 placeholder="Ex: cnd_federal_empresa_2026.pdf"
-                className={`bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 ${iaPreenchido.has("nome_arquivo") ? "border-violet-500/60" : ""}`}
+                className={`bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 ${iaPreenchido.has("nome_arquivo") ? "border-blue-500/60" : ""}`}
                 required
               />
             </div>
@@ -999,7 +999,7 @@ export function DocumentosClient({
                   setIaPreenchido((s) => { const n = new Set(s); n.delete("data_emissao"); return n })
                   setForm((f) => ({ ...f, data_emissao: e.target.value }))
                 }}
-                className={`bg-slate-800 border-slate-600 text-white ${iaPreenchido.has("data_emissao") ? "border-violet-500/60" : ""}`}
+                className={`bg-slate-800 border-slate-600 text-white ${iaPreenchido.has("data_emissao") ? "border-blue-500/60" : ""}`}
               />
             </div>
 
@@ -1016,7 +1016,7 @@ export function DocumentosClient({
                   setIaPreenchido((s) => { const n = new Set(s); n.delete("data_validade"); return n })
                   setForm((f) => ({ ...f, data_validade: e.target.value }))
                 }}
-                className={`bg-slate-800 border-slate-600 text-white ${iaPreenchido.has("data_validade") ? "border-violet-500/60" : ""}`}
+                className={`bg-slate-800 border-slate-600 text-white ${iaPreenchido.has("data_validade") ? "border-blue-500/60" : ""}`}
               />
               <p className="text-xs text-slate-500">
                 Status calculado automaticamente com base na validade.
