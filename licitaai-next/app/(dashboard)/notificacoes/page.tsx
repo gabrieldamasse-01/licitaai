@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useTransition } from "react"
-import { Bell, AlertTriangle, AlertCircle, Target, Sparkles, CheckCheck } from "lucide-react"
+import { Bell, AlertTriangle, AlertCircle, Target, Sparkles, CheckCheck, XCircle, Info, FileWarning } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { marcarComoLida, marcarTodasComoLidas } from "./actions"
 import { cn } from "@/lib/utils"
@@ -17,13 +17,24 @@ type Notificacao = {
 }
 
 function IconeTipo({ tipo }: { tipo: string }) {
-  if (tipo === "documento_vencendo")
-    return <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
-  if (tipo === "documento_expirado")
-    return <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
-  if (tipo === "oportunidade_salva")
-    return <Target className="h-5 w-5 text-violet-400 shrink-0" />
-  return <Sparkles className="h-5 w-5 text-blue-400 shrink-0" />
+  switch (tipo) {
+    case "alerta_vencimento":
+    case "documento_vencendo":
+      return <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+    case "documento_expirado":
+      return <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
+    case "documento_faltando":
+      return <FileWarning className="h-5 w-5 text-orange-400 shrink-0" />
+    case "nova_oportunidade":
+    case "oportunidade_salva":
+      return <Target className="h-5 w-5 text-blue-400 shrink-0" />
+    case "licitacao_encerrada":
+      return <XCircle className="h-5 w-5 text-red-400 shrink-0" />
+    case "sistema":
+      return <Info className="h-5 w-5 text-slate-400 shrink-0" />
+    default:
+      return <Sparkles className="h-5 w-5 text-blue-400 shrink-0" />
+  }
 }
 
 function tempoRelativo(dateStr: string): string {

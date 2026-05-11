@@ -9,6 +9,9 @@ import {
   AlertCircle,
   Sparkles,
   CheckCheck,
+  XCircle,
+  Info,
+  FileWarning,
 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { createClient } from "@/lib/supabase/client"
@@ -42,13 +45,24 @@ function tempoRelativo(dateStr: string): string {
 }
 
 function IconeTipo({ tipo }: { tipo: string }) {
-  if (tipo === "documento_vencendo")
-    return <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-  if (tipo === "documento_expirado")
-    return <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
-  if (tipo === "oportunidade_salva")
-    return <Target className="h-4 w-4 text-violet-400 shrink-0" />
-  return <Sparkles className="h-4 w-4 text-blue-400 shrink-0" />
+  switch (tipo) {
+    case "alerta_vencimento":
+    case "documento_vencendo":
+      return <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+    case "documento_expirado":
+      return <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
+    case "documento_faltando":
+      return <FileWarning className="h-4 w-4 text-orange-400 shrink-0" />
+    case "nova_oportunidade":
+    case "oportunidade_salva":
+      return <Target className="h-4 w-4 text-blue-400 shrink-0" />
+    case "licitacao_encerrada":
+      return <XCircle className="h-4 w-4 text-red-400 shrink-0" />
+    case "sistema":
+      return <Info className="h-4 w-4 text-slate-400 shrink-0" />
+    default:
+      return <Sparkles className="h-4 w-4 text-blue-400 shrink-0" />
+  }
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -134,7 +148,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
           <Bell className="h-5 w-5" />
           {naoLidas > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white leading-none">
-              {naoLidas > 9 ? "9+" : naoLidas}
+              {naoLidas > 99 ? "99+" : naoLidas}
             </span>
           )}
         </button>
