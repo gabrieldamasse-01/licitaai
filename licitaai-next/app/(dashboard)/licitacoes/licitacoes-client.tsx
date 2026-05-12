@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import {
   Sheet,
   SheetContent,
@@ -595,31 +596,6 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
         </Button>
       </div>
 
-      {/* Incluir encerradas */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setIncluirEncerradas((v) => !v)}
-          className={cn(
-            "w-full flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors",
-            incluirEncerradas
-              ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
-              : "border-slate-600 bg-slate-800 text-slate-400 hover:border-slate-500 hover:text-slate-300"
-          )}
-        >
-          <span className="font-medium">Incluir encerradas</span>
-          <span className={cn(
-            "flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors",
-            incluirEncerradas ? "border-blue-500 bg-blue-600" : "border-slate-600 bg-slate-700"
-          )}>
-            <span className={cn(
-              "h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
-              incluirEncerradas ? "translate-x-[18px]" : "translate-x-0.5"
-            )} />
-          </span>
-        </button>
-      </div>
-
       {/* UF */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -683,6 +659,15 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Incluir encerradas */}
+      <div className="flex items-center justify-between py-2">
+        <span className="text-sm text-slate-300">Incluir encerradas</span>
+        <Switch
+          checked={incluirEncerradas}
+          onCheckedChange={setIncluirEncerradas}
+        />
       </div>
 
       {/* Limpar tudo */}
