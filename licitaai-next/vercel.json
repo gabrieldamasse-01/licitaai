@@ -20,6 +20,10 @@
     {
       "path": "/api/cron/licitacoes-comprasnet",
       "schedule": "0 9,15,21 * * *"
+    },
+    {
+      "path": "/api/cron/licitacoes-bll",
+      "schedule": "0 9,15,21 * * *"
     }
   ]
 }
