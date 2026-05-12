@@ -501,7 +501,7 @@ export default function AdminClient({
   }
 
   const hoje = new Date().toISOString().slice(0, 10)
-  const [syncPortal, setSyncPortal] = useState<"effecti" | "pncp">("effecti")
+  const [syncPortal, setSyncPortal] = useState<"todos" | "effecti" | "pncp">("effecti")
   const [syncBegin, setSyncBegin] = useState(hoje)
   const [syncEnd, setSyncEnd] = useState(hoje)
   const [syncLoading, setSyncLoading] = useState(false)
@@ -522,18 +522,47 @@ export default function AdminClient({
     setSyncLoading(true)
     setSyncResultado(null)
     try {
-      const res = await fetch("/api/cron/sync-manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ portal: syncPortal, begin: syncBegin, end: syncEnd }),
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        toast.error(json.error ?? `Erro ${res.status}`)
-        return
+      if (syncPortal === "todos") {
+        // Rodar Effecti + PNCP sequencialmente e consolidar resultados
+        const portaisSeq: Array<"effecti" | "pncp"> = ["effecti", "pncp"]
+        let consolidado: SyncManualResultado = { buscadas: 0, inseridas: 0, ignoradas: 0, encerradas: 0, erros: [], licitacoes_preview: [], janelas: [] }
+        for (const p of portaisSeq) {
+          const res = await fetch("/api/cron/sync-manual", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ portal: p, begin: syncBegin, end: syncEnd }),
+          })
+          const json = await res.json()
+          if (!res.ok) {
+            toast.error(`Erro no ${p}: ${json.error ?? res.status}`)
+            continue
+          }
+          consolidado = {
+            buscadas:           (consolidado.buscadas ?? 0)   + (json.buscadas ?? 0),
+            inseridas:          (consolidado.inseridas ?? 0)  + (json.inseridas ?? 0),
+            ignoradas:          (consolidado.ignoradas ?? 0)  + (json.ignoradas ?? 0),
+            encerradas:         (consolidado.encerradas ?? 0) + (json.encerradas ?? 0),
+            erros:              [...(consolidado.erros ?? []), ...(json.erros ?? [])],
+            licitacoes_preview: [...(consolidado.licitacoes_preview ?? []), ...(json.licitacoes_preview ?? [])],
+            janelas:            [...(consolidado.janelas ?? []), ...(json.janelas ?? [])],
+          }
+        }
+        setSyncResultado(consolidado)
+        toast.success(`Sync concluída (ambos portais): ${consolidado.inseridas} inseridas`)
+      } else {
+        const res = await fetch("/api/cron/sync-manual", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ portal: syncPortal, begin: syncBegin, end: syncEnd }),
+        })
+        const json = await res.json()
+        if (!res.ok) {
+          toast.error(json.error ?? `Erro ${res.status}`)
+          return
+        }
+        setSyncResultado(json)
+        toast.success(`Sync concluída: ${json.inseridas} inseridas`)
       }
-      setSyncResultado(json)
-      toast.success(`Sync concluída: ${json.inseridas} inseridas`)
     } catch (err) {
       toast.error(`Erro: ${String(err)}`)
     } finally {
@@ -1883,11 +1912,12 @@ export default function AdminClient({
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Portal</p>
-                <Select value={syncPortal} onValueChange={(v) => setSyncPortal(v as "effecti" | "pncp")}>
-                  <SelectTrigger className="w-40 bg-slate-900 border-slate-600 text-white h-9">
+                <Select value={syncPortal} onValueChange={(v) => setSyncPortal(v as "todos" | "effecti" | "pncp")}>
+                  <SelectTrigger className="w-48 bg-slate-900 border-slate-600 text-white h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                    <SelectItem value="todos">Todos os portais</SelectItem>
                     <SelectItem value="effecti">Effecti</SelectItem>
                     <SelectItem value="pncp">PNCP</SelectItem>
                     <SelectItem value="bnc" disabled className="opacity-50 flex items-center justify-between">
@@ -1958,7 +1988,7 @@ export default function AdminClient({
                 </button>
               ))}
             </div>
-            {syncPortal === "effecti" && (() => {
+            {(syncPortal === "effecti" || syncPortal === "todos") && (() => {
               const begin = syncBegin ? new Date(syncBegin) : null
               const end = syncEnd ? new Date(syncEnd) : null
               const diffDias = begin && end ? Math.ceil((end.getTime() - begin.getTime()) / (24 * 60 * 60 * 1000)) + 1 : 0

@@ -664,7 +664,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
 
       {/* Incluir encerradas */}
       <div className="flex items-center justify-between py-2">
-        <span className="text-sm text-slate-300">Incluir encerradas</span>
+        <span className="text-sm text-slate-300">Ver todas (inclui encerradas)</span>
         <Switch
           checked={incluirEncerradas}
           onCheckedChange={(val) => {
