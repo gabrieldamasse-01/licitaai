@@ -410,8 +410,9 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
   }
 
   // ─── Buscar ───────────────────────────────────────────────────────────────
-  function buscar(pagina = 0, buscaOverride?: string) {
+  function buscar(pagina = 0, buscaOverride?: string, encerradasOverride?: boolean) {
     const buscaTerm = buscaOverride ?? texto
+    const encerradas = encerradasOverride !== undefined ? encerradasOverride : incluirEncerradas
     if (buscaTerm.trim()) salvarHistorico(buscaTerm.trim())
     setShowHistorico(false)
     startTransition(async () => {
@@ -424,7 +425,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
         uf,
         modalidades,
         busca: buscaTerm || undefined,
-        status: incluirEncerradas ? "todas" : "ativa",
+        status: encerradas ? "todas" : "ativa",
       })
       setDados(result)
       setPaginaAtual(pagina)
@@ -666,7 +667,10 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
         <span className="text-sm text-slate-300">Incluir encerradas</span>
         <Switch
           checked={incluirEncerradas}
-          onCheckedChange={setIncluirEncerradas}
+          onCheckedChange={(val) => {
+            setIncluirEncerradas(val)
+            buscar(0, undefined, val)
+          }}
         />
       </div>
 

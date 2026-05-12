@@ -88,11 +88,11 @@ export async function fetchLicitacoes({
     const to = from + PAGE_SIZE - 1
 
     // Total no banco (badge — considera filtro de status)
-    const totalBancoQuery = supabase
+    let totalBancoQuery = supabase
       .from("licitacoes")
       .select("id", { count: "exact", head: true })
     if (!status || status !== "todas") {
-      totalBancoQuery.eq("status", "ativa")
+      totalBancoQuery = totalBancoQuery.eq("status", "ativa")
     }
     const { count: totalBanco } = await totalBancoQuery
 
