@@ -102,8 +102,9 @@ export async function fetchLicitacoes({
       .select("*", { count: "exact" })
       .order("data_publicacao", { ascending: false })
 
-    const filtroStatus = status && status !== "todas" ? status : "ativa"
-    query = query.eq("status", filtroStatus)
+    if (!status || status !== "todas") {
+      query = query.eq("status", "ativa")
+    }
 
     if (dataInicio) query = query.gte("data_publicacao", dataInicio)
     if (dataFim)    query = query.lte("data_publicacao", dataFim)
