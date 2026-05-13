@@ -3,8 +3,9 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { fetchBll } from "@/lib/portais/bll"
 
 // Cron de sincronização BLL → Supabase
-// Schedule: 0 9,15,21 * * * — 3x/dia
+// Schedule: 0 6,9,12,15,18,21 * * * — 6x/dia
 // Busca as 100 licitações mais recentes via scraping HTML público
+// Para se 100/100 já existem no banco (banco atualizado)
 // Aceita GET (Vercel Cron) e POST (chamada manual) com Authorization: Bearer <CRON_SECRET>
 
 export const maxDuration = 60
@@ -27,6 +28,7 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 
   let inseridas = 0
   let ignoradas = 0
+  let parou_cedo = false
 
   if (licitacoes.length > 0) {
     const sourceIds = licitacoes.map((l) => l.source_id)
@@ -39,15 +41,22 @@ async function executar(req: NextRequest): Promise<NextResponse> {
     const qtdExistentes = existentes ?? 0
     const qtdNovas = licitacoes.length - qtdExistentes
 
-    const { error: upsertError } = await supabase
-      .from("licitacoes")
-      .upsert(licitacoes, { onConflict: "source_id" })
-
-    if (upsertError) {
-      erros.push(`upsert: ${upsertError.message}`)
-    } else {
-      inseridas = qtdNovas
+    // Parada inteligente: se todas já existem, banco está atualizado
+    if (qtdExistentes === licitacoes.length) {
+      parou_cedo = true
       ignoradas = qtdExistentes
+      console.log(`[cron/licitacoes-bll] ${qtdExistentes}/${licitacoes.length} já existiam — banco atualizado, sem upsert necessário`)
+    } else {
+      const { error: upsertError } = await supabase
+        .from("licitacoes")
+        .upsert(licitacoes, { onConflict: "source_id" })
+
+      if (upsertError) {
+        erros.push(`upsert: ${upsertError.message}`)
+      } else {
+        inseridas = qtdNovas
+        ignoradas = qtdExistentes
+      }
     }
   }
 
@@ -56,6 +65,7 @@ async function executar(req: NextRequest): Promise<NextResponse> {
     buscadas,
     inseridas,
     ignoradas,
+    parou_cedo,
     executado_em: agora.toISOString(),
     erros: erros.length > 0 ? erros : undefined,
   }
