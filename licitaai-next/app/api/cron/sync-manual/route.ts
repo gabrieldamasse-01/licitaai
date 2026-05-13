@@ -481,6 +481,44 @@ async function syncBll(
   }
 }
 
+async function syncLicitarDigital(): Promise<SyncManualResult> {
+  const agora = new Date()
+  const hoje = agora.toISOString().slice(0, 10)
+  const scraperUrl = process.env.SCRAPER_SERVICE_URL
+  if (!scraperUrl) {
+    return { inseridas: 0, ignoradas: 0, encerradas: 0, buscadas: 0, erros: ["SCRAPER_SERVICE_URL não configurado"], licitacoes_preview: [], janelas: [] }
+  }
+  try {
+    const res = await fetch(`${scraperUrl}/scrape/licitar-digital`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.CRON_SECRET}`,
+        "Content-Type": "application/json",
+      },
+      signal: AbortSignal.timeout(55000),
+    })
+    if (!res.ok) {
+      const body = await res.text().catch(() => "")
+      return { inseridas: 0, ignoradas: 0, encerradas: 0, buscadas: 0, erros: [`scraper HTTP ${res.status}: ${body.slice(0, 200)}`], licitacoes_preview: [], janelas: [] }
+    }
+    const json = await res.json() as { ok?: boolean; inseridas?: number; ignoradas?: number; erros?: string[] }
+    const inseridas = json.inseridas ?? 0
+    const ignoradas = json.ignoradas ?? 0
+    return {
+      inseridas,
+      ignoradas,
+      encerradas: 0,
+      buscadas: inseridas + ignoradas,
+      erros: json.erros ?? [],
+      licitacoes_preview: [],
+      janelas: [{ inicio: hoje, fim: hoje, buscadas: inseridas + ignoradas, inseridas, ignoradas }],
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return { inseridas: 0, ignoradas: 0, encerradas: 0, buscadas: 0, erros: [`scraper unreachable: ${msg}`], licitacoes_preview: [], janelas: [] }
+  }
+}
+
 export async function POST(req: NextRequest) {
   // Aceita CRON_SECRET via Bearer (chamadas via terminal/script)
   const auth = req.headers.get("authorization") ?? ""
@@ -502,10 +540,10 @@ export async function POST(req: NextRequest) {
 
   const { portal, begin, end } = body
 
-  if (!portal || !["effecti", "pncp", "bll", "bnc"].includes(portal)) {
-    return NextResponse.json({ error: "portal deve ser 'effecti', 'pncp', 'bll' ou 'bnc'." }, { status: 400 })
+  if (!portal || !["effecti", "pncp", "bll", "bnc", "licitar-digital"].includes(portal)) {
+    return NextResponse.json({ error: "portal deve ser 'effecti', 'pncp', 'bll', 'bnc' ou 'licitar-digital'." }, { status: 400 })
   }
-  if (portal !== "bll" && portal !== "bnc" && (!begin || !end)) {
+  if (!["bll", "bnc", "licitar-digital"].includes(portal) && (!begin || !end)) {
     return NextResponse.json({ error: "begin e end são obrigatórios." }, { status: 400 })
   }
 
@@ -517,7 +555,9 @@ export async function POST(req: NextRequest) {
         ? await syncPncp(supabase, begin!, end!)
         : portal === "bnc"
           ? await syncBnc(supabase)
-          : await syncBll(supabase)
+          : portal === "licitar-digital"
+            ? await syncLicitarDigital()
+            : await syncBll(supabase)
 
   await supabase.from("agent_logs").insert({
     agent: "sync-manual",

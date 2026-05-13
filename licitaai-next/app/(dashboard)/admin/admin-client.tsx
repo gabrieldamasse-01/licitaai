@@ -501,7 +501,7 @@ export default function AdminClient({
   }
 
   const hoje = new Date().toISOString().slice(0, 10)
-  const [syncPortal, setSyncPortal] = useState<"todos" | "effecti" | "pncp" | "bll" | "bnc">("effecti")
+  const [syncPortal, setSyncPortal] = useState<"todos" | "effecti" | "pncp" | "bll" | "bnc" | "licitar-digital">("effecti")
   const [syncBegin, setSyncBegin] = useState(hoje)
   const [syncEnd, setSyncEnd] = useState(hoje)
   const [syncLoading, setSyncLoading] = useState(false)
@@ -522,7 +522,21 @@ export default function AdminClient({
     setSyncLoading(true)
     setSyncResultado(null)
     try {
-      if (syncPortal === "todos") {
+      if (syncPortal === "licitar-digital") {
+        // Licitar Digital usa scraper Railway — não suporta filtro por data
+        const res = await fetch("/api/cron/sync-manual", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ portal: "licitar-digital" }),
+        })
+        const json = await res.json()
+        if (!res.ok) {
+          toast.error(json.error ?? `Erro ${res.status}`)
+          return
+        }
+        setSyncResultado(json)
+        toast.success(`Licitar Digital: ${json.inseridas ?? 0} inseridas`)
+      } else if (syncPortal === "todos") {
         // Rodar Effecti + PNCP sequencialmente e consolidar resultados
         const portaisSeq: Array<"effecti" | "pncp" | "bll" | "bnc"> = ["effecti", "pncp", "bll", "bnc"]
         let consolidado: SyncManualResultado = { buscadas: 0, inseridas: 0, ignoradas: 0, encerradas: 0, erros: [], licitacoes_preview: [], janelas: [] }
@@ -1912,7 +1926,7 @@ export default function AdminClient({
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Portal</p>
-                <Select value={syncPortal} onValueChange={(v) => setSyncPortal(v as "todos" | "effecti" | "pncp" | "bll" | "bnc")}>
+                <Select value={syncPortal} onValueChange={(v) => setSyncPortal(v as "todos" | "effecti" | "pncp" | "bll" | "bnc" | "licitar-digital")}>
                   <SelectTrigger className="w-48 bg-slate-900 border-slate-600 text-white h-9">
                     <SelectValue />
                   </SelectTrigger>
@@ -1926,10 +1940,7 @@ export default function AdminClient({
                       <span>Licitações-e</span>
                       <span className="ml-2 text-[10px] font-medium bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded">Em breve</span>
                     </SelectItem>
-                    <SelectItem value="licitar-digital" disabled className="opacity-50">
-                      <span>Licitar Digital</span>
-                      <span className="ml-2 text-[10px] font-medium bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded">Em breve</span>
-                    </SelectItem>
+                    <SelectItem value="licitar-digital">Licitar Digital</SelectItem>
                     <SelectItem value="compras-publicas" disabled className="opacity-50">
                       <span>Compras Públicas</span>
                       <span className="ml-2 text-[10px] font-medium bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded">Em breve</span>
