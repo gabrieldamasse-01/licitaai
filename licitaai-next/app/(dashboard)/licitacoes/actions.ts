@@ -87,8 +87,9 @@ export async function fetchLicitacoes({
     const from = pagina * PAGE_SIZE
     const to = from + PAGE_SIZE - 1
 
-    // Total no banco (badge — considera filtro de status)
-    let totalBancoQuery = supabase
+    // Total no banco (badge — service role, sem RLS, considera filtro de status)
+    const serviceClient = createServiceClient()
+    let totalBancoQuery = serviceClient
       .from("licitacoes")
       .select("id", { count: "exact", head: true })
     if (!status || status !== "todas") {
