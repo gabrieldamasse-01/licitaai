@@ -77,13 +77,35 @@ async function fetchPaginaModalidade(
   url.searchParams.set("tamanhoPagina", String(TAMANHO_PAGINA))
   url.searchParams.set("codigoModalidadeContratacao", String(codigoModalidade))
 
-  const res = await fetch(url.toString(), { signal, cache: "no-store" })
-  if (res.status === 404 || res.status === 204) return {}
-  if (!res.ok) {
-    console.warn(`[cron/licitacoes-pncp] HTTP ${res.status} modalidade=${codigoModalidade} pagina=${pagina}`)
-    return {}
+  const MAX_TENTATIVAS = 3
+  let ultimoErro: unknown
+
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    if (signal.aborted) throw new Error("AbortError")
+    try {
+      const res = await fetch(url.toString(), { signal, cache: "no-store" })
+      if (res.status === 404 || res.status === 204) return {}
+      if (res.status === 429 || res.status >= 500) {
+        const espera = tentativa * 5000
+        console.warn(`[cron/licitacoes-pncp] HTTP ${res.status} mod=${codigoModalidade} pag=${pagina} — tentativa ${tentativa}/${MAX_TENTATIVAS}, aguardando ${espera}ms`)
+        if (tentativa < MAX_TENTATIVAS) await new Promise((r) => setTimeout(r, espera))
+        continue
+      }
+      if (!res.ok) {
+        console.warn(`[cron/licitacoes-pncp] HTTP ${res.status} modalidade=${codigoModalidade} pagina=${pagina}`)
+        return {}
+      }
+      return res.json() as Promise<PncpPage>
+    } catch (err) {
+      ultimoErro = err
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes("abort") || msg.includes("Abort")) throw err // não retry em abort
+      console.warn(`[cron/licitacoes-pncp] Erro rede mod=${codigoModalidade} pag=${pagina} tentativa ${tentativa}/${MAX_TENTATIVAS}: ${msg}`)
+      if (tentativa < MAX_TENTATIVAS) await new Promise((r) => setTimeout(r, tentativa * 5000))
+    }
   }
-  return res.json() as Promise<PncpPage>
+
+  throw ultimoErro ?? new Error(`Falha após ${MAX_TENTATIVAS} tentativas mod=${codigoModalidade} pag=${pagina}`)
 }
 
 async function executar(req: NextRequest): Promise<NextResponse> {
@@ -120,7 +142,7 @@ async function executar(req: NextRequest): Promise<NextResponse> {
 
     while (pagina <= totalPaginas && pagina <= MAX_PAGINAS) {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 50000)
+      const timeout = setTimeout(() => controller.abort(), 60000)
 
       let page: PncpPage
       try {
