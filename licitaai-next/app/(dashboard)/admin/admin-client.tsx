@@ -501,7 +501,7 @@ export default function AdminClient({
   }
 
   const hoje = new Date().toISOString().slice(0, 10)
-  const [syncPortal, setSyncPortal] = useState<"todos" | "effecti" | "pncp" | "bll">("effecti")
+  const [syncPortal, setSyncPortal] = useState<"todos" | "effecti" | "pncp" | "bll" | "bnc">("effecti")
   const [syncBegin, setSyncBegin] = useState(hoje)
   const [syncEnd, setSyncEnd] = useState(hoje)
   const [syncLoading, setSyncLoading] = useState(false)
@@ -524,7 +524,7 @@ export default function AdminClient({
     try {
       if (syncPortal === "todos") {
         // Rodar Effecti + PNCP sequencialmente e consolidar resultados
-        const portaisSeq: Array<"effecti" | "pncp" | "bll"> = ["effecti", "pncp", "bll"]
+        const portaisSeq: Array<"effecti" | "pncp" | "bll" | "bnc"> = ["effecti", "pncp", "bll", "bnc"]
         let consolidado: SyncManualResultado = { buscadas: 0, inseridas: 0, ignoradas: 0, encerradas: 0, erros: [], licitacoes_preview: [], janelas: [] }
         for (const p of portaisSeq) {
           const res = await fetch("/api/cron/sync-manual", {
@@ -1912,7 +1912,7 @@ export default function AdminClient({
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Portal</p>
-                <Select value={syncPortal} onValueChange={(v) => setSyncPortal(v as "todos" | "effecti" | "pncp" | "bll")}>
+                <Select value={syncPortal} onValueChange={(v) => setSyncPortal(v as "todos" | "effecti" | "pncp" | "bll" | "bnc")}>
                   <SelectTrigger className="w-48 bg-slate-900 border-slate-600 text-white h-9">
                     <SelectValue />
                   </SelectTrigger>
@@ -1920,10 +1920,7 @@ export default function AdminClient({
                     <SelectItem value="todos">Todos os portais</SelectItem>
                     <SelectItem value="effecti">Effecti</SelectItem>
                     <SelectItem value="pncp">PNCP</SelectItem>
-                    <SelectItem value="bnc" disabled className="opacity-50 flex items-center justify-between">
-                      <span>BNC — Bolsa Nacional de Compras</span>
-                      <span className="ml-2 text-[10px] font-medium bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded">Em breve</span>
-                    </SelectItem>
+                    <SelectItem value="bnc">BNC — Bolsa Nacional de Compras</SelectItem>
                     <SelectItem value="bll">BLL</SelectItem>
                     <SelectItem value="licitacoes-e" disabled className="opacity-50">
                       <span>Licitações-e</span>

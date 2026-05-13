@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { fetchEffectiLicitacoes } from "@/lib/effecti"
 import { fetchBll } from "@/lib/portais/bll"
+import { fetchBnc } from "@/lib/portais/bnc"
 import { isAdmin } from "@/lib/is-admin"
 
 export const maxDuration = 300
@@ -372,6 +373,60 @@ async function syncPncp(
   return { inseridas, ignoradas, encerradas, buscadas, erros, licitacoes_preview: preview, janelas: [{ inicio: begin.slice(0, 10), fim: end.slice(0, 10), buscadas, inseridas, ignoradas }] }
 }
 
+async function syncBnc(
+  supabase: ReturnType<typeof createServiceClient>,
+): Promise<SyncManualResult> {
+  const agora = new Date()
+  const erros: string[] = []
+  const preview: LicitacaoPreview[] = []
+
+  const { licitacoes, total: buscadas, erros: fetchErros } = await fetchBnc()
+  erros.push(...fetchErros)
+
+  let inseridas = 0
+  let ignoradas = 0
+
+  if (licitacoes.length > 0) {
+    const sourceIds = licitacoes.map((l) => l.source_id)
+    const { data: existentes } = await supabase
+      .from("licitacoes")
+      .select("source_id")
+      .in("source_id", sourceIds)
+
+    const idsExistentes = new Set(existentes?.map((e) => e.source_id) ?? [])
+    const novas = licitacoes.filter((l) => !idsExistentes.has(l.source_id))
+    ignoradas = licitacoes.length - novas.length
+
+    const { error: upsertError } = await upsertComRetry(supabase, licitacoes as Record<string, unknown>[])
+    if (upsertError) {
+      erros.push(`Upsert BNC: ${upsertError.message}`)
+    } else {
+      inseridas = novas.length
+      for (const row of novas.slice(0, 200)) {
+        preview.push({
+          objeto: (row.objeto ?? "").slice(0, 120),
+          orgao: row.orgao ?? "",
+          uf: row.uf,
+          valor: null,
+          status: row.status,
+          source_id: row.source_id,
+        })
+      }
+    }
+  }
+
+  const hoje = agora.toISOString().slice(0, 10)
+  return {
+    inseridas,
+    ignoradas,
+    encerradas: 0,
+    buscadas,
+    erros,
+    licitacoes_preview: preview,
+    janelas: [{ inicio: hoje, fim: hoje, buscadas, inseridas, ignoradas }],
+  }
+}
+
 async function syncBll(
   supabase: ReturnType<typeof createServiceClient>,
 ): Promise<SyncManualResult> {
@@ -447,10 +502,10 @@ export async function POST(req: NextRequest) {
 
   const { portal, begin, end } = body
 
-  if (!portal || !["effecti", "pncp", "bll"].includes(portal)) {
-    return NextResponse.json({ error: "portal deve ser 'effecti', 'pncp' ou 'bll'." }, { status: 400 })
+  if (!portal || !["effecti", "pncp", "bll", "bnc"].includes(portal)) {
+    return NextResponse.json({ error: "portal deve ser 'effecti', 'pncp', 'bll' ou 'bnc'." }, { status: 400 })
   }
-  if (portal !== "bll" && (!begin || !end)) {
+  if (portal !== "bll" && portal !== "bnc" && (!begin || !end)) {
     return NextResponse.json({ error: "begin e end são obrigatórios." }, { status: 400 })
   }
 
@@ -460,7 +515,9 @@ export async function POST(req: NextRequest) {
       ? await syncEffecti(supabase, begin!, end!)
       : portal === "pncp"
         ? await syncPncp(supabase, begin!, end!)
-        : await syncBll(supabase)
+        : portal === "bnc"
+          ? await syncBnc(supabase)
+          : await syncBll(supabase)
 
   await supabase.from("agent_logs").insert({
     agent: "sync-manual",
