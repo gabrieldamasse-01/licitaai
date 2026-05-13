@@ -28,6 +28,10 @@
     {
       "path": "/api/cron/licitacoes-bnc",
       "schedule": "0 6,9,12,15,18,21 * * *"
+    },
+    {
+      "path": "/api/cron/licitacoes-licitar-digital",
+      "schedule": "0 7,13,19 * * *"
     }
   ]
 }
