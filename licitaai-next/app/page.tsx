@@ -12,6 +12,7 @@ import { LandingPlanos } from "@/components/landing/landing-planos"
 import { LandingCTA } from "@/components/landing/landing-cta"
 import { LandingFaq } from "@/components/landing/landing-faq"
 import { LandingFooter } from "@/components/landing/landing-footer"
+import { ChatWidget } from "@/components/landing/chat-widget"
 
 async function getLicitacoesStats() {
   try {
@@ -60,6 +61,7 @@ export default async function Home() {
       <LandingCTA />
       <LandingFaq />
       <LandingFooter />
+      <ChatWidget />
     </main>
   )
 }

@@ -110,6 +110,9 @@ licitaai-next/
 - `scraping-agent` — coleta PNCP/Effecti
 - `comms-agent` — alertas email/WhatsApp
 
+## Skills disponíveis
+- UI/UX Pro Max: `licitaai-next/.claude/skills/ui-ux-pro-max/SKILL.md` — usar antes de qualquer tarefa de design/frontend
+
 ## Regras obrigatórias
 - SEMPRE rodar `fiscal-qa` após implementações
 - SEMPRE rodar `tsc --noEmit` antes de commitar

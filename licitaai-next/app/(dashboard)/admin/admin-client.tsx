@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useCallback } from "react"
 import EffectiTab from "./effecti-tab"
+import { CrmTab } from "./crm-tab"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import {
@@ -181,6 +182,16 @@ type AdminClientProps = {
   whatsappMensagensHoje: number
   zapiConectado: boolean
   companies: Array<{ id: string; razao_social: string }>
+  leads: Array<{
+    id: string
+    nome: string
+    email: string
+    empresa: string | null
+    status: string
+    origem: string
+    ultima_interacao: string | null
+    created_at: string
+  }>
 }
 
 // ─── Componente de Métrica ────────────────────────────────────────────────────
@@ -391,6 +402,7 @@ export default function AdminClient({
   whatsappMensagensHoje,
   zapiConectado,
   companies,
+  leads,
 }: AdminClientProps) {
   const router = useRouter()
 
@@ -1047,6 +1059,7 @@ export default function AdminClient({
             { value: "sincronizacao", label: "Sincronização" },
             { value: "metricas", label: "Métricas" },
             { value: "effecti", label: "Effecti" },
+            { value: "crm", label: "CRM" },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -2321,6 +2334,10 @@ export default function AdminClient({
 
         <TabsContent value="effecti" className="mt-6">
           <EffectiTab />
+        </TabsContent>
+
+        <TabsContent value="crm" className="mt-6">
+          <CrmTab leads={leads} />
         </TabsContent>
       </Tabs>
     </div>

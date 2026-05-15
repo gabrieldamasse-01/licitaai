@@ -40,6 +40,7 @@ export default async function AdminPage({
     { data: propostasTopRaw },
     { data: matchesTopRaw },
     { data: usuariosAtivosRaw },
+    { data: leadsRaw },
   ] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
     admin.from("companies").select("*", { count: "exact", head: true }),
@@ -81,6 +82,11 @@ export default async function AdminPage({
       .from("propostas_geradas")
       .select("user_id, created_at")
       .gte("created_at", trinta_dias_atras),
+    admin
+      .from("leads")
+      .select("id, nome, email, empresa, status, origem, ultima_interacao, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200),
   ])
 
   const authUsers = authData?.users ?? []
@@ -256,6 +262,16 @@ export default async function AdminPage({
       whatsappMensagensHoje={whatsappMensagensHoje ?? 0}
       zapiConectado={zapiConectado}
       companies={companiesList}
+      leads={(leadsRaw ?? []).map((l) => ({
+        id: l.id as string,
+        nome: l.nome as string,
+        email: l.email as string,
+        empresa: l.empresa as string | null,
+        status: l.status as string,
+        origem: l.origem as string,
+        ultima_interacao: l.ultima_interacao as string | null,
+        created_at: l.created_at as string,
+      }))}
     />
   )
 }
