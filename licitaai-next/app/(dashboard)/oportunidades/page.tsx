@@ -1,11 +1,15 @@
+export const revalidate = 60
+
+import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { OportunidadesClient } from "./oportunidades-client"
 import type { Empresa } from "./actions"
 import { getUserPlan } from "@/lib/get-user-plan"
 import { PlanoBloqueado } from "@/components/plano-bloqueado"
 import { isPlanoPago } from "@/lib/plans"
+import OportunidadesLoading from "./loading"
 
-export default async function OportunidadesPage() {
+async function OportunidadesConteudo() {
   const plano = await getUserPlan()
   if (!isPlanoPago(plano)) return <PlanoBloqueado recurso="Oportunidades" />
 
@@ -34,5 +38,13 @@ export default async function OportunidadesPage() {
 
       <OportunidadesClient empresas={(empresas ?? []) as Empresa[]} />
     </div>
+  )
+}
+
+export default function OportunidadesPage() {
+  return (
+    <Suspense fallback={<OportunidadesLoading />}>
+      <OportunidadesConteudo />
+    </Suspense>
   )
 }

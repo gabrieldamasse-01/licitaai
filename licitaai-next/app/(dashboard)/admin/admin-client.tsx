@@ -146,6 +146,7 @@ type AdminClientProps = {
     created_at: string
     razao_social?: string
     plano?: string
+    avatar_url?: string
   }>
   feedbacks: Array<{
     id: string
@@ -1196,8 +1197,16 @@ export default function AdminClient({
                       key={cliente.id}
                       className="border-slate-700/30 hover:bg-white/[0.02] transition-colors"
                     >
-                      <TableCell className="text-slate-300 font-mono text-xs">
-                        {cliente.email}
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 shrink-0 rounded-full overflow-hidden bg-blue-600 flex items-center justify-center text-[11px] font-bold text-white">
+                            {cliente.avatar_url
+                              ? <img src={cliente.avatar_url} alt="" className="h-full w-full object-cover" />
+                              : (cliente.email[0] ?? "?").toUpperCase()
+                            }
+                          </div>
+                          <span className="text-slate-300 font-mono text-xs">{cliente.email}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {cliente.razao_social ? (

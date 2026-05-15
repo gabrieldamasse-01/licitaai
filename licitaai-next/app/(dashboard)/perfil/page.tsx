@@ -19,7 +19,7 @@ export default async function PerfilPage() {
         .single(),
       sb
         .from('user_preferences')
-        .select('plano, plano_expira_em, created_at')
+        .select('plano, plano_expira_em, created_at, nome, telefone, cargo, avatar_url')
         .eq('user_id', user.id)
         .single(),
       sb
@@ -43,6 +43,10 @@ export default async function PerfilPage() {
       planoExpiraEm={prefs?.plano_expira_em ?? null}
       notificacoes={notificacoes ?? []}
       totalMatches={matches?.length ?? 0}
+      nome={prefs?.nome ?? null}
+      telefone={prefs?.telefone ?? null}
+      cargo={prefs?.cargo ?? null}
+      avatarUrl={prefs?.avatar_url ?? null}
     />
   )
 }

@@ -1,3 +1,6 @@
+export const revalidate = 60
+
+import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -28,6 +31,7 @@ import {
   GraficoDocsEmpresaWrapper as GraficoDocsEmpresa,
 } from "./graficos-wrapper"
 import { ExportarRelatorioBtn } from "./exportar-relatorio-btn"
+import RelatoriosLoading from "./loading"
 
 // ─── Checklist (espelhado de oportunidades/actions.ts) ────────────────────────
 
@@ -93,7 +97,7 @@ function diasRestantes(dataValidade: string): number {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function RelatoriosPage() {
+async function RelatoriosConteudo() {
   const plano = await getUserPlan()
   if (!isPlanoPago(plano)) return <PlanoBloqueado recurso="Relatórios" />
 
@@ -426,6 +430,14 @@ export default async function RelatoriosPage() {
         )}
       </section>
     </div>
+  )
+}
+
+export default function RelatoriosPage() {
+  return (
+    <Suspense fallback={<RelatoriosLoading />}>
+      <RelatoriosConteudo />
+    </Suspense>
   )
 }
 

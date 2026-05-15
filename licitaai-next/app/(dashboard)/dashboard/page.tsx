@@ -1,3 +1,7 @@
+export const revalidate = 60
+
+import { Suspense } from "react"
+import DashboardLoading from "./loading"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
@@ -419,7 +423,7 @@ const metricCards = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function DashboardPage() {
+async function DashboardConteudo() {
   const impersonatingUserId = await getImpersonatingUserId()
 
   const [metrics, matchesPorMes, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado, dadosMonitoramento] = await Promise.all([
@@ -723,5 +727,13 @@ export default async function DashboardPage() {
       </div>
 
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardConteudo />
+    </Suspense>
   )
 }

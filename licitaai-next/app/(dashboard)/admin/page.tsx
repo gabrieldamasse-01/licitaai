@@ -1,9 +1,13 @@
+export const revalidate = 60
+
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import { isAdmin } from "@/lib/is-admin"
 import { createServiceClient } from "@/lib/supabase/service"
 import AdminClient from "./admin-client"
+import AdminLoading from "./loading"
 
-export default async function AdminPage({
+async function AdminConteudo({
   searchParams,
 }: {
   searchParams: Promise<{ tab?: string }>
@@ -42,7 +46,7 @@ export default async function AdminPage({
     { data: usuariosAtivosRaw },
     { data: leadsRaw },
   ] = await Promise.all([
-    admin.auth.admin.listUsers({ perPage: 1000 }),
+    admin.auth.admin.listUsers({ perPage: 100 }),
     admin.from("companies").select("*", { count: "exact", head: true }),
     admin.from("matches").select("*", { count: "exact", head: true }),
     admin.from("documents").select("*", { count: "exact", head: true }),
@@ -53,7 +57,7 @@ export default async function AdminPage({
       .limit(100),
     admin.from("admin_users").select("*").order("created_at", { ascending: false }),
     admin.from("companies").select("id, user_id, razao_social").limit(1000),
-    admin.from("user_preferences").select("user_id, plano").limit(1000),
+    admin.from("user_preferences").select("user_id, plano, avatar_url").limit(1000),
     admin
       .from("matches")
       .select("id, relevancia_score, created_at, companies!inner(razao_social), licitacoes!inner(objeto, orgao)")
@@ -73,11 +77,13 @@ export default async function AdminPage({
     admin
       .from("propostas_geradas")
       .select("user_id")
-      .order("user_id"),
+      .order("user_id")
+      .limit(100),
     admin
       .from("matches")
       .select("companies!inner(user_id)")
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(100),
     admin
       .from("propostas_geradas")
       .select("user_id, created_at")
@@ -101,7 +107,7 @@ export default async function AdminPage({
     .filter((c) => c.razao_social)
     .map((c) => ({ id: c.id as string, razao_social: c.razao_social as string }))
   const prefsByUserId = Object.fromEntries(
-    (userPrefs ?? []).map((p) => [p.user_id, p.plano as string]),
+    (userPrefs ?? []).map((p) => [p.user_id, { plano: p.plano as string, avatar_url: p.avatar_url as string | undefined }]),
   )
   const emailByUserId = Object.fromEntries(
     authUsers.map((u) => [u.id, u.email ?? ""]),
@@ -121,7 +127,8 @@ export default async function AdminPage({
       email: u.email ?? "",
       created_at: u.created_at,
       razao_social: companyByUserId[u.id],
-      plano: prefsByUserId[u.id],
+      plano: prefsByUserId[u.id]?.plano,
+      avatar_url: prefsByUserId[u.id]?.avatar_url,
     }))
 
   // Montar feedbacks com email
@@ -273,5 +280,17 @@ export default async function AdminPage({
         created_at: l.created_at as string,
       }))}
     />
+  )
+}
+
+export default function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
+  return (
+    <Suspense fallback={<AdminLoading />}>
+      <AdminConteudo searchParams={searchParams} />
+    </Suspense>
   )
 }

@@ -108,10 +108,27 @@ export function AppSidebar({ email = "", isAdmin = false, plano = "gratuito", on
   const initial = getInitial(email)
 
   const [collapsed, setCollapsed] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed")
     if (saved !== null) setCollapsed(saved === "true")
+  }, [])
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(supabase as any)
+        .from("user_preferences")
+        .select("avatar_url")
+        .eq("user_id", user.id)
+        .single()
+        .then(({ data }: { data: { avatar_url: string | null } | null }) => {
+          if (data?.avatar_url) setAvatarUrl(data.avatar_url)
+        })
+    })
   }, [])
 
   function toggleCollapsed() {
@@ -240,9 +257,12 @@ export function AppSidebar({ email = "", isAdmin = false, plano = "gratuito", on
               href="/perfil"
               title="Meu Perfil"
               onClick={onNavigate}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[13px] font-bold text-white shadow hover:shadow-md hover:scale-105 transition-all"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full overflow-hidden bg-blue-600 text-[13px] font-bold text-white shadow hover:shadow-md hover:scale-105 transition-all"
             >
-              {initial}
+              {avatarUrl
+                ? <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                : initial
+              }
             </Link>
             <button
               onClick={handleLogout}
@@ -260,8 +280,11 @@ export function AppSidebar({ email = "", isAdmin = false, plano = "gratuito", on
               className="flex items-center gap-3 min-w-0 group"
               title="Meu Perfil"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[13px] font-bold text-white shadow group-hover:shadow-md group-hover:scale-105 transition-all">
-                {initial}
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full overflow-hidden bg-blue-600 text-[13px] font-bold text-white shadow group-hover:shadow-md group-hover:scale-105 transition-all">
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                  : initial
+                }
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-white truncate leading-tight group-hover:text-blue-300 transition-colors">{firstName}</p>
