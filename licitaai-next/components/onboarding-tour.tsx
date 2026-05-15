@@ -43,16 +43,19 @@ const steps = [
   },
 ]
 
-export function OnboardingTour() {
+export function OnboardingTour({ userCreatedAt }: { userCreatedAt: string }) {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const done = localStorage.getItem(TOUR_KEY)
-      if (!done) setShow(true)
+      const criado = new Date(userCreatedAt)
+      const seteDiasAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      const novoUsuario = criado > seteDiasAtras
+      if (!done && novoUsuario) setShow(true)
     }
-  }, [])
+  }, [userCreatedAt])
 
   function finish() {
     if (typeof window !== "undefined") {

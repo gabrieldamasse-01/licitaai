@@ -70,6 +70,7 @@ export function LoginForm({
   }
 
   const onSubmit = async (data: LoginData) => {
+    autofillCount.current = 0
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
@@ -88,6 +89,9 @@ export function LoginForm({
     const email = emailRef.current?.value
     const password = passwordRef.current?.value
     if (!email || !password) return
+    // Evita dupla submissão se onSubmit normal já está rodando
+    if (isAutoSubmitting) return
+    autofillCount.current = 0
     setIsAutoSubmitting(true)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })

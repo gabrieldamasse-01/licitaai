@@ -85,7 +85,7 @@ export default async function DashboardLayout({
         <main className="flex-1 overflow-y-auto bg-slate-900 p-4 md:p-6 lg:p-8 pb-20 md:pb-6 lg:pb-8">
           {children}
         </main>
-        <OnboardingTour />
+        <OnboardingTour userCreatedAt={user.created_at} />
         <PwaRegister />
         <BottomNav />
       </div>
