@@ -12,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Scale, Loader2, TrendingUp, Shield, Zap, Eye, EyeOff } from "lucide-react"
 import { traduzirErro } from "@/lib/auth-errors"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -41,15 +41,7 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   })
 
-  // Refs para detecção de autofill do browser
-  const emailRef = useRef<HTMLInputElement | null>(null)
-  const passwordRef = useRef<HTMLInputElement | null>(null)
-  const autofillCount = useRef(0)
-  const [isAutoSubmitting, setIsAutoSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-
-  const { ref: emailRegRef, ...emailRegRest } = register("email")
-  const { ref: passwordRegRef, ...passwordRegRest } = register("password")
 
   async function handlePostLogin() {
     // Verifica se o usuário tem 2FA ativado
@@ -69,7 +61,6 @@ export function LoginForm({
   }
 
   const onSubmit = async (data: LoginData) => {
-    autofillCount.current = 0
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
@@ -82,61 +73,10 @@ export function LoginForm({
     await handlePostLogin()
   }
 
-  // Submissão direta lendo os valores do DOM (necessário pois autofill não
-  // dispara onChange do React, então react-hook-form não tem os valores)
-  const submitFromAutofill = async () => {
-    const email = emailRef.current?.value
-    const password = passwordRef.current?.value
-    if (!email || !password) return
-    // Evita dupla submissão se onSubmit normal já está rodando
-    if (isAutoSubmitting) return
-    autofillCount.current = 0
-    setIsAutoSubmitting(true)
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setIsAutoSubmitting(false)
-    if (error) {
-      setError("root", { message: traduzirErro(error) })
-      return
-    }
-    await handlePostLogin()
-  }
-
-  // Detecta autofill via evento animationstart disparado pelo CSS abaixo
-  // Só faz auto-submit se AMBOS os campos forem preenchidos pelo gerenciador
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null
-
-    const handleAutofill = (e: AnimationEvent) => {
-      if (e.animationName !== "onAutoFillStart") return
-      autofillCount.current += 1
-      if (autofillCount.current >= 2) {
-        timer = setTimeout(submitFromAutofill, 500)
-      }
-    }
-
-    const emailEl = emailRef.current
-    const passwordEl = passwordRef.current
-    emailEl?.addEventListener("animationstart", handleAutofill as EventListener)
-    passwordEl?.addEventListener("animationstart", handleAutofill as EventListener)
-
-    return () => {
-      emailEl?.removeEventListener("animationstart", handleAutofill as EventListener)
-      passwordEl?.removeEventListener("animationstart", handleAutofill as EventListener)
-      if (timer) clearTimeout(timer)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const isLoading = isSubmitting || isAutoSubmitting
+  const isLoading = isSubmitting
 
   return (
     <div className={cn("min-h-screen md:grid md:grid-cols-2", className)} {...props}>
-      {/* CSS para detecção de autofill via animationstart */}
-      <style>{`
-        @keyframes onAutoFillStart { from {} to {} }
-        input:-webkit-autofill { animation-name: onAutoFillStart; animation-duration: 1ms; }
-      `}</style>
       {/* ── Left brand panel (desktop only) ── */}
       <div className="hidden md:flex flex-col justify-between bg-[#0A1628] text-white p-10 relative overflow-hidden">
         {/* Background glow blobs */}
@@ -219,8 +159,7 @@ export function LoginForm({
                 placeholder="nome@empresa.com.br"
                 autoComplete="email"
                 className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                ref={(el) => { emailRegRef(el); emailRef.current = el }}
-                {...emailRegRest}
+                {...register("email")}
               />
               {errors.email && (
                 <p className="text-xs text-red-500">{errors.email.message}</p>
@@ -237,8 +176,7 @@ export function LoginForm({
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 pr-12"
-                  ref={(el) => { passwordRegRef(el); passwordRef.current = el }}
-                  {...passwordRegRest}
+                  {...register("password")}
                 />
                 <button
                   type="button"
