@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { motion } from "motion/react"
 
 interface LandingNumerosProps {
   totalLicitacoes: number
@@ -83,9 +84,11 @@ function AnimatedStat({
     : `${prefix}${target > 0 ? value.toLocaleString("pt-BR") : "—"}${suffix}`
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
-      className="relative text-center p-8 rounded-2xl border border-blue-500/20 bg-gradient-to-b from-blue-900/10 to-transparent hover:border-blue-500/40 hover:from-blue-900/20 transition-all duration-300 group overflow-hidden"
+      whileHover={{ y: -4, scale: 1.02 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="relative text-center p-8 rounded-2xl border border-blue-500/20 bg-gradient-to-b from-blue-900/10 to-transparent hover:border-blue-500/40 hover:from-blue-900/20 transition-colors duration-300 group overflow-hidden cursor-default"
     >
       <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
         style={{ boxShadow: "inset 0 0 40px rgba(59,130,246,0.06)" }} />
@@ -94,7 +97,7 @@ function AnimatedStat({
       </div>
       <div className="text-base font-semibold text-slate-200 mb-1">{label}</div>
       <div className="text-sm text-slate-500">{sublabel}</div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -108,28 +111,33 @@ export function LandingNumeros({ totalLicitacoes, totalUfs }: LandingNumerosProp
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-12">
-          <p className="text-lg text-slate-400 max-w-xl mx-auto">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5 }}
+            className="text-lg text-slate-400 max-w-xl mx-auto"
+          >
             Plataforma usada por empresas que faturam com o governo
-          </p>
+          </motion.p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          <AnimatedStat
-            target={totalLicitacoes}
-            label="Licitações monitoradas"
-            sublabel="coletadas automaticamente"
-          />
-          <AnimatedStat
-            target={totalUfs}
-            label="UFs cobertas"
-            sublabel="cobertura nacional"
-            staticValue={totalUfs > 0 ? String(totalUfs) : "26+"}
-          />
-          <AnimatedStat
-            target={portais.length}
-            label="Portais integrados"
-            sublabel={portais.map((p) => p.nome).join(" + ")}
-          />
+          {[
+            { target: totalLicitacoes, label: "Licitações monitoradas", sublabel: "coletadas automaticamente", delay: 0 },
+            { target: totalUfs, label: "UFs cobertas", sublabel: "cobertura nacional", staticValue: totalUfs > 0 ? String(totalUfs) : "26+", delay: 0.1 },
+            { target: portais.length, label: "Portais integrados", sublabel: portais.map((p) => p.nome).join(" + "), delay: 0.2 },
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.5, delay: stat.delay }}
+            >
+              <AnimatedStat {...stat} />
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

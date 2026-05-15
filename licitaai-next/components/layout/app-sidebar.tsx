@@ -69,8 +69,8 @@ function NavItem({
         collapsed ? "justify-center px-0" : "gap-3 px-3 pl-[10px]",
         bloqueado ? "opacity-50" : "",
         isActive
-          ? "bg-blue-500/10 text-blue-300 border-l-2 border-blue-500 shadow-[inset_0_0_12px_rgba(37,99,235,0.1)]"
-          : "text-slate-400 hover:bg-white/[0.07] hover:text-white border-l-2 border-transparent"
+          ? "bg-blue-500/10 text-blue-300 border-l-2 border-blue-500 shadow-[inset_0_0_12px_rgba(37,99,235,0.1)] scale-[1.01]"
+          : "text-slate-400 hover:bg-white/[0.07] hover:text-white border-l-2 border-transparent hover:border-white/10"
       )}
     >
       <Icon

@@ -4,6 +4,7 @@ import { getImpersonatingUserId } from "@/lib/impersonation"
 import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck, TrendingUp } from "lucide-react"
 import { GraficoDashboard } from "@/components/domain/grafico-dashboard"
 import { GraficoMonitoramento } from "@/components/domain/grafico-monitoramento"
+import { MetricCards } from "@/components/domain/metric-cards"
 import type { DadosMonitoramento } from "@/components/domain/grafico-monitoramento"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
@@ -443,30 +444,17 @@ export default async function DashboardPage() {
       </div>
 
       {/* Cards de métricas */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        {metricCards.map(({ key, title, description, icon: Icon, iconBg, iconColor, format }) => (
-          <div
-            key={key}
-            className="group relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-sm transition-all hover:shadow-[0_8px_30px_rgba(59,130,246,0.15)] backdrop-blur-[4px]"
-            style={{ background: "rgba(30,41,59,0.7)", border: "1px solid rgba(255,255,255,0.07)" }}
-          >
-            <div className="flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-xs md:text-sm font-medium text-slate-400">{title}</p>
-                <div className={`flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center rounded-2xl shadow-md ${iconBg}`}>
-                  <Icon className={`h-5 w-5 md:h-6 md:w-6 ${iconColor}`} />
-                </div>
-              </div>
-              <div>
-                <p className="text-3xl md:text-4xl font-black tracking-tight text-white">
-                  {format(metrics[key])}
-                </p>
-                <p className="text-[10px] md:text-xs text-slate-500 mt-1 truncate">{description}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <MetricCards
+        cards={metricCards.map(({ key, title, description, icon, iconBg, iconColor, format }) => ({
+          key,
+          title,
+          description,
+          icon,
+          iconBg,
+          iconColor,
+          value: format(metrics[key]),
+        }))}
+      />
 
       {/* Monitoramento financeiro */}
       <GraficoMonitoramento dados={dadosMonitoramento} />

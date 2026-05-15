@@ -46,8 +46,9 @@ export function LandingCTA() {
           <div className="flex flex-col items-center gap-6">
             <Link
               href="/auth/sign-up"
-              className="w-full sm:w-auto inline-flex justify-center items-center gap-3 font-bold px-10 h-16 rounded-2xl text-lg text-white bg-gradient-to-r from-blue-600 to-violet-600 shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:shadow-[0_0_50px_rgba(99,102,241,0.6)] hover:scale-[1.02] active:scale-95 transition-all duration-200 animate-pulse-cta"
+              className="relative overflow-hidden w-full sm:w-auto inline-flex justify-center items-center gap-3 font-bold px-10 h-16 rounded-2xl text-lg text-white bg-gradient-to-r from-blue-600 to-violet-600 shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:shadow-[0_0_50px_rgba(99,102,241,0.6)] hover:scale-[1.02] active:scale-95 transition-all duration-200 animate-pulse-cta"
             >
+              <span className="animate-shimmer absolute inset-0 rounded-2xl" />
               Criar minha conta grátis
               <ArrowRight className="w-6 h-6" />
             </Link>

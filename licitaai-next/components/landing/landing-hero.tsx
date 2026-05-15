@@ -102,8 +102,9 @@ export function LandingHero({ totalLicitacoes = 0 }: { totalLicitacoes?: number 
           >
             <Link
               href="/auth/sign-up"
-              className="w-full sm:w-auto h-14 px-8 inline-flex items-center justify-center rounded-full text-white font-semibold text-lg bg-gradient-to-r from-blue-600 to-violet-600 shadow-[0_4px_20px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_30px_rgba(99,102,241,0.6)] hover:scale-[1.02] transition-all duration-200"
+              className="relative overflow-hidden w-full sm:w-auto h-14 px-8 inline-flex items-center justify-center rounded-full text-white font-semibold text-lg bg-gradient-to-r from-blue-600 to-violet-600 shadow-[0_4px_20px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_30px_rgba(99,102,241,0.6)] hover:scale-[1.02] transition-all duration-200"
             >
+              <span className="animate-shimmer absolute inset-0 rounded-full" />
               Começar gratuitamente
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
