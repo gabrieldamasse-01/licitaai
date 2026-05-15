@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
-import { Building2, FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck, TrendingUp } from "lucide-react"
+import { FileText, Search, AlertTriangle, Clock, ArrowRight, Sparkles, Activity, ClipboardList, ShieldCheck, TrendingUp, Building2 } from "lucide-react"
 import { GraficoDashboard } from "@/components/domain/grafico-dashboard"
 import { GraficoMonitoramento } from "@/components/domain/grafico-monitoramento"
 import { MetricCards } from "@/components/domain/metric-cards"
@@ -383,7 +383,7 @@ const metricCards = [
     key: "totalClientes" as const,
     title: "Clientes Ativos",
     description: "Empresas cadastradas",
-    icon: Building2,
+    icon: "Building2" as const,
     iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
     iconColor: "text-white",
     format: (v: number) => v.toLocaleString("pt-BR"),
@@ -392,7 +392,7 @@ const metricCards = [
     key: "licitacoesSalvas" as const,
     title: "Licitações Salvas",
     description: "Total de matches",
-    icon: Search,
+    icon: "Search" as const,
     iconBg: "bg-gradient-to-br from-emerald-400 to-emerald-500",
     iconColor: "text-white",
     format: (v: number) => v.toLocaleString("pt-BR"),
@@ -401,7 +401,7 @@ const metricCards = [
     key: "documentosVencendo" as const,
     title: "Docs. Vencendo",
     description: "Vencem em 30 dias",
-    icon: Clock,
+    icon: "Clock" as const,
     iconBg: "bg-gradient-to-br from-amber-400 to-amber-500",
     iconColor: "text-white",
     format: (v: number) => v.toLocaleString("pt-BR"),
@@ -410,7 +410,7 @@ const metricCards = [
     key: "documentosExpirados" as const,
     title: "Docs. Expirados",
     description: "Requer renovação",
-    icon: AlertTriangle,
+    icon: "AlertTriangle" as const,
     iconBg: "bg-gradient-to-br from-red-400 to-red-500",
     iconColor: "text-white",
     format: (v: number) => v.toLocaleString("pt-BR"),

@@ -1,12 +1,21 @@
 "use client"
 
-import { Building2, Search, Clock, AlertTriangle, type LucideIcon } from "lucide-react"
+import { Building2, Search, Clock, AlertTriangle } from "lucide-react"
+
+const ICON_MAP = {
+  Building2,
+  Search,
+  Clock,
+  AlertTriangle,
+} as const
+
+type IconKey = keyof typeof ICON_MAP
 
 interface MetricCard {
   key: string
   title: string
   description: string
-  icon: LucideIcon
+  icon: IconKey
   iconBg: string
   iconColor: string
   value: string
@@ -17,7 +26,9 @@ const staggerClasses = ["stagger-1", "stagger-2", "stagger-3", "stagger-4"]
 export function MetricCards({ cards }: { cards: MetricCard[] }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-      {cards.map(({ key, title, description, icon: Icon, iconBg, iconColor, value }, i) => (
+      {cards.map(({ key, title, description, icon, iconBg, iconColor, value }, i) => {
+        const Icon = ICON_MAP[icon]
+        return (
         <div
           key={key}
           className={`group relative overflow-hidden rounded-2xl p-4 md:p-5 shadow-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgba(59,130,246,0.18)] hover:-translate-y-0.5 backdrop-blur-[4px] animate-fade-in-up ${staggerClasses[i] ?? ""}`}
@@ -42,7 +53,8 @@ export function MetricCards({ cards }: { cards: MetricCard[] }) {
             </div>
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
