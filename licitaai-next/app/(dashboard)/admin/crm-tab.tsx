@@ -12,8 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Send, Loader2, CheckCircle2, Users, TrendingUp, UserPlus } from "lucide-react"
+import { Send, Loader2, CheckCircle2, Undo2, Users, TrendingUp, UserPlus } from "lucide-react"
 import { toast } from "sonner"
+
+function limparMarkdown(texto: string): string {
+  return texto
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/#{1,6}\s/g, "")
+    .trim()
+}
 
 type Lead = {
   id: string
@@ -54,6 +62,7 @@ export function CrmTab({ leads: leadsInicial }: { leads: Lead[] }) {
   const [loadingConversas, setLoadingConversas] = useState(false)
   const [inputMsg, setInputMsg] = useState("")
   const [isPending, startTransition] = useTransition()
+  const [confirmDesfazer, setConfirmDesfazer] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -126,6 +135,29 @@ export function CrmTab({ leads: leadsInicial }: { leads: Lead[] }) {
           )
           setLeadSelecionado((prev) => prev ? { ...prev, status: "convertido" } : prev)
           toast.success("Lead marcado como convertido!")
+        }
+      } catch {
+        toast.error("Erro ao atualizar status")
+      }
+    })
+  }
+
+  async function desfazerConversao() {
+    if (!leadSelecionado) return
+    setConfirmDesfazer(false)
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/admin/crm/status", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lead_id: leadSelecionado.id, status: "interessado" }),
+        })
+        if (res.ok) {
+          setLeads((prev) =>
+            prev.map((l) => l.id === leadSelecionado.id ? { ...l, status: "interessado" } : l)
+          )
+          setLeadSelecionado((prev) => prev ? { ...prev, status: "interessado" } : prev)
+          toast.success("Conversão desfeita.")
         }
       } catch {
         toast.error("Erro ao atualizar status")
@@ -252,15 +284,48 @@ export function CrmTab({ leads: leadsInicial }: { leads: Lead[] }) {
                   {STATUS_CONFIG[leadSelecionado.status]?.label ?? leadSelecionado.status}
                 </Badge>
               </div>
-              <Button
-                size="sm"
-                disabled={isPending || leadSelecionado.status === "convertido"}
-                onClick={marcarConvertido}
-                className="h-7 text-xs bg-green-600/20 text-green-300 border border-green-600/30 hover:bg-green-600/30"
-              >
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Convertido
-              </Button>
+              {leadSelecionado.status === "convertido" ? (
+                confirmDesfazer ? (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-slate-400">Confirmar?</span>
+                    <Button
+                      size="sm"
+                      disabled={isPending}
+                      onClick={desfazerConversao}
+                      className="h-6 text-xs px-2 bg-red-600/20 text-red-300 border border-red-600/30 hover:bg-red-600/30"
+                    >
+                      Sim
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setConfirmDesfazer(false)}
+                      className="h-6 text-xs px-2 bg-slate-700/40 text-slate-300 border border-slate-600/30 hover:bg-slate-700/60"
+                    >
+                      Não
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() => setConfirmDesfazer(true)}
+                    className="h-7 text-xs bg-slate-700/40 text-slate-300 border border-slate-600/30 hover:bg-slate-700/60"
+                  >
+                    <Undo2 className="h-3 w-3 mr-1" />
+                    Desfazer
+                  </Button>
+                )
+              ) : (
+                <Button
+                  size="sm"
+                  disabled={isPending}
+                  onClick={marcarConvertido}
+                  className="h-7 text-xs bg-green-600/20 text-green-300 border border-green-600/30 hover:bg-green-600/30"
+                >
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Convertido
+                </Button>
+              )}
             </div>
 
             {/* Mensagens */}
@@ -282,7 +347,7 @@ export function CrmTab({ leads: leadsInicial }: { leads: Lead[] }) {
                           : { background: "rgba(15,25,45,0.8)", color: "#cbd5e1", border: "1px solid rgba(255,255,255,0.06)" }
                       }
                     >
-                      {c.conteudo}
+                      {limparMarkdown(c.conteudo)}
                     </div>
                   </div>
                 ))
