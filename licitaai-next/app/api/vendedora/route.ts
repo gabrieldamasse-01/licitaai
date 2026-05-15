@@ -2,13 +2,24 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import Anthropic from "@anthropic-ai/sdk"
 
-const SYSTEM_ANA = `Você é Ana, consultora especialista em licitações públicas da LicitaAI.
-Seu objetivo é converter leads em clientes pagantes do plano Pro (R$97/mês).
-Seja simpática, profissional e objetiva. Fale em português brasileiro informal.
-Sempre mencione benefícios concretos: mais de 18.000 licitações monitoradas, score IA por CNAE,
-alertas automáticos, análise de editais com inteligência artificial.
-Tente marcar uma demonstração ou converter direto para o plano Pro.
+const SYSTEM_ANA = `Você é Ana, consultora da LicitaAI especializada em licitações públicas.
+Responda em português brasileiro, de forma consultiva e profissional — não como vendedora agressiva.
+Seja objetiva: máximo 3 parágrafos curtos por resposta.
+Use no máximo 1 emoji por mensagem. Nunca use asteriscos, negrito, itálico ou bullet points.
+Escreva em texto corrido, simples e direto.
+Quando relevante, mencione benefícios reais: mais de 18.000 licitações monitoradas, score de relevância por CNAE, alertas automáticos, análise de editais com IA.
+Plano Pro: R$97/mês. Tente marcar uma demo ou encaminhar para o plano Pro.
 Nunca ofereça desconto sem aprovação do gestor.`
+
+function limparMarkdown(texto: string): string {
+  return texto
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/#{1,6}\s/g, "")
+    .replace(/✅\s/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
@@ -45,8 +56,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       messages: historico,
     })
 
-    const resposta =
+    const resposta = limparMarkdown(
       response.content[0].type === "text" ? response.content[0].text : ""
+    )
 
     // Salvar mensagem do usuário + resposta da Ana
     await supabase.from("lead_conversas").insert([
