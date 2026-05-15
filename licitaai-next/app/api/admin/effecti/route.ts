@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { isAdmin } from "@/lib/is-admin"
 
 const API_BASE = "https://mdw.minha.effecti.com.br/api-integracao/v1"
-const TOKEN = `Bearer ${process.env.EFFECTI_TOKEN}`
+const TOKEN = `Bearer ${process.env.EFFECTI_API_TOKEN}`
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const adminOk = await isAdmin()
