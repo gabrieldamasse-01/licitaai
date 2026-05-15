@@ -33,9 +33,11 @@ export function LoginForm({
 
   async function handlePostLogin() {
     const r = await fetch("/api/auth/check-2fa")
+    if (!r.ok) throw new Error(`check-2fa falhou: ${r.status}`)
     const { twoFactorEnabled } = await r.json() as { twoFactorEnabled: boolean }
     if (twoFactorEnabled) {
       const otpRes = await fetch("/api/auth/send-otp", { method: "POST" })
+      if (!otpRes.ok) throw new Error(`send-otp falhou: ${otpRes.status}`)
       const otpJson = await otpRes.json() as { ok?: boolean; error?: string; detail?: string }
       if (!otpJson.ok) {
         setErrorMsg(`Erro ao enviar código 2FA: ${otpJson.detail ?? otpJson.error}`)
@@ -67,14 +69,19 @@ export function LoginForm({
     if (!valid) return
 
     setIsLoading(true)
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setErrorMsg(traduzirErro(error))
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setErrorMsg(traduzirErro(error))
+        return
+      }
+      await handlePostLogin()
+    } catch {
+      setErrorMsg("Erro inesperado. Tente novamente.")
+    } finally {
       setIsLoading(false)
-      return
     }
-    await handlePostLogin()
   }
 
   return (

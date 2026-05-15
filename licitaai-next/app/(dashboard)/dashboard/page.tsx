@@ -311,45 +311,57 @@ async function getDadosMonitoramento(userId: string | null): Promise<DadosMonito
 // ─── Entrevista de perfil ─────────────────────────────────────────────────────
 
 async function getEntrevistaConcluida(userId: string | null): Promise<boolean> {
-  if (userId) {
-    const { data } = await createServiceClient()
+  try {
+    if (userId) {
+      const { data, error } = await createServiceClient()
+        .from("entrevistas_onboarding")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "concluida")
+        .limit(1)
+        .maybeSingle()
+      if (error) return false
+      return data !== null
+    }
+    const supabase = await createClient()
+    const { data, error } = await supabase
       .from("entrevistas_onboarding")
       .select("id")
-      .eq("user_id", userId)
       .eq("status", "concluida")
       .limit(1)
       .maybeSingle()
+    if (error) return false
     return data !== null
+  } catch {
+    return false
   }
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("entrevistas_onboarding")
-    .select("id")
-    .eq("status", "concluida")
-    .limit(1)
-    .maybeSingle()
-  return data !== null
 }
 
 // ─── Perfil validado ──────────────────────────────────────────────────────────
 
 async function getPerfilValidado(userId: string | null): Promise<boolean> {
-  if (userId) {
-    const { data } = await createServiceClient()
+  try {
+    if (userId) {
+      const { data, error } = await createServiceClient()
+        .from("perfis_validados")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle()
+      if (error) return false
+      return data !== null
+    }
+    const supabase = await createClient()
+    const { data, error } = await supabase
       .from("perfis_validados")
       .select("id")
-      .eq("user_id", userId)
       .limit(1)
       .maybeSingle()
+    if (error) return false
     return data !== null
+  } catch {
+    return false
   }
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("perfis_validados")
-    .select("id")
-    .limit(1)
-    .maybeSingle()
-  return data !== null
 }
 
 // ─── Engajamento ──────────────────────────────────────────────────────────────
@@ -411,14 +423,14 @@ export default async function DashboardPage() {
   const impersonatingUserId = await getImpersonatingUserId()
 
   const [metrics, matchesPorMes, documentosVencendo, ultimasOportunidades, engajamento, entrevistaConcluida, perfilValidado, dadosMonitoramento] = await Promise.all([
-    getMetrics(impersonatingUserId),
-    getMatchesPorMes(impersonatingUserId),
-    getDocumentosVencendo(impersonatingUserId),
-    getUltimasOportunidades(impersonatingUserId),
-    getEngajamento(impersonatingUserId),
+    getMetrics(impersonatingUserId).catch(() => ({ totalClientes: 0, licitacoesSalvas: 0, documentosVencendo: 0, documentosExpirados: 0, valorTotal: 0 })),
+    getMatchesPorMes(impersonatingUserId).catch(() => [] as { mes: string; total: number }[]),
+    getDocumentosVencendo(impersonatingUserId).catch(() => []),
+    getUltimasOportunidades(impersonatingUserId).catch(() => []),
+    getEngajamento(impersonatingUserId).catch(() => ({ visualizadas: 0, salvas: 0, docsPct: 0, notifHorario: "—" })),
     getEntrevistaConcluida(impersonatingUserId),
     getPerfilValidado(impersonatingUserId),
-    getDadosMonitoramento(impersonatingUserId),
+    getDadosMonitoramento(impersonatingUserId).catch(() => ({ valorTotalMonitorado: 0, totalLicitacoesArea: 0, totalLicitacoesSalvas: 0, barras: [], pizza: [{ area: "Sem dados", valor: 1, cor: "#475569" }] })),
   ])
 
   return (
