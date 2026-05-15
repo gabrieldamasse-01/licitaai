@@ -1,10 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { fetchLicitacoes } from "./actions"
 import { LicitacoesClient } from "./licitacoes-client"
+import { getUserPlan } from "@/lib/get-user-plan"
+import { isPlanoPago } from "@/lib/plans"
 
 export default async function LicitacoesPage() {
-  const supabase = await createClient()
+  const [supabase, plano] = await Promise.all([createClient(), getUserPlan()])
   const { data: { user } } = await supabase.auth.getUser()
+  const isGratuito = !isPlanoPago(plano)
 
   const [dadosIniciais, prefsResult] = await Promise.all([
     fetchLicitacoes({ pagina: 0 }),
@@ -22,5 +25,5 @@ export default async function LicitacoesPage() {
     ? prefsResult.data.keywords
     : []
 
-  return <LicitacoesClient dadosIniciais={dadosIniciais} userKeywords={userKeywords} />
+  return <LicitacoesClient dadosIniciais={dadosIniciais} userKeywords={userKeywords} isGratuito={isGratuito} />
 }

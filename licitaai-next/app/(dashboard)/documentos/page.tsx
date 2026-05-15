@@ -1,7 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { DocumentosClient } from "./documentos-client"
+import { getUserPlan } from "@/lib/get-user-plan"
+import { PlanoBloqueado } from "@/components/plano-bloqueado"
+import { isPlanoPago } from "@/lib/plans"
 
 export default async function DocumentosPage() {
+  const plano = await getUserPlan()
+  if (!isPlanoPago(plano)) return <PlanoBloqueado recurso="Documentos" />
+
   const supabase = await createClient()
 
   const [{ data: documents }, { data: companies }, { data: documentTypes }] =

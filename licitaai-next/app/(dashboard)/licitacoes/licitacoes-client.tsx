@@ -362,7 +362,7 @@ function Paginacao({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIniciais: FetchResult; userKeywords?: string[] }) {
+export function LicitacoesClient({ dadosIniciais, userKeywords = [], isGratuito = false }: { dadosIniciais: FetchResult; userKeywords?: string[]; isGratuito?: boolean }) {
   const [dados, setDados] = useState<FetchResult>(dadosIniciais)
   const [dataInicio, setDataInicio] = useState("")
   const [dataFim, setDataFim] = useState("")
@@ -794,7 +794,7 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
           {/* Cards */}
           {!isPending && dados.licitacoes.length > 0 && (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {dados.licitacoes.map((lic) => (
+              {(isGratuito ? dados.licitacoes.slice(0, 10) : dados.licitacoes).map((lic) => (
                 <LicitacaoCard
                   key={`${lic.idLicitacao}-${lic.processo}`}
                   lic={lic}
@@ -807,8 +807,26 @@ export function LicitacoesClient({ dadosIniciais, userKeywords = [] }: { dadosIn
             </div>
           )}
 
+          {/* Banner upgrade — plano gratuito */}
+          {isGratuito && !isPending && dados.licitacoes.length > 0 && (
+            <div className="rounded-xl p-5 text-center" style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(59,130,246,0.2)" }}>
+              <p className="text-sm font-semibold text-white mb-1">
+                Exibindo 10 de {dados.pagination?.total_registros?.toLocaleString("pt-BR") ?? "muitas"} licitações
+              </p>
+              <p className="text-xs text-slate-400 mb-4">
+                Faça upgrade para o Plano Pro e acesse todas as licitações sem limite.
+              </p>
+              <a
+                href="/#planos"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 hover:scale-[1.02] transition-all"
+              >
+                Ver planos — a partir de R$97/mês
+              </a>
+            </div>
+          )}
+
           {/* Paginação */}
-          {!isPending && totalPaginas > 1 && (
+          {!isPending && !isGratuito && totalPaginas > 1 && (
             <Paginacao
               pagina={paginaAtual}
               total={totalPaginas}

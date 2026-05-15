@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import { getUserPlan } from "@/lib/get-user-plan"
+import { PlanoBloqueado } from "@/components/plano-bloqueado"
+import { isPlanoPago } from "@/lib/plans"
 import {
   Users,
   Target,
@@ -91,6 +94,9 @@ function diasRestantes(dataValidade: string): number {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function RelatoriosPage() {
+  const plano = await getUserPlan()
+  if (!isPlanoPago(plano)) return <PlanoBloqueado recurso="Relatórios" />
+
   const supabase = await createClient()
   const {
     data: { user },

@@ -18,17 +18,19 @@ import {
   ChevronRight,
   Shield,
   UserCircle,
+  Lock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import { type Plano, isPlanoPago } from "@/lib/plans"
 
 const mainNav = [
-  { href: "/dashboard",    label: "Dashboard",    icon: LayoutDashboard, iconColor: "text-blue-400" },
-  { href: "/clientes",     label: "Clientes",     icon: Building2,       iconColor: "text-blue-400" },
-  { href: "/documentos",   label: "Documentos",   icon: FileText,        iconColor: "text-amber-400" },
-  { href: "/licitacoes",   label: "Licitações",   icon: Search,          iconColor: "text-emerald-400" },
-  { href: "/oportunidades",label: "Oportunidades",icon: Target,          iconColor: "text-blue-400" },
-  { href: "/relatorios",   label: "Relatórios",   icon: BarChart3,       iconColor: "text-cyan-400" },
+  { href: "/dashboard",    label: "Dashboard",    icon: LayoutDashboard, iconColor: "text-blue-400",    requerPro: false },
+  { href: "/clientes",     label: "Clientes",     icon: Building2,       iconColor: "text-blue-400",    requerPro: false },
+  { href: "/documentos",   label: "Documentos",   icon: FileText,        iconColor: "text-amber-400",   requerPro: true  },
+  { href: "/licitacoes",   label: "Licitações",   icon: Search,          iconColor: "text-emerald-400", requerPro: false },
+  { href: "/oportunidades",label: "Oportunidades",icon: Target,          iconColor: "text-blue-400",    requerPro: true  },
+  { href: "/relatorios",   label: "Relatórios",   icon: BarChart3,       iconColor: "text-cyan-400",    requerPro: true  },
 ]
 
 const secondaryNav = [
@@ -43,6 +45,7 @@ function NavItem({
   icon: Icon,
   iconColor,
   collapsed,
+  bloqueado = false,
   onNavigate,
 }: {
   href: string
@@ -50,6 +53,7 @@ function NavItem({
   icon: React.ElementType
   iconColor: string
   collapsed: boolean
+  bloqueado?: boolean
   onNavigate?: () => void
 }) {
   const pathname = usePathname()
@@ -59,10 +63,11 @@ function NavItem({
     <Link
       href={href}
       onClick={onNavigate}
-      title={collapsed ? label : undefined}
+      title={collapsed ? (bloqueado ? `${label} — Plano Pro` : label) : undefined}
       className={cn(
         "group flex items-center mx-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-h-[44px]",
         collapsed ? "justify-center px-0" : "gap-3 px-3 pl-[10px]",
+        bloqueado ? "opacity-50" : "",
         isActive
           ? "bg-blue-500/10 text-blue-300 border-l-2 border-blue-500 shadow-[inset_0_0_12px_rgba(37,99,235,0.1)]"
           : "text-slate-400 hover:bg-white/[0.07] hover:text-white border-l-2 border-transparent"
@@ -74,7 +79,12 @@ function NavItem({
           isActive ? "text-blue-400 drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]" : `${iconColor} group-hover:text-blue-300 group-hover:drop-shadow-[0_0_6px_rgba(59,130,246,0.5)]`
         )}
       />
-      {!collapsed && <span className="truncate font-medium">{label}</span>}
+      {!collapsed && (
+        <span className="truncate font-medium flex-1">{label}</span>
+      )}
+      {!collapsed && bloqueado && (
+        <Lock className="h-3 w-3 text-slate-600 shrink-0" />
+      )}
     </Link>
   )
 }
@@ -91,7 +101,8 @@ function getInitial(email: string): string {
   return getFirstName(email).charAt(0).toUpperCase()
 }
 
-export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?: string; isAdmin?: boolean; onNavigate?: () => void }) {
+export function AppSidebar({ email = "", isAdmin = false, plano = "gratuito", onNavigate }: { email?: string; isAdmin?: boolean; plano?: Plano; onNavigate?: () => void }) {
+  const planoPago = isPlanoPago(plano)
   const router = useRouter()
   const firstName = getFirstName(email)
   const initial = getInitial(email)
@@ -181,7 +192,13 @@ export function AppSidebar({ email = "", isAdmin = false, onNavigate }: { email?
         )}
 
         {mainNav.map((item) => (
-          <NavItem key={item.href} {...item} collapsed={collapsed} onNavigate={onNavigate} />
+          <NavItem
+            key={item.href}
+            {...item}
+            collapsed={collapsed}
+            bloqueado={item.requerPro && !planoPago}
+            onNavigate={onNavigate}
+          />
         ))}
 
         {/* Separador */}

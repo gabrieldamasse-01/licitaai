@@ -1,8 +1,14 @@
 import { createClient } from "@/lib/supabase/server"
 import { OportunidadesClient } from "./oportunidades-client"
 import type { Empresa } from "./actions"
+import { getUserPlan } from "@/lib/get-user-plan"
+import { PlanoBloqueado } from "@/components/plano-bloqueado"
+import { isPlanoPago } from "@/lib/plans"
 
 export default async function OportunidadesPage() {
+  const plano = await getUserPlan()
+  if (!isPlanoPago(plano)) return <PlanoBloqueado recurso="Oportunidades" />
+
   const supabase = await createClient()
   const {
     data: { user },

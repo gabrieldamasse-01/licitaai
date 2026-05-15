@@ -2,8 +2,14 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { getImpersonatingUserId } from "@/lib/impersonation"
 import { PropostasClient } from "./propostas-client"
+import { getUserPlan } from "@/lib/get-user-plan"
+import { PlanoBloqueado } from "@/components/plano-bloqueado"
+import { isPlanoPago } from "@/lib/plans"
 
 export default async function PropostasPage() {
+  const plano = await getUserPlan()
+  if (!isPlanoPago(plano)) return <PlanoBloqueado recurso="Propostas" />
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

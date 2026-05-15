@@ -11,6 +11,8 @@ import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { getImpersonationContext } from "@/lib/impersonation"
 import { OnboardingTour } from "@/components/onboarding-tour"
 import { PwaRegister } from "@/components/pwa-register"
+import { getUserPlan } from "@/lib/get-user-plan"
+import { isPlanoPago } from "@/lib/plans"
 
 export default async function DashboardLayout({
   children,
@@ -26,10 +28,11 @@ export default async function DashboardLayout({
     redirect("/auth/login")
   }
 
-  // Verifica permissão admin e impersonação em paralelo
-  const [adminOk, { impersonatingUserId, impersonatedEmail }] = await Promise.all([
+  // Verifica permissão admin, impersonação e plano em paralelo
+  const [adminOk, { impersonatingUserId, impersonatedEmail }, plano] = await Promise.all([
     isAdmin(),
     getImpersonationContext(),
+    getUserPlan(),
   ])
 
   // Redirecionar para onboarding se não tiver empresa cadastrada
@@ -53,7 +56,7 @@ export default async function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Sidebar desktop */}
       <div className="hidden md:flex md:shrink-0">
-        <AppSidebar email={user.email ?? ""} isAdmin={adminOk} />
+        <AppSidebar email={user.email ?? ""} isAdmin={adminOk} plano={plano} />
       </div>
 
       {/* Área principal */}
@@ -65,9 +68,18 @@ export default async function DashboardLayout({
         </div>
         <MobileHeader email={user.email ?? ""} userId={user.id} />
 
-        {/* Banner: impersonação OU beta */}
+        {/* Banner: impersonação OU upgrade OU beta */}
         {isImpersonating ? (
           <ImpersonationBanner email={impersonatedEmail!} />
+        ) : !isPlanoPago(plano) ? (
+          <div className="shrink-0 px-4 py-2 flex items-center justify-center gap-3 backdrop-blur-sm border-b" style={{ background: "rgba(234,179,8,0.07)", borderColor: "rgba(234,179,8,0.15)" }}>
+            <p className="text-xs text-slate-300">
+              Plano gratuito — acesso limitado.{" "}
+              <Link href="/#planos" className="text-yellow-400 hover:text-yellow-300 font-semibold underline underline-offset-2">
+                Fazer upgrade para o Pro
+              </Link>
+            </p>
+          </div>
         ) : (
           <div className="shrink-0 px-4 py-2 flex items-center justify-center gap-3 backdrop-blur-sm border-b" style={{ background: "rgba(37,99,235,0.08)", borderColor: "rgba(59,130,246,0.15)" }}>
             <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-400">
