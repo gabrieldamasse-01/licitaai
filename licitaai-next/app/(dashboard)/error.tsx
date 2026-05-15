@@ -11,6 +11,8 @@ interface DashboardErrorProps {
 }
 
 export default function DashboardError({ error, reset }: DashboardErrorProps) {
+  // Log no console do browser para diagnóstico — visível em DevTools
+  console.error("[DashboardError]", error);
   const isAuthError = error.message.includes("auth") || error.message.includes("session");
 
   return (
@@ -28,10 +30,13 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
             {isAuthError ? "Acesso Negado" : "Erro no Dashboard"}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isAuthError 
+            {isAuthError
               ? "Você precisa estar logado para acessar esta área."
               : "Erro ao carregar dashboard. Tente novamente."
             }
+            {process.env.NODE_ENV !== "production" && error.message && (
+              <span className="block mt-2 text-xs text-red-400 font-mono break-all">{error.message}</span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-2">

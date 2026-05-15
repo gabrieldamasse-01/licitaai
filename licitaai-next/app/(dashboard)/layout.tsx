@@ -30,9 +30,9 @@ export default async function DashboardLayout({
 
   // Verifica permissão admin, impersonação e plano em paralelo
   const [adminOk, { impersonatingUserId, impersonatedEmail }, plano] = await Promise.all([
-    isAdmin(),
-    getImpersonationContext(),
-    getUserPlan(),
+    isAdmin().catch((e) => { console.error("[layout] isAdmin error:", e); return false }),
+    getImpersonationContext().catch((e) => { console.error("[layout] getImpersonationContext error:", e); return { impersonatingUserId: null, impersonatedEmail: null } }),
+    getUserPlan().catch((e) => { console.error("[layout] getUserPlan error:", e); return "gratuito" as const }),
   ])
 
   // Redirecionar para onboarding se não tiver empresa cadastrada

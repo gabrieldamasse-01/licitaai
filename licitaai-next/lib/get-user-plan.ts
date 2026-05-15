@@ -8,19 +8,23 @@ import { normalizarPlano, type Plano } from "@/lib/plans"
 import { isAdmin } from "@/lib/is-admin"
 
 export async function getUserPlan(): Promise<Plano> {
-  const adminOk = await isAdmin()
-  if (adminOk) return "pro"
+  try {
+    const adminOk = await isAdmin()
+    if (adminOk) return "pro"
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return "gratuito"
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return "gratuito"
 
-  const service = createServiceClient()
-  const { data } = await service
-    .from("user_preferences")
-    .select("plano")
-    .eq("user_id", user.id)
-    .maybeSingle()
+    const service = createServiceClient()
+    const { data } = await service
+      .from("user_preferences")
+      .select("plano")
+      .eq("user_id", user.id)
+      .maybeSingle()
 
-  return normalizarPlano(data?.plano)
+    return normalizarPlano(data?.plano)
+  } catch {
+    return "gratuito"
+  }
 }
