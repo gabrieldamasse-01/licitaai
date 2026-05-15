@@ -7,19 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { Scale, Loader2, TrendingUp, Shield, Zap, Eye, EyeOff } from "lucide-react"
 import { traduzirErro } from "@/lib/auth-errors"
 import { useState } from "react"
-
-const loginSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-})
-
-type LoginData = z.infer<typeof loginSchema>
 
 const highlights = [
   { icon: TrendingUp, text: "15.000+ licitações monitoradas por mês" },
@@ -32,26 +22,23 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter()
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginData>({
-    resolver: zodResolver(loginSchema),
-  })
 
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
 
   async function handlePostLogin() {
-    // Verifica se o usuário tem 2FA ativado
     const r = await fetch("/api/auth/check-2fa")
     const { twoFactorEnabled } = await r.json() as { twoFactorEnabled: boolean }
     if (twoFactorEnabled) {
       const otpRes = await fetch("/api/auth/send-otp", { method: "POST" })
       const otpJson = await otpRes.json() as { ok?: boolean; error?: string; detail?: string }
       if (!otpJson.ok) {
-        setError("root", { message: `Erro ao enviar código 2FA: ${otpJson.detail ?? otpJson.error}` })
+        setErrorMsg(`Erro ao enviar código 2FA: ${otpJson.detail ?? otpJson.error}`)
         return
       }
       router.push("/auth/verify-2fa")
@@ -60,20 +47,35 @@ export function LoginForm({
     }
   }
 
-  const onSubmit = async (data: LoginData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isLoading) return
+
+    setErrorMsg("")
+    setEmailError("")
+    setPasswordError("")
+
+    let valid = true
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError("E-mail inválido")
+      valid = false
+    }
+    if (!password || password.length < 6) {
+      setPasswordError("Senha deve ter pelo menos 6 caracteres")
+      valid = false
+    }
+    if (!valid) return
+
+    setIsLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError("root", { message: traduzirErro(error) })
+      setErrorMsg(traduzirErro(error))
+      setIsLoading(false)
       return
     }
     await handlePostLogin()
   }
-
-  const isLoading = isSubmitting
 
   return (
     <div className={cn("min-h-screen md:grid md:grid-cols-2", className)} {...props}>
@@ -148,7 +150,7 @@ export function LoginForm({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-sm font-medium text-slate-700">
                 E-mail
@@ -159,10 +161,11 @@ export function LoginForm({
                 placeholder="nome@empresa.com.br"
                 autoComplete="email"
                 className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                {...register("email")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              {errors.email && (
-                <p className="text-xs text-red-500">{errors.email.message}</p>
+              {emailError && (
+                <p className="text-xs text-red-500">{emailError}</p>
               )}
             </div>
 
@@ -176,7 +179,8 @@ export function LoginForm({
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   className="h-12 text-base rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 pr-12"
-                  {...register("password")}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
@@ -196,14 +200,14 @@ export function LoginForm({
                   Esqueceu sua senha?
                 </Link>
               </div>
-              {errors.password && (
-                <p className="text-xs text-red-500">{errors.password.message}</p>
+              {passwordError && (
+                <p className="text-xs text-red-500">{passwordError}</p>
               )}
             </div>
 
-            {errors.root && (
+            {errorMsg && (
               <div className="rounded-lg bg-red-50 border border-red-100 px-4 py-3">
-                <p className="text-sm text-red-600">{errors.root.message}</p>
+                <p className="text-sm text-red-600">{errorMsg}</p>
               </div>
             )}
 
