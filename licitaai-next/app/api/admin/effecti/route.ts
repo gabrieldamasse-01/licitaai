@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { isAdmin } from "@/lib/is-admin"
 
 const API_BASE = "https://mdw.minha.effecti.com.br/api-integracao/v1"
-const TOKEN =
-  "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvIiwiYXVkIjpbImh0dHA6Ly9sb2NhbC5hcGkuZWZmZWN0aS5jb20uYnIiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwic3ViIjoxNzc0NzM5NDAyNzYyLCJjb21wYW55Ijo3NDk3MywicHJvZmlsZXMiOls5MjEyXSwiY2FkYXN0cmFyTWlncmF0ZWQiOmZhbHNlfQ.JG2kQiNg-KcI_q7s7w9Ha0yRJcE3fMNoAs-ad19CLMY"
+const TOKEN = `Bearer ${process.env.EFFECTI_TOKEN}`
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const adminOk = await isAdmin()
