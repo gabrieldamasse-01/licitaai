@@ -178,8 +178,7 @@ export function PerfilClient({
 
       const { error: dbErr } = await supabase
         .from('user_preferences')
-        .update({ avatar_url: data.publicUrl })
-        .eq('user_id', user.id)
+        .upsert({ user_id: user.id, avatar_url: data.publicUrl }, { onConflict: 'user_id' })
       if (dbErr) throw dbErr
 
       setAvatarUrl(publicUrl)
