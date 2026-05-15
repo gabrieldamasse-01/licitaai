@@ -39,7 +39,6 @@ export function LoginForm({
     formState: { errors, isSubmitting },
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
-    mode: "onBlur",
   })
 
   // Refs para detecção de autofill do browser
